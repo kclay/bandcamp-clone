@@ -1,0 +1,29 @@
+@(signupFrom:Form[Signup])
+@import helper._
+@import helpers.twitterBootstrapCustom._
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
+@nav={
+@artist.header()
+}
+
+@main("Signup",nav){
+
+@helper.form(action = routes.Application.validateSignup,'class->"form-horizontal") {
+@inputText(
+signupFrom("username"),
+'_label -> "Username",'_showConstraints -> false
+)
+
+@inputPassword(signupFrom("password"),'_label->"Password",'_showConstraints -> false)
+@inputText(signupFrom("email"),'_label->"Email",'_showConstraints ->false)
+@inputText(signupFrom("name"),'_label->"Artist/Band name",'_showConstraints->false)
+@checkbox(signupFrom("accept"),'_label->None,'_text->"I have read and agree to the Terms of Use",'_showConstraints->false)
+<div class="control-group">
+    <div class="controls">
+        <input type="submit" value="Sign Up for BulaBowl" class="btn btn-primary btn-large"/>
+    </div>
+</div>
+}
+}
+
+

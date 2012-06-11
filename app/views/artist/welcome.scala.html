@@ -1,0 +1,14 @@
+@(welcomeForm:Form[Welcome],genres:Seq[(String,String)])
+@import helper._
+@import helpers.twitterBootstrapCustom._
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
+
+@main("Welcome"){
+@helper.form(action=routes.Artists.welcome,'class->"form-horizontal"){
+
+@select(welcomeForm("genre"),genres)
+@select
+
+}
+
+}

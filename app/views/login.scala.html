@@ -1,0 +1,15 @@
+@(loginForm: Form[Option[Account]])
+@import helper._
+@import helper.twitterBootstrap._
+@nav={
+    @artist.header()
+}
+@main("Login",nav){
+
+    @helper.form(action = routes.Application.login) {
+    @inputText(loginForm("username"))
+
+    @inputPassword(loginForm("password"))
+    }
+
+}
