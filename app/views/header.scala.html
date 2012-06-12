@@ -1,3 +1,5 @@
+@()(implicit request: play.api.mvc.RequestHeader)
+@import utils._
 <a class="brand pull-left" href="/"><img src="/assets/images/nav_logo.png"/></a>
 <div class="navbar pull-right">
     <div class="navbar-inner">
@@ -10,6 +12,9 @@
                 <li><a href="@routes.Artists.list()">Artists</a></li>
                 <li><a href="@routes.Application.page(" faqs")>Faqs</a></li>
                 <li><a href="@routes.Application.page(" blog")">Blog</a></li>
+                @if(SessionHelper.authenticated){
+                <li><a href="@routes.Application.logout()">Logout</a></li>
+                }
             </ul>
         </div>
     </div>

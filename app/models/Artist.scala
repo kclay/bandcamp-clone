@@ -22,6 +22,7 @@ import java.security.spec.KeySpec;
 import java.security.Key;
 import javax.crypto.spec.{SecretKeySpec, PBEKeySpec}
 import utils.PasswordEncoder
+import play.api.Logger
 
 
 // Import the query language
@@ -38,11 +39,10 @@ import org.scalaquery.ql.extended.H2Driver.Implicit._
 import org.scalaquery.ql.extended.{ExtendedTable => Table}
 
 
+case class Artist(id: Long, username: String, password: String, email: String, name: String, domain: String, permission: Permission = NormalUser, activated: Boolean = false)
 
-case class Account(id: Long = 0, name: String, password: String, email: String, domain: String, permission: Permission = NormalUser)
 
-
-/*object Account$ extends Table[(Long,String,String,String,Option[Permission],String]{
+/*object Artist$ extends Table[(Long,String,String,String,Option[Permission],String]{
 
 }*/
 
@@ -74,7 +74,22 @@ object Genres extends Table[Genre]("generes") with DataTable
   }
 }
 
-object Accounts extends Table[Account]("accounts") with DataTable
+case class ArtistTag(artistID: Long, tagID: Int)
+
+object ArtistTags extends Table[ArtistTag]("artist_tags") with DataTable
+{
+
+  def artistID = column[Long]("artist_id")
+
+  def tagID = column[Int]("tag_id")
+
+  def * = artistID ~ tagID <>(ArtistTag.apply _, ArtistTag.unapply _)
+
+  def flat = artistID ~ tagID
+
+}
+
+object Artists extends Table[Artist]("artists") with DataTable
 {
 
   private val SALT: String = "m^c*$kxz_qkwupq$by*fpi_czho=#8+k5dnakvd7x$gt#-&h+t";
@@ -97,6 +112,8 @@ object Accounts extends Table[Account]("accounts") with DataTable
 
   def id = column[Long]("id", O PrimaryKey, O AutoInc)
 
+  def username = column[String]("username")
+
   def name = column[String]("name")
 
   def password = column[String]("password")
@@ -107,25 +124,55 @@ object Accounts extends Table[Account]("accounts") with DataTable
 
   def permission = column[Permission]("permission")
 
-  def * = id ~ name ~ password ~ email ~ domain ~ permission <>(Account.apply _, Account.unapply _)
+  def activated = column[Boolean]("active", O Default (false))
+
+  def * = id ~ username ~ password ~ email ~ name ~ domain ~ permission ~ activated <>(Artist.apply _, Artist.unapply _)
+
+  def noID = username ~ password ~ email ~ name ~ domain ~ permission
+
 
   def create(username: String, password: String, email: String, name: String): Int =
   {
 
     db.withSession {
-      implicit s=>
-      Accounts.insert(Account(0, username, password, email, name))
+      implicit s =>
+        val id = Artists.noID insert(username, password, email, name, "", NormalUser)
+        Logger.debug(Artists.insertStatement)
+        id
 
     }
   }
 
-  def findByDomain(domain: String): Option[Account] =
+  def updateDomain(artistId: Long, domain: String): Boolean =
+  {
+    db withSession {
+      implicit s =>
+        val q = (for {a <- Artists if a.id === artistId} yield a.domain ~ a.activated)
+        q.update(domain, true) == 1
+
+    }
+  }
+
+  def domainAvail(domain: String): Boolean =
+  {
+    db.withSession {
+      implicit s =>
+
+        val total = for {
+          a <- Artists if a.domain === domain.bind
+        } yield a.domain.count
+        total == 0
+    }
+
+  }
+
+  def findByDomain(domain: String): Option[Artist] =
   {
     db.withSession {
       implicit s =>
         (
           for {
-            a <- Accounts if a.domain === domain.bind
+            a <- Artists if a.domain === domain.bind
           } yield a
           ).firstOption
     }
@@ -133,45 +180,98 @@ object Accounts extends Table[Account]("accounts") with DataTable
 
   }
 
-  def authenticate(name: String, password: String): Option[Account] =
+  def authenticate(name: String, password: String): Option[Artist] =
   {
-    findByName(name).filter {
+    findByUsername(name).filter {
       artist => artist.password == hash(password)
     }
+
   }
 
-  def findByName(name: String): Option[Account] =
+  def findByUsername(username: String): Option[Artist] =
   {
     db withSession {
       implicit s =>
-        (for {a <- Accounts if a.name === name.bind} yield a).firstOption
+        (for {a <- Artists if a.username === username.bind} yield a).firstOption
+    }
+  }
+
+  def findByName(name: String): Option[Artist] =
+  {
+    db withSession {
+      implicit s =>
+        (for {a <- Artists if a.name === name.bind} yield a).firstOption
     }
   }
 
   private def hash(pass: String): String = pass
 
-  def findByEmail(email: String): Option[Account] =
+  def findByEmail(email: String): Option[Artist] =
   {
     db withSession {
       implicit s =>
-        (for {a <- Accounts if a.email === email.bind} yield a).firstOption
+        (for {a <- Artists if a.email === email.bind} yield a).firstOption
     }
   }
 
-  def findById(id: Long): Option[Account] =
+  def findById(id: Long): Option[Artist] =
   {
     db withSession {
       implicit s =>
-        (for {a <- Accounts if a.id === id} yield a).firstOption
+        (for {a <- Artists if a.id === id} yield a).firstOption
     }
   }
 
-  def findAll: Seq[Account] =
+  def findAll: Seq[Artist] =
   {
     db withSession {
       implicit s =>
-        (for {a <- Accounts} yield a).list
+        (for {a <- Artists} yield a).list
     }
+  }
+
+  def insertTags(artistID: Long, tags: List[String]): Int =
+  {
+
+    db withSession {
+      implicit s =>
+        val foundTags = Tags.find(tags)
+        val artistTags = foundTags.map({
+          tag => ArtistTag(artistID, tag.id)
+        })
+        if (!artistTags.isEmpty) {
+          ArtistTags.insertAll(artistTags: _*)
+        }
+
+        val flattenTags = foundTags.map(_.name)
+        val missingTags = tags.filter({
+          tag => !flattenTags.contains(tag)
+        })
+        if (!missingTags.isEmpty) {
+          Tags.noID insertAll (missingTags: _*)
+        }
+
+
+        val inserted = ArtistTags.flat insert (
+          for {
+            t <- Query(Tags).where(_.name.inSet(missingTags))
+          } yield artistID ~ t.id
+
+          )
+        Logger.debug(ArtistTags.insertStatement)
+        inserted
+
+    }
+
+
+  }
+
+  private def insertArtistTags(tags: List[ArtistTag]) =
+  {
+    /* db withSession {
+      implicit session =>
+        ArtistTags.insertAll(artistTags)
+    }*/
   }
 
   val random = new SecureRandom();

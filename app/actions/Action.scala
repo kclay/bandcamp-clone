@@ -18,18 +18,20 @@ object Actions
 {
 
 
-  def WithArtist(f: Account => Request[AnyContent] => Result) =
+  def WithArtist(f: Artist => Request[AnyContent] => Result) =
   {
     Action {
       request =>
         request.host.split("\\").headOption.flatMap(
-          domain => Accounts.findByDomain(domain)
+          domain => Artists.findByDomain(domain)
         ).map {
 
           artist => f(artist)(request)
 
 
-        }.getOrElse(Results.NotFound("Oops"))
+        }.getOrElse({
+          Results.NotFound("Oops")
+        })
     }
   }
 }

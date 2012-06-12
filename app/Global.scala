@@ -1,3 +1,4 @@
+import controllers.routes
 import models._
 import play.api.db.DB
 import play.api._
@@ -32,8 +33,9 @@ object Global extends GlobalSettings
   {
     import play.api.Play.current
     Database.forDataSource(DB.getDataSource()) withSession {
-      (Accounts.ddl ++ Genres.ddl).create
+      (Albums.ddl ++ Artists.ddl ++ Genres.ddl ++ Tracks.ddl ++ ArtistTags.ddl ++ Tags.ddl).create
 
+      Artists.create("cideas", "cideas", "a@yahoo.com", "hello boy")
       (for {g <- Genres} yield g).take(1).firstOption.getOrElse {
         Genres.insertAll(
           Genre(1, "Acoustic"),
@@ -43,26 +45,35 @@ object Global extends GlobalSettings
           Genre(5, "Classical"),
           Genre(6, "Comedy"),
           Genre(7, "Country"),
-          Genre(8, "Devotional"),
-          Genre(9, "Electronic"),
-          Genre(10, "Experimental"),
-          Genre(11, "Folk"),
-          Genre(12, "Funk"),
-          Genre(13, "Hip Hop/Rap"),
-          Genre(14, "Jazz"),
-          Genre(15, "Kids"),
-          Genre(16, "Latin"),
-          Genre(17, "Metal"),
-          Genre(18, "Pop"),
-          Genre(19, "Punk"),
-          Genre(20, "R&B/Soul"),
-          Genre(21, "Reggae"),
-          Genre(22, "Rock"),
-          Genre(23, "Soundtrack"),
-          Genre(24, "Spoken Word"),
-          Genre(25, "World")
+          Genre(9, "Devotional"),
+          Genre(10, "Electronic"),
+          Genre(11, "Experimental"),
+          Genre(12, "Folk"),
+          Genre(13, "Funk"),
+          Genre(14, "Hip Hop/Rap"),
+          Genre(15, "Jazz"),
+          Genre(16, "Kids"),
+          Genre(17, "Latin"),
+          Genre(18, "Metal"),
+          Genre(19, "Pop"),
+          Genre(20, "Punk"),
+          Genre(21, "R&B/Soul"),
+          Genre(22, "Reggae"),
+          Genre(23, "Rock"),
+          Genre(24, "Soundtrack"),
+          Genre(25, "Spoken Word"),
+          Genre(26, "World")
 
 
+        )
+
+      }
+      (for {t <- Tags} yield t).take(1).firstOption.getOrElse {
+        Tags.insertAll(
+          Tag(1, "hip hop"),
+          Tag(2, "jazz"),
+          Tag(3, "pop"),
+          Tag(4, "country")
         )
       }
 

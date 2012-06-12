@@ -1,0 +1,15 @@
+@()(implicit request: play.api.mvc.RequestHeader)
+@import utils._
+
+@main(SessionHelper.username){
+
+<div class="span6 center">
+    <h2>Thanks for joining Bandcamp @SessionHelper.username!</h2>
+
+    <p>
+        This is your music's home page. A tabula rasa! Completely
+        unspoiled! Deeply inhale the crisp, clean air, hold it, and then...
+    </p>
+</div>
+
+}

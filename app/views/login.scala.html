@@ -1,15 +1,21 @@
 @(loginForm: Form[Option[Account]])
 @import helper._
-@import helper.twitterBootstrap._
+@import helpers.twitterBootstrapCustom._
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
 @nav={
-    @artist.header()
+@artist.header()
 }
 @main("Login",nav){
 
-    @helper.form(action = routes.Application.login) {
-    @inputText(loginForm("username"))
+@helper.form(action = routes.Application.login,'class->"form-horizontal") {
+@inputText(loginForm("username"))
 
-    @inputPassword(loginForm("password"))
-    }
+@inputPassword(loginForm("password"))
+<div class="control-group">
+    <div class="controls">
+        <input type="submit" value="Login" class="btn btn-primary btn-large"/>
+    </div>
+</div>
+}
 
 }

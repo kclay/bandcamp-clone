@@ -46,6 +46,7 @@ case class Album(id: Long, artistID: Long, name: String, artistName: Option[Stri
 
 }
 
+
 object Albums extends Table[Album]("albums") with DataTable
 {
 
@@ -74,7 +75,7 @@ object Albums extends Table[Album]("albums") with DataTable
 
   def about = column[Option[String]]("about", O.Nullable, O DBType ("text"))
 
-  def credits = column[Option[String]]("about", O.Nullable, O DBType ("text"))
+  def credits = column[Option[String]]("credits", O.Nullable, O DBType ("text"))
 
   def upc = column[Option[String]]("upc", O.Nullable, O DBType ("varchar(20)"))
 

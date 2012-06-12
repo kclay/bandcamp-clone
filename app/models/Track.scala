@@ -30,11 +30,13 @@ import org.scalaquery.ql.extended.{ExtendedTable => Table}
 
 import java.sql.Date
 
+
+
 case class Track(id: Long, albumID: Long, name: String, download: Boolean = true, price: Double = 7.00,
                  artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], isrc: Option[String], releaseDate: Option[Date])
 
-object Track extends Table[Track]("tracks") with DataTable
+object Tracks extends Table[Track]("tracks") with DataTable
 {
 
 
@@ -44,10 +46,10 @@ object Track extends Table[Track]("tracks") with DataTable
   def download = column[Boolean]("download")
 
 
-  def lyrics = column[Option[String]]("about", O.Nullable, O DBType ("text"))
+  def lyrics = column[Option[String]]("lyrics", O.Nullable, O DBType ("text"))
 
 
-  def isrc = column[Option[String]]("about", O.Nullable, O DBType ("varchar(10)"))
+  def isrc = column[Option[String]]("isrc", O.Nullable, O DBType ("varchar(10)"))
 
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
@@ -57,7 +59,7 @@ object Track extends Table[Track]("tracks") with DataTable
 
   def price = column[Double]("price")
 
-  def credits = column[Option[String]]("about", O.Nullable, O DBType ("text"))
+  def credits = column[Option[String]]("credits", O.Nullable, O DBType ("text"))
 
   def artistName = column[Option[String]]("artistName", O.Nullable, O DBType ("varchar(45)"))
 

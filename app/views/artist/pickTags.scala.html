@@ -1,0 +1,102 @@
+@(tagsForm:Form[Welcome],genres:Seq[(String,String)])(implicit request: play.api.mvc.RequestHeader)
+@import tags._
+@import helper._
+@import helpers.twitterBootstrapCustom._
+@import utils._
+
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
+
+@main("Welcome"){
+
+@script("bootstrap-typeahead.js")
+<h2>Welcom,@SessionHelper.username</h2>
+<div class="span6">
+    @helper.form(action=routes.Artists.pickTags,'class->"form-horizontal"){
+
+    @select(tagsForm("genre"),genres,
+    '_label->"Genre",
+    '_default->"select one",
+    '_showConstraints -> false)
+    <div class="control-group">
+        <div class="controls">
+            <p>We'll use your genre selection to help new fans find you. It's OK if you don't fit perfectly within one
+                of
+                these -
+                just pick the genre that best represents the section of a record store where you'd like your music to
+                appear, and
+                then use the genre tag field, below, to provide more granularity.</p>
+        </div>
+    </div>
+
+    @inputText(tagsForm("tags"),'class->"input-xlarge",'_label->"Genre tag(s)")
+    @inputText(tagsForm("location"),'_class->"hide",'class->"input-xlarge",'_label->"Location",
+    'placeholder->"e.g., Seattle, WA -- onelocation only,please",
+    'title->"e.g., Seattle, WA -- one location only, please")
+    <div class="control-group">
+        <div class="controls">
+            <input type="submit" value="Next" class="btn btn-primary btn-large"/>
+        </div>
+    </div>
+
+    }
+</div>
+
+<script type="text/javascript">
+    $(function ()
+    {
+        var hints = {"6":"", "11":"", "22":"e.g., roots, dub, dancehall, ska", "7":"", "12":"", "23":"e.g., emo, glam, hard rock, surf", "8":"", "13":"e.g., go-go, funk rock", "24":"", "9":"", "14":"e.g., underground, instrumental, freestyle, nerdcore", "25":"", "15":"e.g., fusion, big band, swing", "26":"", "16":"", "1":"", "17":"e.g., salsa, rock en espa\u00f1ol, reggaet\u00f3n, cumbia", "2":"e.g., math rock, grunge", "18":"e.g., black metal, death metal, grindcore", "3":"e.g., dark ambient, drone, shoegaze", "19":"e.g., power pop, electropop", "20":"e.g., garage, glam, hardcore", "4":"e.g., delta blues, boogie-woogie", "10":"e.g., house, techno, dubstep, ambient", "21":"e.g., contemporary R&B, neo soul, nu-jazz", "5":""};
+        $("#genre").change(function ()
+        {
+            var val = $(this).val();
+
+            var hint = hints[val];
+
+            $("#tags").attr("placeholder", hint).attr("title", hint);
+
+
+        })
+        $("#tags").each(function ()
+        {
+            var beforeValues;
+            $(this).typeahead({
+                matcher:function ()
+                {
+                    return true;
+                },
+                updater:function (item)
+                {
+
+                    beforeValues.push(item);
+                    var self = this;
+                    setTimeout(function ()
+                    {
+
+                        self.$element.caretToEnd();
+                    }, 1)
+
+
+                    return beforeValues.join(", ") + ", ";
+                },
+                ajax:{
+                    url:"/ajax/tags",
+                    displayField:"name",
+                    method:"get",
+                    timeout:500,
+                    preDispatch:function (query)
+                    {
+                        beforeValues = query.split(",")
+                        query = $.trim(beforeValues.pop())
+                        if (query.length < 3)return false;
+
+                        return {
+                            q:query
+                        }
+                    }
+                }
+
+            })
+        });
+    });
+</script>
+
+}

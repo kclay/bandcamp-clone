@@ -1,0 +1,26 @@
+@(domainForm:Form[String])
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(domainInput.f) }
+
+
+@main("Your Domain"){
+<div class="span6">
+    @helper.form(action =routes.Artists.pickDomain,'class->"form-horizontal"){
+    <h2>Your Domain</h2>
+
+    <p>One last thing. Your band's address on BulaBowl will be:</p>
+    @inputText(domainForm("domain"),'_label->".bulabowl.com")
+
+
+    <p>Feel free to change this to whatever you like, but once you click Done it cannot be changed again. You can,
+        however,
+        always sign up for our Pro service later. Among other things, Pro allows you to point your own URL at your
+        Bandcamp
+        site (“custom domain” to the nerderati). So no need to sweat this decision too much.</p>
+
+    <input type="submit" value="Done" class="btn btn-primary btn-large"/>
+
+    }
+</div>
+
+}

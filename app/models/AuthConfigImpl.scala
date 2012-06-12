@@ -4,6 +4,8 @@ import play.api.mvc.Results._
 import jp.t2v.lab.play20.auth._
 import play.api.mvc._
 import controllers.routes
+import utils.SessionHelper
+import play.api.cache.Cache
 
 
 /**
@@ -24,9 +26,9 @@ trait AuthConfigImpl extends AuthConfig
 
   /**
    * A type that represents a user in your application.
-   * `User`, `Account` and so on.
+   * `User`, `Artist` and so on.
    */
-  type User = Account
+  type User = Artist
 
   /**
    * A type that is defined by every action for authorization.
@@ -48,17 +50,29 @@ trait AuthConfigImpl extends AuthConfig
    * A duration of the session timeout in seconds
    */
   val sessionTimeoutInSeconds: Int = 3600
+  // 2 hours
+  val userCacheTimeoutInSeconds: Int = 60 * 60 * 2;
+
 
   /**
    * A function that returns a `User` object from an `Id`.
    * Describe the procedure according to your application.
    */
-  def resolveUser(id: Id): Option[User] = Accounts.findById(id)
+  def resolveUser(id: Id): Option[User] = Cache.getOrElse[User]("user." + id.toString, userCacheTimeoutInSeconds) {
+    Artists.findById(id)
+  }
 
   /**
    * A redirect target after a successful user login.
    */
-  def loginSucceeded[A](request: Request[A]): PlainResult = Redirect(routes.Application.whitelabel)
+  def loginSucceeded[A](request: Request[A]): PlainResult =
+  {
+    val uri = request.session.get("access_uri").getOrElse(routes.Artists.index.url)
+    request.session - "access_uri"
+    Redirect(uri)
+
+  }
+
 
   /**
    * A redirect target after a successful user logout.
@@ -68,7 +82,8 @@ trait AuthConfigImpl extends AuthConfig
   /**
    * A redirect target after a failed authentication.
    */
-  def authenticationFailed[A](request: Request[A]): PlainResult = Redirect(routes.Application.login)
+  def authenticationFailed[A](request: Request[A]): PlainResult =
+    Redirect(routes.Application.login).withSession("access_uri" -> request.uri)
 
   /**
    * A redirect target after a failed authorization.
