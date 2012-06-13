@@ -147,8 +147,9 @@ object Artists extends Table[Artist]("artists") with DataTable
   {
     db withSession {
       implicit s =>
-        val q = (for {a <- Artists if a.id === artistId} yield a.domain ~ a.activated)
-        q.update(domain, true) == 1
+        val inserted = (for {a <- Artists if a.id === artistId} yield a.domain ~ a.activated) update(domain, true)
+        inserted == 1
+
 
     }
   }

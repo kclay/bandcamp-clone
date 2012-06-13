@@ -1,7 +1,8 @@
 package controllers
 
 import jp.t2v.lab.play20.auth.{AuthConfig, LoginLogout}
-import utils.SessionHelper
+import utils.session.SessionHelper
+
 import annotation.tailrec
 import util.Random
 import java.security.SecureRandom

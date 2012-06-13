@@ -15,7 +15,7 @@ import anorm.SqlParser._
  * Time: 1:11 PM
  */
 
-import java.sql.{Date, Time, Timestamp}
+import java.sql.Date
 import play.api.db._
 import play.api.Play.current
 
@@ -108,8 +108,91 @@ object Albums extends Table[Album]("albums") with DataTable
     }
   }
 
+  def withTracks(albumID: Long): List[Track] =
+  {
+    db withSession {
+      implicit s =>
+        (for {
+          a <- AlbumTracks if a.albumID === albumID
+          t <- AlbumTracks.tracks
+          _ <- Query orderBy a.trackOrder
+        } yield t).list
+    }
+  }
+
 
 }
+
+case class Track(id: Long, artistID: Long, name: String, download: Boolean = true, price: Double = 7.00,
+                 artistName: Option[String],
+                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], isrc: Option[String], releaseDate: Option[Date])
+
+
+object Tracks extends Table[Track]("tracks") with DataTable
+{
+
+
+  def artistID = column[Long]("artist_id")
+
+  def download = column[Boolean]("download")
+
+
+  def lyrics = column[Option[String]]("lyrics", O.Nullable, O DBType ("text"))
+
+
+  def isrc = column[Option[String]]("isrc", O.Nullable, O DBType ("varchar(10)"))
+
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+
+  def name = column[String]("name", O.NotNull)
+
+  def about = column[Option[String]]("about", O.Nullable, O DBType ("text"))
+
+  def price = column[Double]("price")
+
+  def credits = column[Option[String]]("credits", O.Nullable, O DBType ("text"))
+
+  def artistName = column[Option[String]]("artistName", O.Nullable, O DBType ("varchar(45)"))
+
+  def art = column[Option[String]]("art", O.Nullable, O DBType ("varchar(45)"))
+
+  def releaseDate = column[Option[Date]]("releaseDate", O Nullable)
+
+
+  def * = id ~ artistID ~ name ~ download ~ price ~ artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate <>(Track.apply _, Track.unapply _)
+
+  def noID = artistID ~ name ~ download ~ price ~ artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate
+
+
+}
+
+case class AlbumTracks(albumID: Long, trackID: Long, order: Int)
+
+object AlbumTracks extends Table[AlbumTracks]("album_tracks") with DataTable
+{
+
+
+  def albumID = column[Long]("album_id")
+
+  def trackID = column[Long]("track_id")
+
+  def trackOrder = column[Int]("trackOrder")
+
+  def fkAlbum = foreignKey("fk_album", albumID, Albums)(_.id)
+
+  def fkTrack = foreignKey("fk_track", trackID, Tracks)(_.id)
+
+  def * = albumID ~ trackID ~ trackOrder <>(AlbumTracks.apply _, AlbumTracks.unapply _)
+
+  def albumTrackIndex = index("idx_album_track", albumID ~ trackID, unique = true)
+
+  def tracks = Tracks.where(_.id === trackID)
+
+
+}
+
+
+
 
 
 

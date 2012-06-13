@@ -3,10 +3,10 @@
 @import helpers.twitterBootstrapCustom._
 @implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
 @nav={
-@artist.header()
+    @artist.header()
 }
 
-@main("Signup",nav){
+@common("Signup",nav){
 
 @helper.form(action = routes.Application.validateSignup,'class->"form-horizontal") {
 @inputText(

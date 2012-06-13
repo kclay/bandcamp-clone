@@ -2,15 +2,15 @@
 @import tags._
 @import helper._
 @import helpers.twitterBootstrapCustom._
-@import utils._
+@import utils.session._
 
 @implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
 
 @main("Welcome"){
 
 @script("bootstrap-typeahead.js")
-<h2>Welcom,@SessionHelper.username</h2>
-<div class="span6">
+    <h2>Welcom,@SessionHelper.username</h2>
+
     @helper.form(action=routes.Artists.pickTags,'class->"form-horizontal"){
 
     @select(tagsForm("genre"),genres,
@@ -39,7 +39,7 @@
     </div>
 
     }
-</div>
+
 
 <script type="text/javascript">
     $(function ()

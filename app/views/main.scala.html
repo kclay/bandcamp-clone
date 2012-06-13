@@ -1,0 +1,11 @@
+@(title: String,id: String="wrap")(content: Html)
+
+@nav={
+    @artist.header()
+}
+
+@common(title,nav){
+<div id="@id" class="span8 offset2">
+    @content
+</div>
+}

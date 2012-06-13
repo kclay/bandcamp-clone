@@ -4,7 +4,8 @@ import play.api.mvc.Results._
 import jp.t2v.lab.play20.auth._
 import play.api.mvc._
 import controllers.routes
-import utils.SessionHelper
+import utils.session.SessionHelper
+
 import play.api.cache.Cache
 
 
@@ -58,9 +59,7 @@ trait AuthConfigImpl extends AuthConfig
    * A function that returns a `User` object from an `Id`.
    * Describe the procedure according to your application.
    */
-  def resolveUser(id: Id): Option[User] = Cache.getOrElse[User]("user." + id.toString, userCacheTimeoutInSeconds) {
-    Artists.findById(id)
-  }
+  def resolveUser(id: Id): Option[User] =Artists.findById(id)
 
   /**
    * A redirect target after a successful user login.
