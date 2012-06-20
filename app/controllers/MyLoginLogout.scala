@@ -36,7 +36,7 @@ trait MyLoginLogout extends LoginLogout
   }
 
 
-  @tailrec
+
   private def generateSessionId2[A](implicit request: Request[A]): String =
   {
     val table = "abcdefghijklmnopqrstuvwxyz1234567890-_.!~*'()"

@@ -1,0 +1,21 @@
+@(header:String,label:String)
+<div id="track-upload" class="span6">
+
+    <h4>@header
+        <span class="upload-progress">
+            <span class="percent"></span>% complete,
+            <span class="duration"></span> remaining
+        </span>
+    </h4>
+
+    <div class="upload-container">
+
+        <a href="#" class="upload-button">@label</a>
+        <span class="hit">291MB <a href="/faq#maxupload" target="_blank">max</a>, lossless <a
+                href="/faq#aiffwavuploadrequirement" target="_blank">.wav, .aif or .flac</a></span>
+
+    </div>
+
+    @artist.uploadTemplate()
+
+</div>

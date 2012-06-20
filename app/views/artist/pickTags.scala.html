@@ -8,7 +8,7 @@
 
 @main("Welcome"){
 
-@script("bootstrap-typeahead.js")
+@script("libs/bootstrap-typeahead.js")
     <h2>Welcom,@SessionHelper.username</h2>
 
     @helper.form(action=routes.Artists.pickTags,'class->"form-horizontal"){

@@ -1,1 +1,20 @@
-@(trackForm: Form[Track])
+@(trackForm: Form[Track])(implicit  user:Artist,request: play.api.mvc.RequestHeader)
+@import helper._
+@import utils.session._
+
+@main("New Track","new-track"){
+
+
+@helper.form(action=routes.Artists.insertTrack){
+    <div class="left-panel span6">
+        @artist.trackOverview("Untitled Track")
+    </div>
+
+    <div class="right-panel span6" >
+        @artist.track(trackForm("track"))
+    </div>
+        @artist.upload("Audio","add audio")
+}
+
+
+}

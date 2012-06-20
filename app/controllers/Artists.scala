@@ -72,29 +72,68 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 
 
   val singleTrackForm: Form[Track] = Form {
-    mapping(
-      "id" -> longNumber,
-      "artist_id" -> longNumber,
-      "name" -> text(minLength = 1, maxLength = 50),
-      "download" -> boolean,
-      "price" -> of[Double],
-      "artist" -> optional(text),
-      "art" -> optional(text),
-      "lyrics" -> optional(text),
-      "about" -> optional(text),
-      "credits" -> optional(text),
-      "isrc" -> optional(text(maxLength = 12)),
-      "date" -> optional(sqlDate("MM-dd-yyyy"))
-    )(Track.apply)(Track.unapply)
+    single(
+      "track" -> mapping(
+        "id" -> longNumber,
+        "artist_id" -> longNumber,
+        "name" -> text(minLength = 1, maxLength = 50),
+        "donate" -> boolean,
+        "download" -> boolean,
+        "price" -> of[Double],
+        "license" -> text,
+        "artist" -> optional(text),
+        "art" -> optional(text),
+        "lyrics" -> optional(text),
+        "about" -> optional(text),
+        "credits" -> optional(text),
+        "isrc" -> optional(text(maxLength = 12)),
+        "date" -> optional(sqlDate("MM-dd-yyyy"))
+      )(Track.apply)(Track.unapply)
+    )
+  }
+
+
+  def upload(kind: String) = Action(parse.multipartFormData) {
+    implicit request =>
+
+      request.body.file("Filedata").map {
+        file =>
+          import utils._
+
+
+          var response: String = ""
+          kind match {
+            case "audio" => {
+              val (created, name) = AudioDataStore("audio").moveToTemp(file)
+              response = created.toString + "|" + name
+            }
+            case "art" => {
+
+              val image = Image(file).resizeTo(Medium())
+              if (image.exists()) {
+                response = String.format("true|%s|%s", image.url, image.id)
+              } else {
+                response = "error";
+              }
+
+            }
+          }
+          Ok(response)
+
+      }.getOrElse {
+        Redirect(routes.Application.index).flashing(
+          "error" -> "Missing file"
+        )
+      }
   }
 
   def addTrack = authorizedAction(NormalUser) {
-    artist => implicit request =>
+    implicit artist => implicit request =>
       Ok(html.artist.addTrack(singleTrackForm))
   }
 
   def insertTrack = authorizedAction(NormalUser) {
-    artist => implicit request =>
+    implicit artist => implicit request =>
       singleTrackForm.bindFromRequest.fold(
         errors => BadRequest(html.artist.addTrack(singleTrackForm)),
         value => Ok("hello")

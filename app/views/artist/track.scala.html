@@ -1,3 +1,141 @@
-@(track: Option[Track])
+@(track: Field,index:Int=0)(implicit  artist:Artist)
+
+@import helper._
+
+@import helpers.twitterBootstrapCustom._
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
+
+@textAreaField(field: Field, label:String)={
+
+}
+@licenseName=@{track("license").name}
+@licenseValue = @{ track("license").value.getOrElse("all_rights") }
+
+
+@iconSpan(iconClass:String)={
+<span class="@iconClass"></span>
+}
+@icons(icon:String*)= @{
+    icon.map{  i=>{iconSpan(i)}}
+}
+@license(name:String,value:String)={
+
+<li>
+    <label class="radio">
+        <input class="track-license" type="radio" rel="@name" name="@licenseName" value="@value"
+        @(if(value == licenseValue) "checked" else "")/>
+        @name
+    </label>
+    <a href="#" class="license-icons">
+        @value match{
+        case "non_commercial_no_derivatives"=>{
+        @icons("attribution","non-commercial","no-derivatives")
+        }
+        case "non_commercial_share"=>{
+        @icons("non-commercial","share-alike")
+        }
+        case "non_commercial"=>{
+        @icons("non-commercial")
+        }
+        case "no_derivatives"=>{
+        @icons("no-derivatives")
+        }
+        case "share"=> {
+        @icons("share-alike")
+        }
+        case _=> {
+        @icons("attribution")
+        }
+        }
+    </a>
+    <a href="#" class="toggler">info</a>
+
+    <p class="license-@value"></p>
+</li>
+}
+
+<div id="track" class="track-block">
+    <fieldset class="control-group">
+        @inputText(track("name"),'_label->"",'placeholder->"track name",
+        'title->"track name",'_showConstraints->false)
+
+
+    </fieldset>
+    <fieldset class="control-group">
+        @checkbox(track("download"),'_style->"checkbox",'_class->"track-download",
+        '_label->"enable download",'_showConstraints->false)
+
+
+        @inputText(track("price"),'_style->"price",'_class->"track-price ",
+        '_label->"track pricing",
+
+        '_help->"enter zero or more",'_showConstraints->false)
+
+        @checkbox(track("donateMore"),'_style->"checkbox",'class->"track-donate ",
+        '_label->"let fans pay more if they want",
+        '_showConstraints->false)
+        <p>Payments will go to @artist.email</p>
+    </fieldset>
+    <fieldset class="control-group">
+        @textarea(track("about"),'_label->"about this track")
+        @textarea(track("lyrics"),'_label->"lyrics")
+        @textarea(track("credits"),'_label->"track credits")
+        @inputText(track("artist"),
+        'placeholder->"leave blank to use band name",
+        '_help->"for complications, labels, etc.")
+
+
+        @input(track("art"),'_label->""){(id, name, value, args) =>
+
+
+        <div class="album-art art-upload">
+            <a href="#" class="upload-button">Upload Track Art</a>
+
+
+            <p>350 x 350 pixels minimum<br/>
+                (bigger is better)<br/><br/>
+
+                .jpg, .gif or .png, 4MB max</p>
+        </div>
+
+        <input type="hidden" name="@name" id="@id" @toHtmlArgs(args)/>
+        }
+
+    </fieldset>
+
+    <fieldset>
+
+
+        <div class="clearfix">
+
+            <div class="input">
+
+                @license("All rights reserved","all_rights")
+                <h4>Creative Commons:</h4>
+                <ul class="license-selector">
+                    @license("Attribution Non-commercial No Derivatives","non_commercial_no_derivatives")
+
+                    @license("Attribution Non-commercial Share Alike","non_commercial_share")
+
+                    @license("Attribution Non-commercial","non_commercial")
+                    @license("Attribution No Derivatives","no_derivatives")
+                    @license("Attribution Share Alike","share")
+
+                    @license("Attribution","attribution")
+                </ul>
+
+            </div>
+        </div>
+
+    </fieldset>
+
+    <fieldset class="control-group">
+
+        @input(track("releaseDate"),'_style->"date",'_label->"release date:",'_help->"mm/dd/yy"){(id, name, value, args) =>
+             <input type="text" name="@name" id="@id" class="track-release " @toHtmlArgs(args)>
+        }
+    </fieldset>
+
+</div>
 
 

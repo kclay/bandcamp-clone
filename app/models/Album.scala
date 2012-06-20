@@ -123,8 +123,8 @@ object Albums extends Table[Album]("albums") with DataTable
 
 }
 
-case class Track(id: Long, artistID: Long, name: String, download: Boolean = true, price: Double = 7.00,
-                 artistName: Option[String],
+case class Track(id: Long, artistID: Long, name: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 7.00,
+                 license: String, artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], isrc: Option[String], releaseDate: Option[Date])
 
 
@@ -136,6 +136,9 @@ object Tracks extends Table[Track]("tracks") with DataTable
 
   def download = column[Boolean]("download")
 
+  def license = column[String]("license")
+
+  def donateMore = column[Boolean]("donate")
 
   def lyrics = column[Option[String]]("lyrics", O.Nullable, O DBType ("text"))
 
@@ -159,9 +162,9 @@ object Tracks extends Table[Track]("tracks") with DataTable
   def releaseDate = column[Option[Date]]("releaseDate", O Nullable)
 
 
-  def * = id ~ artistID ~ name ~ download ~ price ~ artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate <>(Track.apply _, Track.unapply _)
+  def * = id ~ artistID ~ name ~ donateMore ~ download ~  price ~ license ~artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate <>(Track.apply _, Track.unapply _)
 
-  def noID = artistID ~ name ~ download ~ price ~ artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate
+  def noID = artistID ~ name ~ donateMore ~ download ~  price ~ license ~artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate
 
 
 }

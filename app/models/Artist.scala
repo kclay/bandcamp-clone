@@ -303,3 +303,4 @@ object Artists extends Table[Artist]("artists") with DataTable
 
 
 }
+

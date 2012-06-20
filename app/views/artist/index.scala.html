@@ -4,7 +4,7 @@
 
 @main(SessionHelper.username,"welcome"){
 
-<div id="add-album" class="row">
+<div id="welcome" >
 
     <h2>Thanks for joining Bandcamp @SessionHelper.username!</h2>
 
@@ -13,7 +13,7 @@
         unspoiled! Deeply inhale the crisp, clean air, hold it, and then...
     </p>
 
-    <div class="row span4 offset2">
+    <div class="row span4 center">
         <a href="@routes.Artists.addAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a> or <a
             href="@routes.Artists.addTrack()" class="btn btn-primary btn-xlarge">Add Track</a>
     </div>

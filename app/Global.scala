@@ -1,7 +1,12 @@
 import controllers.routes
 import models._
+import models.Genre
+import models.Tag
 import play.api.db.DB
 import play.api._
+import mvc._
+import mvc.Session
+import sun.misc.BASE64Decoder
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,6 +34,32 @@ import org.scalaquery.ql.extended.{ExtendedTable => Table}
 
 object Global extends GlobalSettings
 {
+
+
+  /*case class RestoreSessionRequest(token: String, request: RequestHeader)
+    extends WrappedRequest(request)
+  {
+
+    override lazy val cookies: Cookies = Cookies(Option(token))
+
+  }  */
+
+  override def onRouteRequest(request: RequestHeader): Option[Handler] =
+  {
+
+    val finalRequest = request.queryString.get("token").map {
+
+      session => {
+        val token = new BASE64Decoder().decodeBuffer(session.head).map(_.toChar).mkString
+       // RestoreSessionRequest(token, request)
+        request
+
+      }
+    }.getOrElse(request)
+
+    super.onRouteRequest(finalRequest)
+  }
+
   override def onStart(app: Application)
   {
     import play.api.Play.current
