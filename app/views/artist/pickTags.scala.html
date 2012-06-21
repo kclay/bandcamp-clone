@@ -1,4 +1,4 @@
-@(tagsForm:Form[Welcome],genres:Seq[(String,String)])(implicit request: play.api.mvc.RequestHeader)
+@(tagsForm:Form[(Int, Option[String], Option[String])],genres:Seq[(String,String)])(implicit request: play.api.mvc.RequestHeader)
 @import tags._
 @import helper._
 @import helpers.twitterBootstrapCustom._

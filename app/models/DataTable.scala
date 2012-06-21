@@ -7,6 +7,7 @@ import org.scalaquery.ql.extended.AbstractExtendedTable
 import java.sql.Date
 import org.scalaquery.ql.basic.AbstractBasicTable
 
+
 /**
  * Created by IntelliJ IDEA.
  * User: Keyston
@@ -19,6 +20,16 @@ abstract class AbstractDataTable
 trait DataTable
 {
   lazy val db = Database.forDataSource(DB.getDataSource())
+
+
+}
+
+trait DataStore[T]
+{
+  self: AbstractExtendedTable[T] with DataTable =>
+
+
+
 }
 
 trait BasicDataTable[T] extends DataTable

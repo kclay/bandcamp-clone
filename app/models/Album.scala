@@ -6,6 +6,7 @@ import play.api.Play.current
 
 
 import anorm.SqlParser._
+import utils.Image
 
 
 /**
@@ -44,6 +45,7 @@ case class Album(id: Long, artistID: Long, name: String, artistName: Option[Stri
                  art: Option[String], about: Option[String], credits: Option[String], upc: Option[String], releaseDate: Option[Date])
 {
 
+  lazy val artURL: String = art.map(Image(_).url).getOrElse("")
 }
 
 
@@ -123,9 +125,9 @@ object Albums extends Table[Album]("albums") with DataTable
 
 }
 
-case class Track(id: Long, artistID: Long, name: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 7.00,
+case class Track(var id: Long, var artistID: Long, name: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 7.00,
                  license: String, artistName: Option[String],
-                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], isrc: Option[String], releaseDate: Option[Date])
+                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],active:Boolean=false)
 
 
 object Tracks extends Table[Track]("tracks") with DataTable
@@ -143,8 +145,6 @@ object Tracks extends Table[Track]("tracks") with DataTable
   def lyrics = column[Option[String]]("lyrics", O.Nullable, O DBType ("text"))
 
 
-  def isrc = column[Option[String]]("isrc", O.Nullable, O DBType ("varchar(10)"))
-
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
   def name = column[String]("name", O.NotNull)
@@ -160,11 +160,51 @@ object Tracks extends Table[Track]("tracks") with DataTable
   def art = column[Option[String]]("art", O.Nullable, O DBType ("varchar(45)"))
 
   def releaseDate = column[Option[Date]]("releaseDate", O Nullable)
+  def active = column[Option[Date]]("releaseDate", O Nullable)
 
 
-  def * = id ~ artistID ~ name ~ donateMore ~ download ~  price ~ license ~artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate <>(Track.apply _, Track.unapply _)
+  def * = id ~ artistID ~ name ~ donateMore ~ download ~ price ~ license ~ artistName ~ art ~ lyrics ~ about ~ credits ~ releaseDate~active <>(Track.apply _, Track.unapply _)
 
-  def noID = artistID ~ name ~ donateMore ~ download ~  price ~ license ~artistName ~ art ~ lyrics ~ about ~ credits ~ isrc ~ releaseDate
+  def noID = artistID ~ name ~ donateMore ~ download ~ price ~ license ~ artistName ~ art ~ lyrics ~ about ~ credits ~ releaseDate ~active
+
+  def create(track: Track): Track =
+  {
+    db withSession {
+      implicit s =>
+        track.id = models.Tracks.insert(track)
+        track
+
+    }
+  }
+
+  def update(track: Track): Boolean =
+  {
+    db withSession {
+      implicit s =>
+        val rs = for (rec <- Tracks if rec.id === track.id) yield rec
+        rs.update(track) == 1
+    }
+  }
+
+  def byId(id: Long): Option[Track] =
+  {
+    db withSession {
+      implicit s =>
+        (for {t <- Tracks if t.id == id.bind} yield t).firstOption
+    }
+  }
+
+  def publish(id: Long, artistID: Long): Boolean =
+  {
+    db withSession {
+      implicit s =>
+        val rs = for (t <- Tracks if t.id == t.id) yield t
+        rs.filter {
+          track => track.artistID == artistID
+        }.map(_.ac)
+    }
+
+  }
 
 
 }

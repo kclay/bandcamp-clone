@@ -7,11 +7,13 @@ import actions.Actions._
 import play.api.mvc._
 import play.api.data._
 import format.Formatter
-import play.api.data.Forms._
-import play.api.data.format.Formats._
+
 import views._
 import models._
-import utils.format.Formats._
+import models.Forms._
+import com.codahale.jerkson.Json._
+import models.Forms.domainForm
+import models.Artist
 
 
 /**
@@ -21,8 +23,6 @@ import utils.format.Formats._
  * Time: 6:59 PM
  */
 
-
-case class Welcome(genre: Int, tags: Option[String], location: Option[String])
 
 object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 {
@@ -71,28 +71,6 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
   }
 
 
-  val singleTrackForm: Form[Track] = Form {
-    single(
-      "track" -> mapping(
-        "id" -> longNumber,
-        "artist_id" -> longNumber,
-        "name" -> text(minLength = 1, maxLength = 50),
-        "donate" -> boolean,
-        "download" -> boolean,
-        "price" -> of[Double],
-        "license" -> text,
-        "artist" -> optional(text),
-        "art" -> optional(text),
-        "lyrics" -> optional(text),
-        "about" -> optional(text),
-        "credits" -> optional(text),
-        "isrc" -> optional(text(maxLength = 12)),
-        "date" -> optional(sqlDate("MM-dd-yyyy"))
-      )(Track.apply)(Track.unapply)
-    )
-  }
-
-
   def upload(kind: String) = Action(parse.multipartFormData) {
     implicit request =>
 
@@ -134,10 +112,29 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 
   def insertTrack = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
+
       singleTrackForm.bindFromRequest.fold(
-        errors => BadRequest(html.artist.addTrack(singleTrackForm)),
-        value => Ok("hello")
+        errors => BadRequest(""),
+        value => {
+
+          Ok(generate(Tracks.create(value)))
+        }
       )
+
+  }
+
+  def publishTrack(id: Long) = authorizedAction(NormalUser) {
+    artist => implicit request =>
+      Tracks.publish(id)
+  }
+
+  def fetchTrack(id: Long) = authorizedAction(NormalUser) {
+    artist => implicit request =>
+
+      Ok(Tracks.byId(id).map {
+        case t => if (t.artistID == artist.id) generate(t) else ""
+      }.getOrElse(""))
+
 
   }
 
@@ -155,15 +152,6 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
   }
 
 
-  val tagsForm = Form {
-    mapping(
-      "genre" -> number,
-      "tags" -> optional(text),
-      "location" -> optional(text)
-    )(Welcome.apply)(Welcome.unapply)
-  }
-
-
   def pickTags = authorizedAction(NormalUser) {
     artist => implicit request =>
       Ok(html.artist.pickTags(tagsForm, Genres.allAsString))
@@ -177,24 +165,15 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
         errors => BadRequest(html.artist.pickTags(errors, Genres.allAsString)),
         value => {
 
-          if (value.tags.isDefined) {
+          val (genre, tags, location) = value
+          if (tags.isDefined) {
             models.Artists.insertTags(
-              artist.id, value.tags.get.split(",").toList.map(_.trim)
+              artist.id, tags.get.split(",").toList.map(_.trim)
             )
           }
           Redirect(routes.Artists.pickDomain)
         })
   }
-
-
-  val domainForm = Form(
-    single(
-      "domain" -> text(minLength = 4, maxLength = 25)
-    ) verifying(
-      "Domain already taken", result => result match {
-      case (domain) => models.Artists.findByDomain(domain).isEmpty
-    })
-  )
 
 
   def pickDomain = authorizedAction(NormalUser) {

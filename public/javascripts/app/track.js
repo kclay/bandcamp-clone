@@ -1,5 +1,6 @@
 define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 {
+    var _ = require("underscore");
     var Track = Backbone.Model.extend({
         validation:{
             name:{
@@ -17,9 +18,12 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             credits:"",
             artist:"",
             art:"",
+            artURL:"",
             license:"all_rights"
 
-        }
+        },
+        urlRoot:"/ajax/tracks"
+
     });
 
     var TrackEditView = Backbone.View.extend({
@@ -38,6 +42,9 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             artist:"[name='track.artist']",
             license:"[name='track.license']"
 
+        },
+        events:{
+            "click .album-art .close":"removeArt"
         },
 
         initialize:function ()
@@ -71,17 +78,24 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
         },
         _onArtUploaded:function (url, id)
         {
-            var wrapper = $("<div class='image'><img/><span class='close'></span>").prependTo(this.$el.find(".album-art"));
+            var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".album-art"));
             wrapper.find("img").attr("src", url);
 
-            this.$el.find("[name='track.art']").val(id);
+            this.model.set({art:id, artURL:url});
+
+
+        },
+        removeArt:function ()
+        {
+            this.$(".image").remove();
+            this.model.set({art:"", artURL:""});
         },
         render:function ()
         {
 
             this._binder.bind(this.model, this.$el, this.bindings);
-            Backbone.ModelBinding.bind(this,mo);
-            Backbone.Validation.bind(this, {forceUpdate: true});
+//            Backbone.ModelBinding.bind(this,mo);
+            //          Backbone.Validation.bind(this, {forceUpdate: true});
         }
     })
 
@@ -93,32 +107,40 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
             this.$title = this.$el.find(".title");
             this.$details = this.$el.find(".details");
-            this.model.on("change:name change:download change:price change:donateMore", this._onModelChange)
-            this._onModelChange();
+            this.$art = this.$(".album-art");
+            this.model.on("change:name change:download change:price change:donateMore change:artURL", this._onModelChange)
+
         },
-        _onModelChange:function ()
+        _onModelChange:function (model, info)
         {
 
-            var title = this.model.get("name") || "Untitled Track";
-            this.$title.html(title);
+            if (!_.isObject(info))return;
+            if ("name" in info.changes) {
+                var title = this.model.get("name") || "Untitled Track";
+                this.$title.html(title);
+            } else if ("artURL" in info.changes) {
+
+                this.$art.find("img").src(this.model.get("artURL"));
+            } else {
 
 
-            var text = "";
-            if (this.model.get("download")) {
-                text = "downloadable,";
-                var price = this.model.get("price");
-                var donateMore = this.model.get("donateMore");
-                if (parseInt(price, 10) == 0) {
-                    this.model.set("price", 1);
-                    return;
-                } else {
-                    text += "$" + price;
+                var text = "";
+                if (this.model.get("download")) {
+                    text = "downloadable,";
+                    var price = this.model.get("price");
+                    var donateMore = this.model.get("donateMore");
+                    if (parseInt(price, 10) == 0) {
+                        this.model.set("price", 1);
+                        return;
+                    } else {
+                        text += "$" + price;
+                    }
+
+
                 }
 
-
+                this.$details.html(text);
             }
-
-            this.$details.html(text);
 
 
         }

@@ -51,6 +51,12 @@ define(['libs/backbone/backbone.min'], function ()
         });
 
     })(Backbone);
+
+    return Backbone;
+
+});
+function enhanceBackbone(Backbone)
+{
     // Backbone.Validation v0.5.2
 //
 // Copyright (C)2011-2012 Thomas Pedersen
@@ -466,6 +472,4 @@ define(['libs/backbone/backbone.min'], function ()
             }
         };
     }(Backbone.Validation.patterns, Backbone.Validation.messages, _));
-    return Backbone;
-
-});
+}
