@@ -1,12 +1,10 @@
-import controllers.routes
-import models._
-import models.Genre
-import models.Tag
+import org.squeryl.adapters.{H2Adapter, MySQLAdapter}
+import org.squeryl.internals.DatabaseAdapter
+import org.squeryl.{Session, SessionFactory}
 import play.api.db.DB
-import play.api._
-import mvc._
-import mvc.Session
-import sun.misc.BASE64Decoder
+import play.api.GlobalSettings
+
+import play.api.Application
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,22 +13,6 @@ import sun.misc.BASE64Decoder
  * Time: 8:51 PM
  */
 // Import the session management, including the implicit threadLocalSession
-
-import org.scalaquery.session._
-import org.scalaquery.session.Database.threadLocalSession
-
-// Import the query language
-
-import org.scalaquery.ql._
-
-// Import the standard SQL types
-
-import org.scalaquery.ql.TypeMapper._
-
-// Use H2Driver which implements ExtendedProfile and thus requires ExtendedTables
-
-import org.scalaquery.ql.extended.H2Driver.Implicit._
-import org.scalaquery.ql.extended.{ExtendedTable => Table}
 
 object Global extends GlobalSettings
 {
@@ -44,83 +26,85 @@ object Global extends GlobalSettings
 
   }  */
 
-  override def onRouteRequest(request: RequestHeader): Option[Handler] =
-  {
 
-    val finalRequest = request.queryString.get("token").map {
-
-      session => {
-        val token = new BASE64Decoder().decodeBuffer(session.head).map(_.toChar).mkString
-       // RestoreSessionRequest(token, request)
-        request
-
-      }
-    }.getOrElse(request)
-
-    super.onRouteRequest(finalRequest)
-  }
+  val dbAdapter = new H2Adapter();
 
   override def onStart(app: Application)
   {
-    import play.api.Play.current
-    Database.forDataSource(DB.getDataSource()) withSession {
-
-      val create = {
-
-        (for {a <- Artists} yield a).firstOption.getOrElse {
-          (Albums.ddl ++ Artists.ddl ++ Genres.ddl ++ Tracks.ddl ++ ArtistTags.ddl ++ Tags.ddl).create
-
-          Artists.create("cideas", "cideas", "a@yahoo.com", "hello boy")
-
-          Genres.insertAll(
-            Genre(1, "Acoustic"),
-            Genre(2, "Alternative"),
-            Genre(3, "Ambient"),
-            Genre(4, "Blues"),
-            Genre(5, "Classical"),
-            Genre(6, "Comedy"),
-            Genre(7, "Country"),
-            Genre(9, "Devotional"),
-            Genre(10, "Electronic"),
-            Genre(11, "Experimental"),
-            Genre(12, "Folk"),
-            Genre(13, "Funk"),
-            Genre(14, "Hip Hop/Rap"),
-            Genre(15, "Jazz"),
-            Genre(16, "Kids"),
-            Genre(17, "Latin"),
-            Genre(18, "Metal"),
-            Genre(19, "Pop"),
-            Genre(20, "Punk"),
-            Genre(21, "R&B/Soul"),
-            Genre(22, "Reggae"),
-            Genre(23, "Rock"),
-            Genre(24, "Soundtrack"),
-            Genre(25, "Spoken Word"),
-            Genre(26, "World")
-
-
-          )
-          Tags.insertAll(
-            Tag(1, "hip hop"),
-            Tag(2, "jazz"),
-            Tag(3, "pop"),
-            Tag(4, "country")
-          )
-        }
-      }
-      import util.control.Exception.allCatch
-      allCatch either {
-        (for {a <- Artists} yield a).take(1).firstOption.getOrElse {
-          true
-        } match {
-          case _ => create
-        }
-      }
-
-
+    SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
+      case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
+      case Some("com.mysql.jdbc.Driver") => Some(() => getSession(new MySQLAdapter, app))
+      case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
     }
-    super.onStart(app)
+    import org.squeryl.PrimitiveTypeMode._
+    import models.SiteDB;
+    inTransaction(SiteDB.printDdl)
 
+    super.onStart(app)
   }
+
+  def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
+
+  /*SessionFactory.concreteFactory = Some(
+() => Session.create(DB.getDataSource().getConnection(),
+dbAdapter))    */
+  /* Database.forDataSource(SiteDB$.getDataSource()) withSession {
+
+val create = {
+
+(for {a <- Artists} yield a).firstOption.getOrElse {
+(Albums.ddl ++ Artists.ddl ++ Genres.ddl ++ Tracks.ddl ++ ArtistTags.ddl ++ Tags.ddl).create
+
+Artists.create("cideas", "cideas", "a@yahoo.com", "hello boy")
+
+Genres.insertAll(
+  Genre(1, "Acoustic"),
+  Genre(2, "Alternative"),
+  Genre(3, "Ambient"),
+  Genre(4, "Blues"),
+  Genre(5, "Classical"),
+  Genre(6, "Comedy"),
+  Genre(7, "Country"),
+  Genre(9, "Devotional"),
+  Genre(10, "Electronic"),
+  Genre(11, "Experimental"),
+  Genre(12, "Folk"),
+  Genre(13, "Funk"),
+  Genre(14, "Hip Hop/Rap"),
+  Genre(15, "Jazz"),
+  Genre(16, "Kids"),
+  Genre(17, "Latin"),
+  Genre(18, "Metal"),
+  Genre(19, "Pop"),
+  Genre(20, "Punk"),
+  Genre(21, "R&B/Soul"),
+  Genre(22, "Reggae"),
+  Genre(23, "Rock"),
+  Genre(24, "Soundtrack"),
+  Genre(25, "Spoken Word"),
+  Genre(26, "World")
+
+
+)
+Tags.insertAll(
+  Tag(1, "hip hop"),
+  Tag(2, "jazz"),
+  Tag(3, "pop"),
+  Tag(4, "country")
+)
+}
+}
+import util.control.Exception.allCatch
+allCatch either {
+(for {a <- Artists} yield a).take(1).firstOption.getOrElse {
+true
+} match {
+case _ => create
+}
+}
+
+
+}      */
+
+
 }

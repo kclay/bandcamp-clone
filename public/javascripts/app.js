@@ -11,7 +11,8 @@ define(["dropdown"], function ()
     var controllers = {
 
         pages:{
-            "/add_track":["app/controller/addTrack"]
+            "/add_track":["app/controller/addTrack"],
+            "/pick_tags":["app/controller/pickTags"]
         },
         init:function ()
         {
@@ -19,16 +20,13 @@ define(["dropdown"], function ()
             $('.dropdown-toggle').dropdown();
             var path = location.pathname;
             if (path in this.pages) {
-                require(this.pages[path], this[path]);
+                require(this.pages[path], function (ctr)
+                {
+                    new ctr.View();
+                });
             }
-        },
-        "/add_track":function ()
-        {
-
-            var ctr = require("app/controller/addTrack");
-            new ctr.View();
-
         }
+
     }
 
     return {

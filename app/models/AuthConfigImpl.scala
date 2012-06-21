@@ -59,7 +59,11 @@ trait AuthConfigImpl extends AuthConfig
    * A function that returns a `User` object from an `Id`.
    * Describe the procedure according to your application.
    */
-  def resolveUser(id: Id): Option[User] =Artists.findById(id)
+  def resolveUser(id: Id): Option[User] =
+  {
+    import org.squeryl.PrimitiveTypeMode._
+    inTransaction(Artist.find(id))
+  }
 
   /**
    * A redirect target after a successful user login.
@@ -95,8 +99,8 @@ trait AuthConfigImpl extends AuthConfig
    */
   def authorize(user: User, authority: Authority): Boolean =
     (user.permission, authority) match {
-      case (Administrator, _) => true
-      case (NormalUser, NormalUser) => true
+      case ("admin", _) => true
+      case ("normal", NormalUser) => true
       case _ => false
     }
 

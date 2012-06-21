@@ -23,7 +23,7 @@ object Actions
     Action {
       request =>
         request.host.split("\\").headOption.flatMap(
-          domain => Artists.findByDomain(domain)
+          domain => models.Artist.findByDomain(domain)
         ).map {
 
           artist => f(artist)(request)

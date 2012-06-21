@@ -16,12 +16,15 @@ import views.html
  * Time: 11:18 AM
  */
 
-object Ajax extends Controller with Auth with AuthConfigImpl
+object Ajax extends Controller with Auth with AuthConfigImpl with WithDB
 {
 
+
   def tags(query: String) = Action {
-    val found = Tags.search(query).map {
-      case (t) => Map("name" -> t.name)
+    val found = db {
+      Tag.search(query).map {
+        case (t) => Map("name" -> t.name)
+      }
     }
 
 
@@ -32,14 +35,12 @@ object Ajax extends Controller with Auth with AuthConfigImpl
     implicit artist => implicit request =>
       singleTrackForm.bindFromRequest.fold(
         errors => BadRequest(""),
-        value => {
+        track => {
 
-          Ok(generate(Tracks.create(value)))
+          Ok("") //generate(track.save()))
         }
       )
   }
-
-
 
 
 }

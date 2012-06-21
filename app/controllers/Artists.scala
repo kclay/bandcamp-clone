@@ -24,7 +24,7 @@ import models.Artist
  */
 
 
-object Artists extends Controller with Auth with AuthConfigImpl with DataTable
+object Artists extends Controller with Auth with AuthConfigImpl with WithDB
 {
 
 
@@ -35,7 +35,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
           if (withSubdomain) Ok(html.artist.index()) else Redirect(withDomain)
 
         }
-        case false => Redirect(routes.Artists.pickTags())
+        case false => Redirect(if (Artist.hasTag(artist.id)) routes.Artists.pickDomain() else routes.Artists.pickTags())
       }
 
 
@@ -115,9 +115,9 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 
       singleTrackForm.bindFromRequest.fold(
         errors => BadRequest(""),
-        value => {
+        track => {
 
-          Ok(generate(Tracks.create(value)))
+          Ok("") //generate(track.save()))
         }
       )
 
@@ -125,13 +125,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 
   def publishTrack(id: Long) = authorizedAction(NormalUser) {
     artist => implicit request =>
-      Tracks.publish(id)
+      Track.publish(id)
+      Ok("")
   }
 
   def fetchTrack(id: Long) = authorizedAction(NormalUser) {
     artist => implicit request =>
 
-      Ok(Tracks.byId(id).map {
+      Ok(Track.find(id).map {
         case t => if (t.artistID == artist.id) generate(t) else ""
       }.getOrElse(""))
 
@@ -154,7 +155,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
 
   def pickTags = authorizedAction(NormalUser) {
     artist => implicit request =>
-      Ok(html.artist.pickTags(tagsForm, Genres.allAsString))
+      Ok(html.artist.pickTags(tagsForm, db(Genre.allAsString)))
 
 
   }
@@ -162,35 +163,38 @@ object Artists extends Controller with Auth with AuthConfigImpl with DataTable
   def insertTags = authorizedAction(NormalUser) {
     artist => implicit request =>
       tagsForm.bindFromRequest.fold(
-        errors => BadRequest(html.artist.pickTags(errors, Genres.allAsString)),
+        errors => BadRequest(html.artist.pickTags(errors, Genre.allAsString)),
         value => {
 
           val (genre, tags, location) = value
-          if (tags.isDefined) {
-            models.Artists.insertTags(
-              artist.id, tags.get.split(",").toList.map(_.trim)
-            )
-          }
+          tags.map(t => ArtistTag.insert(artist, t.split(",").toList.map(_.trim)));
+
+
           Redirect(routes.Artists.pickDomain)
         })
   }
 
+  def insertDomain = authorizedAction(NormalUser) {
+    artist => implicit request =>
+
+      domainForm.bindFromRequest.fold(
+        formWithErrors => BadRequest(html.artist.pickDomain(domainForm)),
+        value => {
+
+          Artist.updateDomain(artist.id, value)
+          Redirect(routes.Artists.index)
+
+        }
+      )
+
+
+  }
 
   def pickDomain = authorizedAction(NormalUser) {
     artist => implicit request =>
       val defaultDomain = artist.name.replace(" ", "").toLowerCase
-      request.method match {
-        case "POST" => domainForm.bindFromRequest.fold(
-          formWithErrors => BadRequest(html.artist.pickDomain(domainForm)),
-          value => {
+      Ok(html.artist.pickDomain(domainForm.fill(defaultDomain)))
 
-            models.Artists.updateDomain(artist.id, value)
-            Redirect(routes.Artists.index)
-
-          }
-        )
-        case "GET" => Ok(html.artist.pickDomain(domainForm.fill(defaultDomain)))
-      }
 
   }
 

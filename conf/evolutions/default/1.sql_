@@ -1,0 +1,70 @@
+# --- !Ups
+-- table declarations :
+create table artists (
+name varchar(128) not null,
+activated boolean not null,
+email varchar(128) not null,
+username varchar(128) not null,
+domain varchar(128) not null,
+id bigint not null primary key auto_increment,
+password varchar(128) not null
+);
+create table albums (
+art varchar(45),
+releaseDate date,
+name varchar(128) not null,
+artURL varchar(128) not null,
+donateMore boolean not null,
+price double not null,
+credits text,
+slug varchar(128) not null,
+artistName varchar(45),
+upc varchar(20),
+artist_id bigint not null,
+id bigint not null primary key auto_increment,
+about text,
+download boolean not null,
+active boolean not null
+);
+-- indexes on albums
+create index idx368d0675 on albums (artist_id);
+create index idx240b052e on albums (active);
+create table tracks (
+art varchar(45),
+releaseDate date,
+name varchar(128) not null,
+donateMore boolean not null,
+price double not null,
+lyrics text,
+credits text,
+artistName varchar(45),
+license varchar(128) not null,
+artist_id bigint not null,
+id bigint not null primary key auto_increment,
+about text,
+download boolean not null,
+active boolean not null
+);
+-- indexes on tracks
+create index idx37070679 on tracks (artist_id);
+create index idx24790532 on tracks (active);
+create table album_tracks (
+track_id bigint not null,
+order int not null,
+album_id bigint not null
+);
+create table tags (
+name varchar(128) not null,
+id bigint not null primary key auto_increment
+);
+-- indexes on tags
+create index idx11a3037e on tags (name);
+create table Genre (
+name varchar(128) not null,
+id bigint not null primary key auto_increment
+);
+-- composite key indexes :
+alter table album_tracks add constraint album_tracksCPK unique(album_id,track_id);
+
+
+# --- !Downs
