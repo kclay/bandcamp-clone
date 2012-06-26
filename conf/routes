@@ -1,0 +1,53 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+GET     /fake                       controllers.Application.fake
+POST    /login                      controllers.Application.login
+GET     /login                      controllers.Application.login
+
+GET     /logout                     controllers.Application.logout
+POST    /signup                     controllers.Application.validateSignup
+GET     /signup                     controllers.Application.signup
+GET     /whitelabel                 controllers.Application.whitelabel
+
+GET    /ajax/tags                   controllers.Ajax.tags(q:String)
+
+
+
+GET     /album/:name                controllers.Application.album(name:String)
+GET     /track/:name                controllers.Application.track(name:String)
+
+GET     /welcome                      controllers.Artists.index()
+
+GET     /pick_tags                   controllers.Artists.pickTags()
+POST     /insert_tags                controllers.Artists.insertTags()
+
+POST    /insert_domain                controllers.Artists.insertDomain()
+GET    /pick_domain                 controllers.Artists.pickDomain()
+GET     /artists                     controllers.Artists.list(page:Int ?=1,amount:Int ?= 20,query:String ?="")
+GET     /edit_album/                 controllers.Artists.addAlbum()
+
+GET     /add_track                 controllers.Artists.addTrack()
+POST    /ajax/tracks/                    controllers.Artists.insertTrack()
+GET    /ajax/tracks/:id                  controllers.Artists.fetchTrack(id:Long)
+
+
+GET     /edit_album/:name            controllers.Artists.editAlbum(name:String)
+GET     /edit_track/:name            controllers.Artists.editTrack(name:String)
+
+POST    /artist/upload/:kind              controllers.Artists.upload(kind:String)
+
+
+
+
+POST  /change_password              controllers.Application.updatePassword
+GET   /change_password              controllers.Application.changePassword
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+
+GET  /:page                         controllers.Application.page(page:String)

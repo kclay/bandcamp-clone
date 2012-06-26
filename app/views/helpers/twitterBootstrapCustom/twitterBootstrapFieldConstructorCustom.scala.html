@@ -1,0 +1,94 @@
+@(elements: views.html.helper.FieldElements)
+
+@import play.api.i18n._
+@import views.html.helper._
+
+@**************************************************
+* Generate input according twitter bootsrap rules *
+**************************************************@
+@layoutType = @{elements.args.get('_style).getOrElse("group")}
+
+
+
+@layoutType match{
+
+case "checkbox"=>{
+
+<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+
+<div class="controls ">
+    <label class="checkbox inline" for="@elements.id"> @elements.input @elements.label(elements.lang)</label>
+
+    <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
+    <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+</div>
+</div>
+
+
+}
+case "inline"=>{
+<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+
+<div class="input inline">
+    <label for="@elements.id"> @elements.input @elements.label(elements.lang)</label>
+
+    <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
+    <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+</div>
+</div>
+
+}
+case "default"=>{
+
+<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+<label for="@elements.id">@elements.label(elements.lang)</label>
+<div class="input">
+    @elements.input
+    <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
+    <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+</div>
+</div>
+}
+case "date"=>{
+<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+<label for="@elements.id">@elements.label(elements.lang)</label>
+<div class="input">
+    @elements.input
+    <span class="help-inline">@elements.infos(elements.lang).mkString(", ")</span>
+    <span class="help-block">@elements.errors(elements.lang).mkString(", ")</span>
+</div>
+</div>
+}
+
+case "price"=>{
+
+<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+<label for="@elements.id">@elements.label(elements.lang)</label>
+<div class="input price">
+    @elements.input
+
+    <span class="help-inline"><a href="/faq_currency">US Dollars</a></span>
+    <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+
+</div>
+</div>
+}
+case _=>{
+
+<div class="control-group @elements.args.get('_class) @if(elements.hasErrors) {error}"
+     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+<label for="@elements.id" class="control-label">@elements.label(elements.lang)</label>
+<div class="controls">
+    @elements.input
+    <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
+    <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+</div>
+</div>
+
+}
+}
