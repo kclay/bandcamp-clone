@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="play_play_2.9.1_2.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://E:/tools/play-git/repository/local/play/play_2.9.1/2.1-SNAPSHOT/poms/play_2.9.1.pom!/" />
+      <root url="jar://E:/tools/play-git/repository/local/play/play_2.9.1/2.1-SNAPSHOT/jars/play_2.9.1.jar!/" />
+      <root url="jar://E:/tools/play-git/repository/local/play/play_2.9.1/2.1-SNAPSHOT/srcs/play_2.9.1-test-sources.jar!/" />
+      <root url="jar://E:/tools/play-git/repository/local/play/play_2.9.1/2.1-SNAPSHOT/srcs/play_2.9.1-sources.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
