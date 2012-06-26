@@ -8,7 +8,8 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
         _file:null,
         _currentFile:null,
         events:{
-            'click .cancel':"cancel"
+            'click .cancel':"cancelUpload",
+            'click .remove':"removeFile"
         },
         initialize:function (options)
         {
@@ -49,13 +50,15 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
             });
-            this.$wrapper = this.$el.find(".progress-wrapper");
-            this.$bar = this.$el.find(".bar");
+            this.$wrapper = this.$(".progress-wrapper");
+            this.$bar = this.$(".bar");
 
-            this.$percent = this.$el.find(".percent");
-            this.$duration = this.$el.find(".duration");
-            this.$progress = this.$el.find(".upload-progress");
-            this.$status = this.$el.find(".status");
+            this.$percent = this.$(".percent");
+            this.$duration = this.$(".duration");
+            this.$progress = this.$(".upload-progress");
+            this.$status = this.$(".status");
+            this.$cancel = this.$(".cancel");
+            this.$remove = this.$(".remove");
 
 
         },
@@ -66,12 +69,17 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this.swf.startUpload();
 
         },
-        cancel:function ()
+        cancelUpload:function ()
         {
             this.swf.stopUpload();
             this.swf.cancelUpload();
             this.$progress.delay(200).fadeOut("slow");
-            return false;
+
+        },
+        removeFile:function ()
+        {
+
+
         },
         _onUploadError:function ()
         {
@@ -101,6 +109,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
         _onUploadSuccess:function (file, serverData, receivedResponse)
         {
             this._file = file;
+            this.$progress.hide();
+            this.$cancel.hide();
+            this.$remove.show();
             if (serverData) {
                 var info = serverData.split("|");
                 var created = info.shift()
