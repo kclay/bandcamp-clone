@@ -1,9 +1,8 @@
 package utils
 
 import org.apache.commons.codec.digest.DigestUtils._
-import play.api.{Logger, Play}
+import play.api.Play
 import java.io.File
-import play.api.mvc.MultipartFormData.FilePart
 import play.api.libs.Files.TemporaryFile
 import javax.imageio.{IIOImage, ImageIO}
 import java.awt.image.BufferedImage
@@ -26,8 +25,7 @@ case class Medium() extends ImageSize(210, 210, "medium")
 
 case class Small() extends ImageSize(72, 72, "small")
 
-case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore
-{
+case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
 
   override def location(): String = "images"
 
@@ -37,8 +35,7 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
   lazy val host = config.getString("datastore.art.host").get
 
 
-  def dir(): String =
-  {
+  def dir(): String = {
 
 
     id.substring(0, 5).toCharArray.mkString("/")
@@ -53,28 +50,27 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
   def toFile(): File = new File(store, path)
 
 
-  def url(): String =
-  {
-
-    import controllers.routes
+  def url(): String = {
     validate()
-    "/assets" + uri()
+    Some(exists).map {
+      case true => "/assets" + uri()
+      case _ => ""
+
+    }.getOrElse("")
+
 
   }
 
-  def validate()
-  {
+  def validate() {
 
     tempFile.map(_.ref.moveTo(toFile, replace = true))
   }
 
-  def exists(): Boolean =
-  {
+  def exists(): Boolean = {
     toFile().exists()
   }
 
-  def resizeTo(size: ImageSize): Image =
-  {
+  def resizeTo(size: ImageSize): Image = {
     validate()
     val out = Image(id, size)
     out.toFile().getParentFile.mkdirs();
@@ -92,8 +88,7 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
    * @param w The new width (or -1 to proportionally resize)
    * @param h The new height (or -1 to proportionally resize)
    */
-  def resize(originalImage: File, to: File, w: Int, h: Int): Boolean =
-  {
+  def resize(originalImage: File, to: File, w: Int, h: Int): Boolean = {
     resize(originalImage, to, w, h, false);
   }
 
@@ -105,8 +100,7 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
    * @param height The new height (or -1 to proportionally resize) or the maxHeight if keepRatio is true
    * @param keepRatio : if true, resize will keep the original image ratio and use w and h as max dimensions
    */
-  def resize(originalImage: File, to: File, width: Int, height: Int, keepRatio: Boolean): Boolean =
-  {
+  def resize(originalImage: File, to: File, width: Int, height: Int, keepRatio: Boolean): Boolean = {
     try {
       val source = ImageIO.read(originalImage);
       val owidth = source.getWidth();
@@ -175,25 +169,25 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
   }
 }
 
-object Image
-{
+object Image {
 
 
   def apply(id: String) = new Image(id)
 
-  def apply(file: FilePart[TemporaryFile]) =
-  {
-    val id = sha256Hex(System.nanoTime() + file.filename)
+  def apply(file: FilePart[TemporaryFile]) = {
+    val id = shaHex(System.nanoTime() + file.filename)
     new Image(id, Normal(), Some(file))
   }
 
 
 }
 
-case class AudioDataStore(name: String = "audio") extends DataStore
 
-trait DataStore
-{
+class AudioDataStore extends DataStore {
+  override def location(): String = "audio"
+}
+
+trait DataStore {
 
   def location(): String = ""
 
@@ -206,23 +200,20 @@ trait DataStore
   lazy val fragment = config.getString("datastore." + location + ".location").get
   lazy val store = app.getFile(fragment)
 
-  protected def ext(file: String): String =
-  {
+  protected def ext(file: String): String = {
     val index = file.lastIndexOf(".");
 
     file.substring(index + 1, file.length());
   }
 
-  def moveToTemp(file: FilePart[TemporaryFile]): (Boolean, String) =
-  {
+  def moveToTemp(file: FilePart[TemporaryFile]): (Boolean, String, File) = {
+    val name = shaHex(System.currentTimeMillis().toString()) + "." + ext(file.filename)
+    val tempFile = new File(temp, name);
 
-    /* val tempFile = File.createTempFile(name, "." + ext(file.filename))
 
-
- Logger.debug(tempFile.getAbsolutePath)
- file.ref.moveTo(tempFile, true)
- return (tempFile.exists(), tempFile.getName) */
-    return (true, "")
+    //Logger.debug(tempFile.getAbsolutePath)
+    file.ref.moveTo(tempFile, true)
+    return (tempFile.exists(), tempFile.getName, tempFile)
 
 
   }

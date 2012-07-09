@@ -8,10 +8,15 @@
     @helper.form(action = routes.Application.login,'class->"form-horizontal span6 center") {
 
 
-    <h2>Account Login</h2>
+    <h2>Account Login <span>Don't have an account? <a href="@routes.Application.signup()">Sign up now</a> (it's free).</span></h2>
     @inputText(loginForm("username"))
 
     @inputPassword(loginForm("password"))
+    <div class="control-group">
+        <div class="controls">
+            <a href="@routes.Application.forgotPassword()">Forgot your password?</a>
+        </div>
+    </div>
     <div class="control-group">
         <div class="controls">
             <input type="submit" value="Login" class="btn btn-primary btn-large"/>

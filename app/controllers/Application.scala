@@ -1,21 +1,15 @@
 package controllers
 
-import play.api._
 import models._
 import actions.Actions._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
 import views._
 import models.Forms._
 import jp.t2v.lab.play20.auth._
-import utils.session.SessionHelper
-import org.squeryl.PrimitiveTypeMode._
 import models.SiteDB._
 
 
-object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB
-{
+object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB {
 
   def index = optionalUserAction {
     artist => implicit request =>
@@ -40,10 +34,9 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
 
-  def fake = Action {
-    implicit request =>
-      gotoLoginSucceeded(1)
-  }
+  def sendForgottenPassword = TODO
+
+  def forgotPassword = TODO
 
   def validateSignup = Action {
     implicit request =>

@@ -4,7 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /fake                       controllers.Application.fake
+POST    /forgot_password            controllers.Application.sendForgottenPassword
+GET     /forgot_password            controllers.Application.forgotPassword
 POST    /login                      controllers.Application.login
 GET     /login                      controllers.Application.login
 

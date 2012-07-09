@@ -2,11 +2,7 @@ package controllers
 
 
 import jp.t2v.lab.play20.auth._
-import play.api._
-import actions.Actions._
 import play.api.mvc._
-import play.api.data._
-import format.Formatter
 
 import views._
 import models._
@@ -14,7 +10,7 @@ import models.Forms._
 import com.codahale.jerkson.Json._
 import models.Forms.domainForm
 import models.Artist
-
+import utils.AudioDataStore
 
 /**
  * Created by IntelliJ IDEA.
@@ -24,8 +20,7 @@ import models.Artist
  */
 
 
-object Artists extends Controller with Auth with AuthConfigImpl with WithDB
-{
+object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
 
 
   def index = authorizedAction(NormalUser) {
@@ -41,15 +36,13 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB
 
   }
 
-  private def withDomain(implicit artist: Artist, request: RequestHeader): String =
-  {
+  private def withDomain(implicit artist: Artist, request: RequestHeader): String = {
 
 
     "http://" + artist.domain + "." + request.host
   }
 
-  private def withSubdomain(implicit request: RequestHeader): Boolean =
-  {
+  private def withSubdomain(implicit request: RequestHeader): Boolean = {
     val parts = request.host.split("\\.")
 
     parts.size >= 2
@@ -71,39 +64,6 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB
   }
 
 
-  def upload(kind: String) = Action(parse.multipartFormData) {
-    implicit request =>
-
-      request.body.file("Filedata").map {
-        file =>
-          import utils._
-
-
-          var response: String = ""
-          kind match {
-            case "audio" => {
-              val (created, name) = AudioDataStore("audio").moveToTemp(file)
-              response = created.toString + "|" + name
-            }
-            case "art" => {
-
-              val image = Image(file).resizeTo(Medium())
-              if (image.exists()) {
-                response = String.format("true|%s|%s", image.url, image.id)
-              } else {
-                response = "error";
-              }
-
-            }
-          }
-          Ok(response)
-
-      }.getOrElse {
-        Redirect(routes.Application.index).flashing(
-          "error" -> "Missing file"
-        )
-      }
-  }
 
   def addTrack = authorizedAction(NormalUser) {
     implicit artist => implicit request =>

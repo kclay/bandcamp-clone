@@ -1,2 +1,2 @@
-set PATH=%PATH%;E:\tools\play20\;%JDK_HOME%\bin\
-play
+set PATH=C:\DEV\play-2.0.2\;%JDK_HOME%\bin\;%PATH%
+play debug

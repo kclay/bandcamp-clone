@@ -1,5 +1,4 @@
-define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _)
-{
+define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _) {
 
 
     var UploadView = Backbone.View.extend({
@@ -11,18 +10,16 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             'click .cancel':"cancelUpload",
             'click .remove':"removeFile"
         },
-        initialize:function (options)
-        {
+        initialize:function (options) {
 
 
-            var button = this.$el.find(".upload-button").click(function ()
-            {
+            var button = this.$el.find(".upload-button").click(function () {
                 return false;
             });
             button.html("<span class='trigger'>" + button.html() + "</span>");
             var hit = $("<span class='uploader'></span>").appendTo(button);
             this.swf = new SWFUpload({
-                upload_url:options.uri + "?token=" + $("#token").val(),
+                upload_url:options.uri,
                 flash_url:"/assets/swfupload.swf",
                 file_size_limit:options.limit || "4 MB",
                 file_types:options.types || "*",
@@ -41,8 +38,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 button_height:button.height(),
                 button_text:"",
                 debug:true,
-                debug_handler:function ()
-                {
+                debug_handler:function () {
                     console.log(arguments);
                 },
                 button_placeholder:hit[0]
@@ -59,38 +55,48 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this.$status = this.$(".status");
             this.$cancel = this.$(".cancel");
             this.$remove = this.$(".remove");
+            this.$file = this.$(".file");
+            this.$hit = this.$(".hit");
 
 
         },
-        _onDialogComplete:function ()
-        {
-            this.$el.find(".hit").hide();
-            this.$el.find(".upload-progress").show();
+        _onDialogComplete:function () {
+            this.render();
+            this.$hit.hide();
+            this.$progress.show();
             this.swf.startUpload();
 
         },
-        cancelUpload:function ()
-        {
+        cancelUpload:function () {
             this.swf.stopUpload();
             this.swf.cancelUpload();
             this.$progress.delay(200).fadeOut("slow");
 
         },
-        removeFile:function ()
-        {
+        removeFile:function () {
 
 
         },
-        _onUploadError:function ()
-        {
-
+        _onUploadError:function (file, errorCode, message) {
+            switch (errorCode) {
+                case -290:
+                    this.trigger("stopped");
+                    break;
+                case -280:
+                    if (!this._currentFile) {
+                        this.$hit.show("slow");
+                        //this.$progress.hide("");
+                        this.$wrapper.hide("slow");
+                    }
+                    this.trigger("canceled");
+                    break;
+            }
         },
-        _onUploadStarted:function (file)
-        {
+        _onUploadStarted:function (file) {
             this.$wrapper.show();
             this._file = file;
 
-            this.$el.find('.file').html(file.name);
+            this.$file.html(file.name);
             this.$status.addClass("uploading");
 
 
@@ -100,14 +106,12 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
             this.render()
         },
-        _onUploadProgress:function (file, bytes, total)
-        {
+        _onUploadProgress:function (file, bytes, total) {
 
             this._file = file;
             this.render()
         },
-        _onUploadSuccess:function (file, serverData, receivedResponse)
-        {
+        _onUploadSuccess:function (file, serverData, receivedResponse) {
             this._file = file;
             this.$progress.hide();
             this.$cancel.hide();
@@ -124,20 +128,19 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this._currentFile = file;
 
         },
-        _onUploadComplete:function (file)
-        {
+        _onUploadComplete:function (file) {
             this._file = file;
 
         },
-        render:function ()
-        {
-            var percent = this._file.percentUploaded.toFixed(2);
+        render:function () {
+            var percent = this._file ? this._file.percentUploaded.toFixed(2) : 0;
+            var remaining = this._file ? SWFUpload.speed.formatTime(this._file.timeRemaining) : "--:--";
 
 
             this.$bar.css({width:percent + "%"})
             this.$percent.html(percent);
-            this.log(this._file.timeRemaining);
-            this.$duration.html(SWFUpload.speed.formatTime(this._file.timeRemaining));
+
+            this.$duration.html(remaining);
 
 
         }

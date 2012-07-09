@@ -13,7 +13,10 @@
                 <li><a href="@routes.Application.page(" faqs")>Faqs</a></li>
                 <li><a href="@routes.Application.page(" blog")">Blog</a></li>
                 @if(SessionHelper.authenticated){
-                <li><a href="@routes.Application.logout()">Logout</a></li>
+
+                 <li><a href="@routes.Application.logout()">Logout</a></li>
+                }else{
+                <li><a href="@routes.Application.login()">Login</a></li>
                 }
             </ul>
         </div>

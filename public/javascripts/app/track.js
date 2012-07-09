@@ -1,5 +1,4 @@
-define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
-{
+define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload) {
     var _ = require("underscore");
     var Track = Backbone.Model.extend({
         validation:{
@@ -47,19 +46,10 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             "click .album-art .close":"removeArt"
         },
 
-        initialize:function ()
-        {
+        initialize:function () {
             _.bindAll(this);
             this._binder = new Backbone.ModelBinder();
-            this.trackUploadView = new Upload.View(
-                {el:"#track-upload",
-                    uri:"/artist/upload/audio",
-                    limit:"291MB",
-                    types:"*.wav;*.aif;*.flac"
 
-                })
-
-            this.trackUploadView.on("uploaded", this._onTrackUploaded);
             this.artUploadView = new Upload.View(
                 {   el:".album-art",
                     uri:"/artist/upload/art",
@@ -72,12 +62,8 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             this.render();
 
         },
-        _onTrackUploaded:function (name)
-        {
 
-        },
-        _onArtUploaded:function (url, id)
-        {
+        _onArtUploaded:function (url, id) {
             var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".album-art"));
             wrapper.find("img").attr("src", url);
 
@@ -85,13 +71,11 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
 
         },
-        removeArt:function ()
-        {
+        removeArt:function () {
             this.$(".image").remove();
             this.model.set({art:"", artURL:""});
         },
-        render:function ()
-        {
+        render:function () {
 
             this._binder.bind(this.model, this.$el, this.bindings);
 //            Backbone.ModelBinding.bind(this,mo);
@@ -101,26 +85,67 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
     var TrackView = Backbone.View.extend({
 
-        initialize:function ()
-        {
+        initialize:function () {
             _.bindAll(this);
 
+            this.trackUploadView = new Upload.View(
+                {el:"#track-upload",
+                    uri:"/artist/upload/audio",
+                    limit:"291MB",
+                    types:"*.wav;*.aif;*.flac"
+
+                })
+
+
+            this.trackUploadView
+                .on("uploaded", this._onTrackUploaded, this)
+                .on("canceled", this._onTrackCanceled, this)
+                .on("stopped", this._onTrackStopped, this);
             this.$title = this.$el.find(".title");
             this.$details = this.$el.find(".details");
             this.$art = this.$(".album-art");
             this.model.on("change:name change:download change:price change:donateMore change:artURL", this._onModelChange)
+            this._onModelChange(this.model);
 
         },
-        _onModelChange:function (model, info)
-        {
+        _onTrackCanceled:function () {
+            this.is("canceled", true);
 
-            if (!_.isObject(info))return;
-            if ("name" in info.changes) {
+
+            this.delay(function () {
+                this.is("canceled", false)
+            }, this);
+        },
+        _onTrackStopped:function (fromDelay) {
+
+            if (!fromDelay) {
+                var self = this;
+                setTimeout(function () {
+                    self._onTrackStopped(true);
+                }, 100);
+            }
+            if (this.is("canceled")) return;
+
+
+        },
+        _onTrackUploaded:function (name) {
+
+        },
+        _onModelChange:function (model) {
+
+
+            if ("name" in model.changed) {
                 var title = this.model.get("name") || "Untitled Track";
                 this.$title.html(title);
-            } else if ("artURL" in info.changes) {
+            } else if ("artURL" in model.changed) {
 
-                this.$art.find("img").src(this.model.get("artURL"));
+                var url = this.model.get("artURL");
+                if (!_.isEmpty(url)) {
+                    this.$art.find("img").attr("src", url).show();
+                } else {
+                    this.$art.find("img").hide();
+                }
+
             } else {
 
 
