@@ -59,7 +59,9 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             );
 
             this.artUploadView.on("uploaded", this._onArtUploaded);
-            this.render();
+            if (!this._rendered) {
+                this.render();
+            }
 
         },
 
@@ -80,33 +82,48 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             this._binder.bind(this.model, this.$el, this.bindings);
 //            Backbone.ModelBinding.bind(this,mo);
             //          Backbone.Validation.bind(this, {forceUpdate: true});
+            return this;
         }
     })
 
-    var TrackView = Backbone.View.extend({
-
+    var TrackOverviewView = Backbone.View.extend({
+        createUploadView:true,
         initialize:function () {
             _.bindAll(this);
 
-            this.trackUploadView = new Upload.View(
-                {el:"#track-upload",
-                    uri:"/artist/upload/audio",
-                    limit:"291MB",
-                    types:"*.wav;*.aif;*.flac"
+            if (this.createUploadView) {
+                this.trackUploadView = new Upload.View(
+                    {el:"#track-upload",
+                        uri:"/artist/upload/audio",
+                        limit:"291MB",
+                        types:"*.wav;*.aif;*.flac"
 
-                })
+                    })
+                this.attachUploadListeners(this.trackUploadView);
 
+            }
 
-            this.trackUploadView
-                .on("uploaded", this._onTrackUploaded, this)
-                .on("canceled", this._onTrackCanceled, this)
-                .on("stopped", this._onTrackStopped, this);
             this.$title = this.$el.find(".title");
             this.$details = this.$el.find(".details");
             this.$art = this.$(".album-art");
             this.model.on("change:name change:download change:price change:donateMore change:artURL", this._onModelChange)
             this._onModelChange(this.model);
 
+        },
+
+        attachUploadListeners:function (view) {
+
+            view
+                .on("uploaded", this._onTrackUploaded, this)
+                .on("canceled", this._onTrackCanceled, this)
+                .on("stopped", this._onTrackStopped, this);
+        },
+        removeUploadListeners:function (view) {
+
+            view
+                .off("uploaded", this._onTrackUploaded, this)
+                .off("canceled", this._onTrackCanceled, this)
+                .off("stopped", this._onTrackStopped, this);
         },
         _onTrackCanceled:function () {
             this.is("canceled", true);
@@ -177,7 +194,7 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
     return{
         EditView:TrackEditView,
-        TrackView:TrackView,
+        OverviewView:TrackOverviewView,
         Model:Track,
         Collection:Tracks
     }

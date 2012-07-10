@@ -1,4 +1,4 @@
-@(signupFrom:Form[Signup])
+@(signupFrom:Form[Signup])(implicit request: play.api.mvc.RequestHeader)
 @import helper._
 @import helpers.twitterBootstrapCustom._
 @implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }

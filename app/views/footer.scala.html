@@ -1,0 +1,15 @@
+@()(implicit request: play.api.mvc.RequestHeader)
+@import utils.session._
+
+@if(SessionHelper.authenticated){
+<script type="text/javascript">
+    var app_config = {
+
+
+        token:""
+
+    }
+
+</script>
+
+}

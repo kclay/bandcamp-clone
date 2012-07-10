@@ -1,0 +1,69 @@
+@(album: Field)(implicit  artist:Artist)
+
+@import helper._
+
+@import helpers.twitterBootstrapCustom._
+@implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
+
+
+<div id="album" class="input-block album-block">
+    <fieldset class="control-group">
+        @inputText(album("name"),'_label->"",'placeholder->"track name",
+        'title->"track name",'_showConstraints->false)
+        @input(album("releaseDate"),'_style->"date",'_label->"release date:",'_help->"mm/dd/yy leave blank to use publish date"){(id, name, value, args) =>
+            <input type="text" name="@name" id="@id" class="track-release " @toHtmlArgs(args)>
+        }
+
+
+    </fieldset>
+    <fieldset class="control-group">
+        @checkbox(album("download"),'_style->"checkbox",'_class->"track-download",
+        '_label->"enable download",'_showConstraints->false)
+
+
+        @inputText(album("price"),'_style->"price",'_class->"track-price ",
+        '_label->"track pricing",
+
+        '_help->"enter zero or more",'_showConstraints->false)
+
+        @checkbox(album("donateMore"),'_style->"checkbox",'class->"track-donate ",
+        '_label->"let fans pay more if they want",
+        '_showConstraints->false)
+        <p>Payments will go to <strong>@artist.email</strong></p>
+    </fieldset>
+    <fieldset class="control-group">
+        @inputText(album("artist"),
+        'placeholder->"leave blank to use band name",
+        '_help->"for complications, labels, etc.")
+
+        @textarea(album("about"),'_label->"about this track")
+
+        @textarea(album("credits"),'_label->"track credits")
+
+
+
+        @input(album("art"),'_label->""){(id, name, value, args) =>
+
+
+        <div class="album-art art-upload">
+            <a href="#" class="upload-button">Upload Track Art</a>
+
+
+            <p>350 x 350 pixels minimum<br/>
+                (bigger is better)<br/><br/>
+
+                .jpg, .gif or .png, 4MB max</p>
+        </div>
+
+        <input type="hidden" name="@name" id="@id" @toHtmlArgs(args)/>
+        }
+
+    </fieldset>
+
+   
+
+   
+
+</div>
+
+

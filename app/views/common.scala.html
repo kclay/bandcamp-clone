@@ -1,4 +1,4 @@
-@(title: String, nav: Html = Html(""),bodyClass:String="")(content: Html)
+@(title: String, nav: Html = Html(""),bodyClass:String="")(content: Html)(implicit request: play.api.mvc.RequestHeader)
 
 <!DOCTYPE html>
 
@@ -6,7 +6,7 @@
     <head>
         <title>@title | Bula Bowl</title>
         <link rel="stylesheet" media="screen" href="/assets/stylesheets/bootstrap/bootstrap.min.css" />
-        <link rel="stylesheet" media="screen" href="/assets/stylesheets/bootstrap/responsive.min.css" />
+
         <link rel="shortcut icon" type="image/png" href="/assets/images/favicon.png">
 
 
@@ -24,6 +24,6 @@
             </div>
             </div>
 
-
+        @footer()
     </body>
 </html>

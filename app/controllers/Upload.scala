@@ -9,6 +9,7 @@ import akka.actor.Props
 import play.api.libs.concurrent.AkkaPromise
 
 import actors._
+import akka.util.Timeout
 
 // Use the Applications Default Actor System
 
@@ -33,17 +34,19 @@ case class AudioResponse(created: Boolean)
 
 import org.apache.commons.codec.digest.DigestUtils._
 
-class Upload extends Controller with Auth with AuthConfigImpl {
+object Upload extends Controller with Auth with AuthConfigImpl {
 
 
   def status(ids: String) = authorizedAction(NormalUser) {
     artist => implicit request =>
-
+    /*
       Async {
+        implicit val timeout = Timeout(5.seconds)
         new AkkaPromise(encodingActor ? EncodingStatus(ids.split(","))) map {
 
         }
-      }
+      }   */
+      Ok("")
 
   }
 
@@ -61,6 +64,7 @@ class Upload extends Controller with Auth with AuthConfigImpl {
       None
   }
 
+
   def audio(token: String) = Action(parse.multipartFormData) {
     implicit request =>
       decryptToken(token).map {
@@ -71,8 +75,12 @@ class Upload extends Controller with Auth with AuthConfigImpl {
               val (created, name, tempFile) = audioDataStore.moveToTemp(file)
 
               if (created) {
-                val id = shaHex(tempFile.getAbsolutePath)
-                encodingActor ? Encode(artist, id, tempFile)
+
+                /*Async {
+                  val id = shaHex(tempFile.getAbsolutePath)
+
+                  encodingActor ? Encode(artist, id, tempFile)
+                } */
 
               }
           }
@@ -82,19 +90,23 @@ class Upload extends Controller with Auth with AuthConfigImpl {
       Ok("")
   }
 
-  def art = Action(parse.multipartFormData) {
+  def art(token: String) = Action(parse.multipartFormData) {
     implicit request =>
-      request.body.file("Filedata").map {
-        file =>
-          import utils.{Medium, Image}
+      decryptToken(token).map {
+        artist => {
+          request.body.file("Filedata").map {
+            file =>
+              import utils.{Medium, Image}
 
-          val image = Image(file).resizeTo(Medium())
+              val image = Image(file).resizeTo(Medium())
 
 
-          Ok(generate(ArtResponse(image.exists(), image.url, image.id)))
+              Ok(generate(ArtResponse(image.exists(), image.url, image.id)))
 
-      }.getOrElse(BadRequest("error"))
-
+          }.getOrElse(BadRequest("error"))
+        }
+      }
+      Ok("")
   }
 
 }

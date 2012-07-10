@@ -17,8 +17,7 @@ import utils.format.Formats._
 import models._
 
 
-object Forms
-{
+object Forms {
 
 
   val signupFrom = Form {
@@ -70,24 +69,47 @@ object Forms
       "location" -> optional(text)
     )
   }
-  val singleTrackForm: Form[Track] = Form {
-    single(
-      "track" -> mapping(
-        "id" -> longNumber,
+
+  val trackMapping = mapping(
+    "id" -> longNumber,
+    "artist_id" -> longNumber,
+    "name" -> text(minLength = 1, maxLength = 50),
+    "donate" -> boolean,
+    "download" -> boolean,
+    "price" -> of[Double],
+    "license" -> text,
+    "artist" -> optional(text),
+    "art" -> optional(text),
+    "lyrics" -> optional(text),
+    "about" -> optional(text),
+    "credits" -> optional(text),
+    "date" -> optional(sqlDate("MM-dd-yyyy")),
+    "activate" -> boolean
+  )(Track.apply)(Track.unapply)
+  val albumForm: Form[(Album, Seq[Track])] = Form {
+    tuple(
+      "album" -> mapping(
         "artist_id" -> longNumber,
         "name" -> text(minLength = 1, maxLength = 50),
-        "donate" -> boolean,
-        "download" -> boolean,
-        "price" -> of[Double],
-        "license" -> text,
         "artist" -> optional(text),
+        "slug" -> text,
+        "active" -> boolean,
+        "download" -> boolean,
+        "donate" -> boolean,
+        "price" -> of[Double],
         "art" -> optional(text),
-        "lyrics" -> optional(text),
         "about" -> optional(text),
         "credits" -> optional(text),
-        "date" -> optional(sqlDate("MM-dd-yyyy")),
-        "activate" -> boolean
-      )(Track.apply)(Track.unapply)
+        "upc" -> optional(text),
+        "releaseDate" -> optional(sqlDate("MM-dd-yyyy"))
+      )(Album.apply)(Album.unapply),
+      "tracks" -> seq(trackMapping)
+    )
+  }
+
+  val singleTrackForm: Form[Track] = Form {
+    single(
+      "track" -> trackMapping
     )
   }
 

@@ -95,7 +95,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       )
   }
 
-  def whitelabel = authorizedAction(NormalUser) {
+  def dashboard = authorizedAction(NormalUser) {
     artist => implicit request =>
 
       Redirect("http://google.com")
@@ -116,11 +116,13 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
   def page(name: String) = Action {
+    implicit request =>
     Ok("name " + name)
 
   }
 
   def track(name: String) = Action {
+    implicit request =>
     Ok("Track")
   }
 

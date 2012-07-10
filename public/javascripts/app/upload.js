@@ -19,7 +19,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             button.html("<span class='trigger'>" + button.html() + "</span>");
             var hit = $("<span class='uploader'></span>").appendTo(button);
             this.swf = new SWFUpload({
-                upload_url:options.uri,
+                upload_url:options.uri + "/" + app_config.token,
                 flash_url:"/assets/swfupload.swf",
                 file_size_limit:options.limit || "4 MB",
                 file_types:options.types || "*",
@@ -60,11 +60,14 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
         },
-        _onDialogComplete:function () {
-            this.render();
-            this.$hit.hide();
-            this.$progress.show();
-            this.swf.startUpload();
+        _onDialogComplete:function (numFilesSelected) {
+            if (numFilesSelected == 1) {
+                this.render();
+                this.$hit.hide();
+                this.$progress.show();
+                this.swf.startUpload();
+                this.trigger("started");
+            }
 
         },
         cancelUpload:function () {
@@ -81,6 +84,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             switch (errorCode) {
                 case -290:
                     this.trigger("stopped");
+
                     break;
                 case -280:
                     if (!this._currentFile) {

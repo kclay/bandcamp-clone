@@ -39,7 +39,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
   private def withDomain(implicit artist: Artist, request: RequestHeader): String = {
 
 
-    "http://" + artist.domain + "." + request.host
+    "http://" + artist.domain + "." + request.host + "/welcome"
   }
 
   private def withSubdomain(implicit request: RequestHeader): Boolean = {
@@ -58,11 +58,10 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
       Ok("edit track")
   }
 
-  def addAlbum = authorizedAction(NormalUser) {
-    artist => implicit request =>
-      Ok("add album")
+  def newAlbum = authorizedAction(NormalUser) {
+    implicit artist => implicit request =>
+      Ok(html.artist.newAlbum(albumForm))
   }
-
 
 
   def addTrack = authorizedAction(NormalUser) {

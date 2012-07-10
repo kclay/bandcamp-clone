@@ -6,17 +6,18 @@
 
 
 @helper.form(action=routes.Artists.insertTrack){
-    <div class="left-panel span6">
-        @artist.trackOverview("Untitled Track")
-    </div>
+<div class="left-panel span6">
+    @artist.trackOverview("Untitled Track")
+</div>
 
 
-
-    <div class="right-panel span6" >
+<div class="right-panel span6">
+    <div id="track" class="input-block track-block">
         @artist.track(trackForm("track"))
     </div>
-        @artist.upload("Audio","add audio")
-        @artist.save()
+</div>
+@artist.upload("Audio","add audio")
+@artist.save()
 }
 
 

@@ -5,9 +5,6 @@
 @import helpers.twitterBootstrapCustom._
 @implicitField = @{ FieldConstructor(twitterBootstrapFieldConstructorCustom.f) }
 
-@textAreaField(field: Field, label:String)={
-
-}
 @licenseName=@{track("license").name}
 @licenseValue = @{ track("license").value.getOrElse("all_rights") }
 
@@ -54,7 +51,7 @@
 </li>
 }
 
-<div id="track" class="track-block">
+
     <fieldset class="control-group">
         @inputText(track("name"),'_label->"",'placeholder->"track name",
         'title->"track name",'_showConstraints->false)
@@ -136,6 +133,6 @@
         }
     </fieldset>
 
-</div>
+
 
 

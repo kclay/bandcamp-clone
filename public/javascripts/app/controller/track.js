@@ -18,7 +18,7 @@ define(["app/track"], function ()
             this.$saveButton = this.$("#save-button").addClass("disabled");
             var model = this.model = new Track.Model();
             this.model.on("change", this._onModelChanged)
-            this.trackView = new Track.TrackView({el:".track-overview", model:model});
+            this.trackView = new Track.OverviewView({el:".track-overview", model:model});
             this.editView = new Track.EditView({el:"#track", model:model});
 
         },

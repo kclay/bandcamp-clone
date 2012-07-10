@@ -1,4 +1,4 @@
-@(domainForm:Form[String])
+@(domainForm:Form[String])(implicit request: play.api.mvc.RequestHeader)
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(domainInput.f) }
 

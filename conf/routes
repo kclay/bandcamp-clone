@@ -12,7 +12,7 @@ GET     /login                      controllers.Application.login
 GET     /logout                     controllers.Application.logout
 POST    /signup                     controllers.Application.validateSignup
 GET     /signup                     controllers.Application.signup
-GET     /whitelabel                 controllers.Application.whitelabel
+
 
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 
@@ -29,7 +29,7 @@ POST     /insert_tags                controllers.Artists.insertTags()
 POST    /insert_domain                controllers.Artists.insertDomain()
 GET    /pick_domain                 controllers.Artists.pickDomain()
 GET     /artists                     controllers.Artists.list(page:Int ?=1,amount:Int ?= 20,query:String ?="")
-GET     /edit_album/                 controllers.Artists.addAlbum()
+GET     /new_album                 controllers.Artists.newAlbum()
 
 GET     /add_track                 controllers.Artists.addTrack()
 POST    /ajax/tracks/                    controllers.Artists.insertTrack()
@@ -39,7 +39,9 @@ GET    /ajax/tracks/:id                  controllers.Artists.fetchTrack(id:Long)
 GET     /edit_album/:name            controllers.Artists.editAlbum(name:String)
 GET     /edit_track/:name            controllers.Artists.editTrack(name:String)
 
-POST    /artist/upload/:kind              controllers.Artists.upload(kind:String)
+POST    /artist/upload/art/:token              controllers.Upload.art(token:String)
+
+POST    /artist/upload/audio/:token              controllers.Upload.audio(token:String)
 
 
 

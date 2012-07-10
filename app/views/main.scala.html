@@ -1,11 +1,11 @@
-@(title: String,id: String="wrap")(content: Html)
+@(title: String,id: String="wrap")(content: Html)(implicit request: play.api.mvc.RequestHeader)
 
 @nav={
     @artist.header()
 }
 
 @common(title,nav,"inner"){
-<div id="content-wrap" class="row">
+<div id="@id" class="row content-wrap">
 
         @content
 
