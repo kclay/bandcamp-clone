@@ -93,7 +93,8 @@ define(["underscore", "app/track", "app/upload", "app/album"], function (_)
                 {el:"#track-upload",
                     uri:"/artist/upload/audio",
                     limit:"291MB",
-                    types:"*.wav;*.aif;*.flac"
+                    types:"*.wav;*.aif;*.flac",
+                    progressSelector:"#tracks-wrapper .upload-progress"
 
                 })
 

@@ -50,6 +50,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
             });
+            this.$progress = $(this.options.progressSelector ? this.options.progressSelector : ".upload-progress");
+            this.$percent = this.$progress.find(".percent");
+            this.$duration = this.$progress.find(".duration");
 
 
             this.bindTo(this)
@@ -58,17 +61,17 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
         bindTo:function (view)
         {
-            this.$wrapper = view.$(".progress-wrapper");
-            this.$bar = view.$(".bar");
+            this.setElement(view.el, true);
+            this.$wrapper = this.$(".progress-wrapper");
+            this.$bar = this.$(".bar");
 
-            this.$percent = view.$(".percent");
-            this.$duration = view.$(".duration");
-            this.$progress = view.$(".upload-progress");
-            this.$status = view.$(".status");
-            this.$cancel = view.$(".cancel");
-            this.$remove = view.$(".remove");
-            this.$file = view.$(".file");
-            this.$hit = view.$(".hit");
+
+            this.$status = this.$(".status");
+            this.$cancel = this.$(".cancel");
+            this.$remove = this.$(".remove");
+            this.$file = this.$(".file");
+            this.$hit = this.$(".hit");
+
         },
         _onDialogComplete:function (numFilesSelected)
         {
@@ -84,8 +87,10 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
         },
         cancelUpload:function ()
         {
-            this.swf.stopUpload();
-            this.swf.cancelUpload();
+            if (this._file) {
+                this.swf.stopUpload();
+                this.swf.cancelUpload();
+            }
             this.$progress.delay(200).fadeOut("slow");
 
         },
@@ -110,6 +115,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                     this.trigger("canceled");
                     break;
             }
+            this._file = null;
         },
         _onUploadStarted:function (file)
         {
