@@ -31,38 +31,43 @@ define(["underscore", "app/track", "app/upload", "app/album"], function (_)
             this._super("initialize");
         }
     })
-    var TrackEditView = Track.EditView.extend({
+    var trackBindings = {};
+    _(Track.Bindings).map(function (v, k)
+    {
+        trackBindings[k] = v.replace("track.", "tracks.");
+    })
+    var TrackEditView = Backbone.View.extend({
 
-        tagName:"div",
-        className:"input-block track-block",
-        delayRender:true,
+        tagName:"li",
+        className:"track",
         events:{
-            "click":"select"
+            "click .delete":"deleteView"
+        },
+
+
+        deleteView:function ()
+        {
+            this.model.collection.remove(this.model);
         },
         initialize:function ()
         {
-            var self = this;
-            _(this.bindings).map(function (v, k)
-            {
-                self.bindings[k] = v.replace("track.", "tracks.");
-            })
 
 
-            $(this.el).html($("#tpl-track-input").html());
+            $(this.el).html($("#tpl-track").html());
 
-
-            this._super("initialize");
-        },
-        select:function ()
-        {
-            var index = this.index();
-            console.log(index);
+            this.overviewView = new Track.OverviewView({
+                createUploadView:false,
+                el:this.$(".track-overview"),
+                model:this.model});
+            this.editView = new Track.EditView({bindings:trackBindings, el:this.$(".input-block"), model:this.model});
 
 
         },
-        index:function ()
+
+        render:function ()
         {
-            return this.model.collection.indexOf(this.model);
+
+            return this;
         }
 
 
@@ -92,64 +97,57 @@ define(["underscore", "app/track", "app/upload", "app/album"], function (_)
 
                 })
 
-            this.trackUploadView.on("started", this._onUploadStarted, this);
-            this.trackEditCollectionView = new CollectionView({
+            this.trackUploadView.on("started", this._onUploadStarted, this)
+                .on("beforeStarted", this._onBeforeUploadStarted, this);
+            this.trackCollectionView = new CollectionView({
                 collection:this.tracks,
                 childViewConstructor:TrackEditView,
 
-                childViewTagName:'div',
-                el:$('#track-inputs')[0]
+                childViewTagName:'li',
+
+                el:$('.tracks')[0]
             })
 
 
-            this.trackOverviewCollectionView = new CollectionView({
-                childViewConstructor:TrackOverviewView,
-                childViewTagName:'div',
-                collection:this.tracks,
-                el:$("#track-overviews .inner")[0]
-            })
-
-
-            this.trackEditCollectionView.render();
-            this.trackOverviewCollectionView.render();
+            this.trackCollectionView.render();
 
 
             this.tracks.bind("select", this.select);
 
 
-            /*  this.trackCollectionView = new UpdatingCollectionView({
-             collection:this.tracks,
-             childViewConstructor:UpdatingTrackView,
-             childViewTagName:'div',
-             el:$('#tracks')[0]
-             })   */
             this.$saveButton = this.$("#save-button").addClass("disabled");
-            /* var model = this.model = new Track.Model();
-             this.model.on("change", this._onModelChanged)
-             this.trackView = new Track.TrackView({el:".track-overview", model:model});
-             this.editView = new Track.EditView({el:"#track", model:model});    */
+            this.tracks.on("remove", this._onTrackRemoved, this);
 
+        },
+        _onTrackRemoved:function ()
+        {
+            if (!this.tracks.length) {
+                this.albumView.$(".right-panel").show();
+            }
+        },
+        _activeModel:null,
+        activeView:function ()
+        {
+            return this.trackCollectionView.viewByModel(this._activeModel);
 
 
         },
-        _activeModel:null,
-        activeViews:function ()
+        _onBeforeUploadStarted:function ()
         {
-            return {
-                overview:this.trackOverviewCollectionView.viewByModel(this._activeModel),
-                edit:this.trackEditCollectionView.viewByModel(this._activeModel)
+            var prevActiveView = this.activeView();
+            if (prevActiveView) {
+                prevActiveView.overviewView.removeUploadListeners(this.trackUploadView);
             }
+            this.albumView.$(".right-panel").hide();
+            var model = this._activeModel = new Track.Model();
+            this.tracks.add(model);
 
+            var view = this.activeView();
+            view.overviewView.attachUploadListeners(this.trackUploadView);
+            this.trackUploadView.bindTo(view);
         },
         _onUploadStarted:function ()
         {
-
-            this.albumView.$el.hide();
-            var model = this._activeModel = new Track.Model();
-            this.tracks.add(model);
-            var overviewView = this.trackOverviewCollectionView.viewByModel(model);
-            overviewView.attachUploadListeners(this.trackUploadView);
-
 
 
         },

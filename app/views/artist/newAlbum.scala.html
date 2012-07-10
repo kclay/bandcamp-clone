@@ -6,38 +6,57 @@
 
 
 @helper.form(action=routes.Artists.insertTrack){
-<script type="text/template" id="tpl-track-overview">
+
+<script type="text/template" id="tpl-track">
+
+        <div class="right-panel input-block">
+            @artist.track(albumForm("tracks"))
+        </div>
+        <div class="left-panel span6">
+            <div class="track-overview album-info">
+                <div class="drag"></div>
+                <a class="delete" href="#"><i class="icon-remove"></i></a>
+
+                <p class="title">Unnamed Track</p>
+
+                @artist.uploadTemplate()
+                <p class="details"></p>
+            </div>
+        </div>
 
 
-    @artist.albumTrackUpload()
 </script>
-<script type="text/template" id="tpl-track-input">
-    @artist.track(albumForm("tracks"))
-</script>
-<div class="left-panel span6">
-    @artist.trackOverview("Untitled Album")
-    <div id="track-overviews" class="tracks">
-        <h3>Tracks</h3>
-         <span class="upload-progress">
+
+<div id="album">
+    <div class="left-panel span6">
+        @artist.trackOverview("Untitled Album")
+    </div>
+    <div class="right-panel album-block">
+        @artist.album(albumForm("album"))
+    </div>
+</div>
+
+<div id="tracks-wrapper">
+    <h3>Tracks
+     <span class="upload-progress">
             <span class="percent"></span>% complete,
             <span class="duration"></span> remaining
         </span>
-        <div class="inner"></div>
-    </div>
+    </h3>
+    <ol class="tracks">
+
+
+    </ol>
+
+</div>
+<div id="upload">
+    @artist.upload("Audio","add audio")
 </div>
 
 
-<div class="right-panel span6">
-
-    @artist.album(albumForm("album"))
-    <div id="track-inputs" class="tracks">
-
-    </div>
-
-
+<div id="save" class="span6 row no-float">
+    @artist.save()
 </div>
-@artist.upload("Audio","add audio")
-@artist.save()
 }
 
 

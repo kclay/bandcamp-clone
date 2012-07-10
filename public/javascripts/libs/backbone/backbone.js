@@ -75,6 +75,7 @@ function init_backbone()
 {
 
     window.UpdatingCollectionView = Backbone.View.extend({
+        attachMethod:"append",
         initialize:function (options)
         {
             _(this).bindAll('add', 'remove');
@@ -104,9 +105,22 @@ function init_backbone()
             this._childViews.push(childView);
 
             if (this._rendered) {
-                $(this.el).append(childView.render().el);
+                this._attach(childView);
                 childView.delegateEvents();
             }
+
+        },
+        _attach:function (views)
+        {
+            var html = [];
+            views = _.isArray(views) ? views : [views];
+            _(views).each(function (childView)
+            {
+                html.push(childView.render().el);
+
+
+            });
+            this.$el.append(html);
 
         },
 
@@ -132,14 +146,8 @@ function init_backbone()
 
             $(this.el).empty();
 
-            var html = [];
-            _(this._childViews).each(function (childView)
-            {
-                html.push(childView.render().el);
 
-
-            });
-            that.$el.append(html);
+            this._attach(this._childViews);
             _(this._childViews).each(function (childView)
             {
                 childView.delegateEvents();

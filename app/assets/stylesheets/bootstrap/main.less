@@ -206,7 +206,32 @@ body.inner {
     padding-top: 120px;
 }
 
+#new-album {
+    .right-panel {
+        width: 450px;
+        float: right;
+        margin-right: 0px !important;
+        margin-top: -4px;
+
+    }
+
+}
+
+.tracks {
+    list-style: none;
+    ol {
+        margin: 0px;
+        counter-reset: track-list;
+    }
+
+}
+
+.no-float {
+    float: none !important;
+}
+
 .track-overview {
+    position: relative;
     padding: 10px 1px 10px 10px;
     border-left: 2px solid @purple;
     border-top: 1px solid @gray;
@@ -236,8 +261,28 @@ body.inner {
 
 }
 
-.tracks {
-/*display: none;*/
+.tracks .track-overview {
+    padding-left: 72px;
+    .album-art {
+        position: absolute;
+        left: 17px;
+    }
+    .title:before {
+        content: counter(track-list);
+        counter-increment: track-list;
+        display: inline-block;
+        margin-left: -18px;
+        margin-right: 9px;
+
+    }
+    .delete {
+        float: right;
+    }
+
+}
+
+#tracks-wrapper {
+    padding-top: 100px;
 }
 
 #track-overviews {
@@ -281,4 +326,9 @@ body.inner {
     .status {
         color: @purple;
     }
+}
+
+.progress {
+    height: 5px;
+    margin-bottom: 5px;
 }
