@@ -85,7 +85,7 @@
         @input(track("art"),'_label->""){(id, name, value, args) =>
 
 
-        <div class="album-art art-upload">
+        <div class="track-art art-upload">
             <a href="#" class="upload-button">Upload Track Art</a>
 
 
@@ -93,6 +93,17 @@
                 (bigger is better)<br/><br/>
 
                 .jpg, .gif or .png, 4MB max</p>
+            <div class="progress-wrapper">
+                <span class="file"></span>
+                <span class="status">uploading</span>
+                <span>|</span>
+                <a class="cancel" href="#">cancel</a>
+                <a class="remove" href="#">replace</a>
+
+                <div class="progress progress-striped">
+                    <div class="bar" style="width: 0%;"></div>
+                </div>
+            </div>
         </div>
 
         <input type="hidden" name="@name" id="@id" @toHtmlArgs(args)/>

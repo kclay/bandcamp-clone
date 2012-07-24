@@ -1,5 +1,4 @@
-define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _)
-{
+define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _) {
 
 
     var UploadView = Backbone.View.extend({
@@ -11,18 +10,20 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             'click .cancel':"cancelUpload",
             'click .remove':"removeFile"
         },
-        initialize:function (options)
-        {
+        initialize:function (options) {
 
 
-            var button = this.$el.find(".upload-button").click(function ()
-            {
+            var button = this.$el.find(".upload-button").click(function () {
                 return false;
             });
             button.html("<span class='trigger'>" + button.html() + "</span>");
             var hit = $("<span class='uploader'></span>").appendTo(button);
             this.swf = new SWFUpload({
-                upload_url:options.uri + "/" + app_config.token,
+                upload_url:options.uri,
+                post_params:{
+                    token:app_config.token,
+                    session:app_config.session
+                },
                 flash_url:"/assets/swfupload.swf",
                 file_size_limit:options.limit || "4 MB",
                 file_types:options.types || "*",
@@ -41,8 +42,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 button_height:button.height(),
                 button_text:"",
                 debug:true,
-                debug_handler:function ()
-                {
+                debug_handler:function () {
                     console.log(arguments);
                 },
                 button_placeholder:hit[0]
@@ -50,7 +50,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
             });
-            this.$progress = $(this.options.progressSelector ? this.options.progressSelector : ".upload-progress");
+            this.$progress = this.options.progressSelector ? $(this.options.progressSelector) : this.$(".upload-progress");
             this.$percent = this.$progress.find(".percent");
             this.$duration = this.$progress.find(".duration");
 
@@ -59,8 +59,12 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
         },
 
-        bindTo:function (view)
-        {
+        remove:function () {
+
+            this.swf.destroy();
+            return this;
+        },
+        bindTo:function (view) {
             this.setElement(view.el, true);
             this.$wrapper = this.$(".progress-wrapper");
             this.$bar = this.$(".bar");
@@ -73,8 +77,8 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this.$hit = this.$(".hit");
 
         },
-        _onDialogComplete:function (numFilesSelected)
-        {
+        _onDialogComplete:function (numFilesSelected) {
+
             if (numFilesSelected == 1) {
                 this.trigger("beforeStarted")
                 this.render();
@@ -85,8 +89,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             }
 
         },
-        cancelUpload:function ()
-        {
+        cancelUpload:function () {
             if (this._file) {
                 this.swf.stopUpload();
                 this.swf.cancelUpload();
@@ -94,13 +97,11 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this.$progress.delay(200).fadeOut("slow");
 
         },
-        removeFile:function ()
-        {
+        removeFile:function () {
 
 
         },
-        _onUploadError:function (file, errorCode, message)
-        {
+        _onUploadError:function (file, errorCode, message) {
             switch (errorCode) {
                 case -290:
                     this.trigger("stopped");
@@ -117,8 +118,12 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             }
             this._file = null;
         },
-        _onUploadStarted:function (file)
-        {
+        reset:function () {
+            this._render();
+            this.$wrapper.hide();
+            this.$progress.hide();
+        },
+        _onUploadStarted:function (file) {
             this.$wrapper.show();
             this._file = file;
 
@@ -132,47 +137,45 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
             this.render()
         },
-        _onUploadProgress:function (file, bytes, total)
-        {
+        _onUploadProgress:function (file, bytes, total) {
 
             this._file = file;
             this.render()
         },
-        _onUploadSuccess:function (file, serverData, receivedResponse)
-        {
+        _onUploadSuccess:function (file, serverData, receivedResponse) {
             this._file = file;
             this.$progress.hide();
             this.$cancel.hide();
             this.$remove.show();
             if (serverData) {
-                var info = serverData.split("|");
-                var created = info.shift()
-                if (created) {
+                var info = $.parseJSON(serverData);
 
-                    this.trigger.apply(this, ["uploaded"].concat(info));
-                }
+
+                this.trigger("uploaded", info);
+
 
             }
             this._currentFile = file;
 
         },
-        _onUploadComplete:function (file)
-        {
+        _onUploadComplete:function (file) {
             this._file = file;
 
         },
-        render:function ()
-        {
-            var percent = this._file ? this._file.percentUploaded.toFixed(2) : 0;
-            var remaining = this._file ? SWFUpload.speed.formatTime(this._file.timeRemaining) : "--:--";
+        render:function () {
+
+            this._render(this._file);
+
+        },
+        _render:function (file) {
+            var percent = file ? file.percentUploaded.toFixed(2) : 0;
+            var remaining = file ? SWFUpload.speed.formatTime(file.timeRemaining) : "--:--";
 
 
             this.$bar.css({width:percent + "%"})
             this.$percent.html(percent);
 
             this.$duration.html(remaining);
-
-
         }
 
     })

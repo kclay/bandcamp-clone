@@ -1,15 +1,20 @@
 package controllers
 
 import jp.t2v.lab.play20.auth._
-import models.AuthConfigImpl
-import models.NormalUser
+import models.{Queue, AuthConfigImpl, NormalUser}
 import play.api.mvc._
 import com.codahale.jerkson.Json._
 import akka.actor.Props
-import play.api.libs.concurrent.AkkaPromise
+import play.api.libs.concurrent.{Akka, AkkaPromise}
+
 
 import actors._
-import akka.util.Timeout
+
+
+import akka.util.{Duration, Timeout}
+import com.ning.http.util.Base64
+import play.api.libs.Files.TemporaryFile
+
 
 // Use the Applications Default Actor System
 
@@ -28,85 +33,143 @@ import akka.pattern.ask
  * Time: 9:40 AM
  */
 
-case class ArtResponse(created: Boolean, url: String, id: String)
-
-case class AudioResponse(created: Boolean)
-
 import org.apache.commons.codec.digest.DigestUtils._
+import play.api.libs.Crypto
+
+case class ArtResponse(ok: Boolean, url: String = "", id: String = "")
+
+case class UploadError(error: String)
+
+case class AudioResponse(name: String, id: String)
+
+case class QueueAdded(id: Long) {
+  def hash = Base64.encode(Crypto.sign(id.toString).getBytes)
+}
+
 
 object Upload extends Controller with Auth with AuthConfigImpl {
 
 
-  def status(ids: String) = authorizedAction(NormalUser) {
-    artist => implicit request =>
-    /*
-      Async {
-        implicit val timeout = Timeout(5.seconds)
-        new AkkaPromise(encodingActor ? EncodingStatus(ids.split(","))) map {
+  def status() = Action {
+    implicit request =>
+      import models.Forms.trackStatusForm
+      trackStatusForm.bindFromRequest.fold(
+        e => error("no_ids"),
+        ids => json(Map("encodings" -> Queue.status(ids)))
 
-        }
-      }   */
-      Ok("")
+      )
+
 
   }
 
   lazy val audioDataStore = new AudioDataStore()
 
   val encodingActor = system.actorOf(Props[Encoding], name = "upload")
+  private val noUser: Option[User] = None
 
-  private def decryptToken(token: String): Option[User] = {
-    import play.api.libs.Crypto
-    val splitted = token.split("-")
-    val id = splitted.tail.mkString("-")
-    if (splitted(0) == Crypto.sign(id))
-      resolveUser(id.asInstanceOf[this.Id])
-    else
-      None
+  private def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+
+  private def decryptToken()(implicit request: Request[MultipartFormData[TemporaryFile]]): Option[User] = {
+
+    implicit val r = request.asInstanceOf[RequestHeader]
+    import models.Forms.authTokenForm
+    import java.lang.{Long => JLong}
+    authTokenForm.bindFromRequest.fold(
+      error => None,
+      token => {
+        var chars = Base64.decode(token)
+
+        val splitted = new String(chars).split("-")
+        val message = splitted.tail.mkString("-")
+        splitted(0) == Crypto.sign(message) match {
+          case true => urldecode(message).get("id").map(id => resolveUser(JLong.parseLong(id))).getOrElse(None)
+          case false => noUser
+
+
+        }
+      }
+    )
+
   }
 
+  private val QUEUE_COUNTER_OFFSET = 18921;
 
-  def audio(token: String) = Action(parse.multipartFormData) {
+  private def g(obj: Any) = generate(obj)
+
+  private def json(obj: Any) = Ok(g(obj)).as("text/json")
+
+  private def error(msg: String) = BadRequest(g(UploadError(msg))).as("text/json")
+
+
+  def audioUploaded = authorizedAction(NormalUser) {
+    artist => implicit request =>
+      import models.Forms.uploadedForm
+      uploadedForm.bindFromRequest.fold(
+        e => error("error"),
+        value => {
+          val (id, session) = value
+          audioDataStore.tempFile(id).map {
+            file =>
+              import utils.ffmpeg
+              val errors = ffmpeg(file).verify
+              if (errors.isEmpty) {
+                val queue = Queue.add(id, session)
+
+                import akka.util.duration
+                import play.api.Play.current
+                Akka.system.scheduler.scheduleOnce(Duration("2 seconds"), encodingActor, Encode(queue.toString, session))
+                json(Map("id" -> queue))
+              } else json(Map("error" -> errors))
+
+          }.getOrElse(error("invalid"))
+
+        }
+
+
+      )
+
+
+  }
+
+  def audio = Action(parse.multipartFormData) {
     implicit request =>
-      decryptToken(token).map {
-        artist => {
+
+      decryptToken.map {
+        artist =>
 
           request.body.file("Filedata").map {
             file =>
-              val (created, name, tempFile) = audioDataStore.moveToTemp(file)
+              val (created, name, tempFile) = audioDataStore.moveToTemp(file, false)
 
               if (created) {
+                json(AudioResponse(file.filename, name))
 
-                /*Async {
-                  val id = shaHex(tempFile.getAbsolutePath)
-
-                  encodingActor ? Encode(artist, id, tempFile)
-                } */
-
+              } else {
+                None
               }
-          }
-        }
-        Ok("")
-      }
-      Ok("")
+          }.getOrElse(error("no_file"))
+
+
+      }.getOrElse(error("invalid_token")).asInstanceOf[Result]
   }
 
-  def art(token: String) = Action(parse.multipartFormData) {
+  def art = Action(parse.multipartFormData) {
     implicit request =>
-      decryptToken(token).map {
+      decryptToken.map {
         artist => {
           request.body.file("Filedata").map {
             file =>
-              import utils.{Medium, Image}
+              import utils.{Medium, TempImage}
 
-              val image = Image(file).resizeTo(Medium())
+              val image = TempImage(file).resizeTo(Medium())
 
 
-              Ok(generate(ArtResponse(image.exists(), image.url, image.id)))
+              json(ArtResponse(image.exists(), image.url, image.id))
 
-          }.getOrElse(BadRequest("error"))
+          }.getOrElse(error("error"))
         }
-      }
-      Ok("")
+      }.getOrElse(error("error"))
+
   }
 
 }

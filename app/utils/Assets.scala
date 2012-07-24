@@ -25,10 +25,11 @@ case class Medium() extends ImageSize(210, 210, "medium")
 
 case class Small() extends ImageSize(72, 72, "small")
 
-case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
 
+abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
   override def location(): String = "images"
 
+  def id(): String = _id
 
   def filename(): String = String.format("%s_%s.jpg", id, imageSize.suffix)
 
@@ -70,9 +71,10 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
     toFile().exists()
   }
 
+
   def resizeTo(size: ImageSize): Image = {
     validate()
-    val out = Image(id, size)
+    val out = BaseImage(id, size)
     out.toFile().getParentFile.mkdirs();
     resize(toFile, out.toFile, size.width, size.height, true)
 
@@ -169,14 +171,48 @@ case class Image(id: String, imageSize: ImageSize = Normal(), tempFile: Option[F
   }
 }
 
-object Image {
+case class BaseImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends Image(_id, imageSize, tempFile) {
 
 
-  def apply(id: String) = new Image(id)
+}
+
+case class TempImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends Image(_id, imageSize, tempFile) {
+
+  override lazy val path = "temp/" + filename
+
+  override def resizeTo(size: ImageSize): Image = {
+    validate()
+    val out = TempImage(id, size, None)
+    out.toFile().getParentFile.mkdirs();
+    resize(toFile, out.toFile, size.width, size.height, true)
+
+    out
+  }
+}
+
+object TempImage {
+  def apply(id: String) = new TempImage(id)
 
   def apply(file: FilePart[TemporaryFile]) = {
     val id = shaHex(System.nanoTime() + file.filename)
-    new Image(id, Normal(), Some(file))
+    new TempImage(id, Normal(), Some(file))
+  }
+
+}
+
+object Image {
+
+  def fromTemp(id: String): Image = {
+    val tempFile = TempImage(id).toFile()
+    val filePart = FilePart(tempFile.getName, tempFile.getName, None, TemporaryFile(tempFile))
+    return BaseImage(id, Normal(), Some(filePart))
+  }
+
+  def apply(id: String) = new BaseImage(id)
+
+  def apply(file: FilePart[TemporaryFile]) = {
+    val id = shaHex(System.nanoTime() + file.filename)
+    new BaseImage(id, Normal(), Some(file))
   }
 
 
@@ -185,6 +221,11 @@ object Image {
 
 class AudioDataStore extends DataStore {
   override def location(): String = "audio"
+
+  def album(folder: String) = {
+    val dir = folder.substring(0, 5).toCharArray.mkString("/")
+    new File(store, dir + folder)
+  }
 }
 
 trait DataStore {
@@ -206,8 +247,16 @@ trait DataStore {
     file.substring(index + 1, file.length());
   }
 
-  def moveToTemp(file: FilePart[TemporaryFile]): (Boolean, String, File) = {
-    val name = shaHex(System.currentTimeMillis().toString()) + "." + ext(file.filename)
+  def tempFile(name: String): Option[File] = {
+    val f = new File(temp, name)
+    if (f.exists()) Some(f) else None
+  }
+
+
+  def tempExists(name: String) = new File(temp, name).exists()
+
+  def moveToTemp(file: FilePart[TemporaryFile], withExt: Boolean = true): (Boolean, String, File) = {
+    val name = shaHex(System.currentTimeMillis().toString()) + (if (withExt) ("." + ext(file.filename)) else "")
     val tempFile = new File(temp, name);
 
 
@@ -217,4 +266,6 @@ trait DataStore {
 
 
   }
+
+
 }

@@ -16,8 +16,7 @@ import play.api.cache.Cache
  * Time: 12:10 PM
  */
 
-trait AuthConfigImpl extends AuthConfig
-{
+trait AuthConfigImpl extends AuthConfig {
 
   /**
    * A type that is used to identify a user.
@@ -59,8 +58,7 @@ trait AuthConfigImpl extends AuthConfig
    * A function that returns a `User` object from an `Id`.
    * Describe the procedure according to your application.
    */
-  def resolveUser(id: Id): Option[User] =
-  {
+  def resolveUser(id: Id): Option[User] = {
     import org.squeryl.PrimitiveTypeMode._
     inTransaction(Artist.find(id))
   }
@@ -68,8 +66,7 @@ trait AuthConfigImpl extends AuthConfig
   /**
    * A redirect target after a successful user login.
    */
-  def loginSucceeded[A](request: Request[A]): PlainResult =
-  {
+  def loginSucceeded[A](request: Request[A]): PlainResult = {
     val uri = request.session.get("access_uri").getOrElse(routes.Artists.index.url)
     request.session - "access_uri"
     Redirect(uri)
@@ -103,5 +100,7 @@ trait AuthConfigImpl extends AuthConfig
       case ("normal", NormalUser) => true
       case _ => false
     }
+
+  override def resolver[A](implicit request: Request[A]): RelationResolver[Id] =  new CookieRelationResolver[Id, A](request)
 
 }

@@ -19,7 +19,19 @@ import models._
 
 object Forms {
 
+  val uploadedForm = Form {
+    tuple(
+      "id" -> text,
+      "session" -> text
+    )
 
+  }
+  val authTokenForm = Form {
+    single("token" -> text)
+  }
+  val trackStatusForm = Form {
+    single("ids" -> list(longNumber))
+  }
   val signupFrom = Form {
     mapping(
       "username" -> text(minLength = 6)
@@ -90,6 +102,7 @@ object Forms {
     tuple(
       "album" -> mapping(
         "artist_id" -> longNumber,
+        "session"->text,
         "name" -> text(minLength = 1, maxLength = 50),
         "artist" -> optional(text),
         "slug" -> text,

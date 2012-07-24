@@ -1,6 +1,6 @@
-define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
-    {
+define(["binder", "backbone", "app/upload", "app/common"], function (binder, Backbone, Upload) {
         var _ = require("underscore");
+        var Common = require("app/common");
         var Track = Backbone.Model.extend({
             validation:{
                 name:{
@@ -22,7 +22,12 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
                 license:"all_rights"
 
             },
-            urlRoot:"/ajax/tracks"
+            urlRoot:"/ajax/tracks",
+            toJSON:function () {
+                var t = _.clone(this.attributes);
+                delete t["artURL"];
+                return t;
+            }
 
         });
 
@@ -39,6 +44,37 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
         }
 
+        var TrackErrorView = Backbone.View.extend({
+            tagName:"div",
+            className:"track-upload-error",
+            events:{
+                "click a":"showError"
+            },
+            initialize:function (options) {
+
+                $("<s></s><a href='#'>upload error</a>").appendTo(this.el)
+                this.update(options.fileName, options.reasons);
+
+            },
+            showError:function () {
+                new Common.FeedbackView({
+                    data:{
+                        title:"Encoding Error",
+                        message:this.reasons.join("<br/>")
+                    }
+                })
+            },
+            update:function (name, reasons) {
+                this.fileName = name;
+                this.reasons = reasons;
+                this.render();
+            },
+            render:function () {
+                this.$("s").html(this.fileName)
+
+            }
+
+        })
         var TrackEditView = Backbone.View.extend({
 
 
@@ -49,13 +85,23 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
                 "click .album-art .close":"removeArt"
             },
 
-            initialize:function ()
-            {
+            initialize:function () {
                 _.bindAll(this);
                 this._binder = new Backbone.ModelBinder();
 
+
+                if (!this._rendered) {
+                    this.render();
+                }
+
+            },
+            remove:function () {
+                this.artUploadView.remove();
+                return this;
+            },
+            init:function () {
                 this.artUploadView = new Upload.View(
-                    {   el:".album-art",
+                    {   el:this.$(".track-art"),
                         uri:"/artist/upload/art",
                         limit:"4MB",
                         types:"*.jpg;*.gif;*.png"
@@ -63,41 +109,34 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
                 );
 
                 this.artUploadView.on("uploaded", this._onArtUploaded);
-                if (!this._rendered) {
-                    this.render();
-                }
-
             },
 
-            _onArtUploaded:function (url, id)
-            {
+            _onArtUploaded:function (info) {
                 var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".album-art"));
-                wrapper.find("img").attr("src", url);
+                wrapper.find("img").attr("src", info.url);
 
-                this.model.set({art:id, artURL:url});
+                this.model.set({art:info.id, artURL:info.url});
 
 
             },
-            removeArt:function ()
-            {
+            removeArt:function () {
                 this.$(".image").remove();
                 this.model.set({art:"", artURL:""});
             },
-            render:function ()
-            {
+            render:function () {
 
-                this._binder.bind(this.model, this.$el, this.options.bindings||EditBindings);
+                this._binder.bind(this.model, this.$el, this.options.bindings || EditBindings);
 //            Backbone.ModelBinding.bind(this,mo);
                 //          Backbone.Validation.bind(this, {forceUpdate: true});
                 return this;
             }
         })
 
-        var TrackOverviewView = Backbone.View.extend({
+        var Routes = jsRoutes.controllers.Upload;
+        var TrackOverviewView = Common.OverviewView.extend({
 
-            initialize:function ()
-            {
-                _.bindAll(this);
+            initialize:function () {
+
 
                 if (this.options.createUploadView) {
                     this.trackUploadView = new Upload.View(
@@ -110,48 +149,38 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
                     this.attachUploadListeners(this.trackUploadView);
 
                 }
+                this._super("initialize");
 
-                this.$title = this.$el.find(".title");
-                this.$details = this.$el.find(".details");
-                this.$art = this.$(".album-art");
-                this.model.on("change:name change:download change:price change:donateMore change:artURL", this._onModelChange)
-                this._onModelChange(this.model);
 
             },
 
-            attachUploadListeners:function (view)
-            {
-
+            attachUploadListeners:function (view) {
+                this.trackUploadView = view;
                 view
                     .on("uploaded", this._onTrackUploaded, this)
                     .on("canceled", this._onTrackCanceled, this)
                     .on("stopped", this._onTrackStopped, this);
             },
-            removeUploadListeners:function (view)
-            {
-
+            removeUploadListeners:function (view) {
+                this.trackUploadView = null;
                 view
                     .off("uploaded", this._onTrackUploaded, this)
                     .off("canceled", this._onTrackCanceled, this)
                     .off("stopped", this._onTrackStopped, this);
             },
-            _onTrackCanceled:function ()
-            {
+            _onTrackCanceled:function () {
                 this.is("canceled", true);
 
 
-                this.delay(function ()
-                {
+                this.delay(function () {
                     this.is("canceled", false)
                 }, this);
             },
-            _onTrackStopped:function (fromDelay)
-            {
+            _onTrackStopped:function (fromDelay) {
 
                 if (!fromDelay) {
                     var self = this;
-                    setTimeout(function ()
-                    {
+                    setTimeout(function () {
                         self._onTrackStopped(true);
                     }, 100);
                 }
@@ -159,56 +188,98 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
 
             },
-            _onTrackUploaded:function (name)
-            {
+            _onTrackUploaded:function (info) {
 
-            },
-            _onModelChange:function (model)
-            {
-
-
-                if ("name" in model.changed) {
-                    var title = this.model.get("name") || "Untitled Track";
-                    this.$title.html(title);
-                } else if ("artURL" in model.changed) {
-
-                    var url = this.model.get("artURL");
-                    if (!_.isEmpty(url)) {
-                        this.$art.find("img").attr("src", url).show();
-                    } else {
-                        this.$art.find("img").hide();
-                    }
+                if (info.error) {
 
                 } else {
-
-
-                    var text = "";
-                    if (this.model.get("download")) {
-                        text = "downloadable,";
-                        var price = this.model.get("price");
-                        var donateMore = this.model.get("donateMore");
-                        if (parseInt(price, 10) == 0) {
-                            this.model.set("price", 1);
-                            return;
-                        } else {
-                            text += "$" + price;
+                    this._encodingTrack = info;
+                    this.trackUploadView.$(".progress").hide();
+                    Routes.audioUploaded().ajax({
+                        data:{
+                            id:info.id
                         }
+                    }).done(this._onAudioUploaded).error(this._onAudioUploaded)
 
+                }
+            },
+            encodingName:function () {
+                return this._encodingTrack.name;
+            },
+            _onAudioUploaded:function (res) {
 
+                if (!res) {
+
+                } else if (res.id) {      // passed verify
+                    this._status = null;
+                    this._currentStatusId = res.id;
+                    this.trackEncodingStatus();
+                } else if (res.error) {
+                    if (!this.trackUploadErrorView) {
+                        this.trackUploadErrorView = new TrackErrorView({
+                            fileName:this.encodingName(),
+                            reasons:res.error
+                        })
+                        this.trackUploadView.$(".progress-wrapper").after(this.trackUploadErrorView.el);
+                    } else {
+                        this.trackUploadErrorView.update(this.encodingName(), res.error)
                     }
 
-                    this.$details.html(text);
+
                 }
 
 
             },
-            render:function ()
-            {
+            trackEncodingStatus:function (delay) {
+                var self = this;
+                setTimeout(function () {
+                    Routes.status().ajax({
+                        data:{
+                            ids:{0:self._currentStatusId }
+                        }
+                    }).done(self._onEncodingStatus).error(self._onEncodingStatus)
+                }, delay ? 2 : 0);
+            },
+            _onEncodingStatus:function (status) {
+                if (!status)return;
+                var enc = status.encodings;
+
+                var status = enc[this._currentStatusId];
+                switch (status) {
+                    case "new":
+                    case "processing":
+                        if (!this._status) {
+                            this.trackUploadView.$(".status")
+                                .removeClass("uploading")
+                                .addClass("processing")
+                                .html("processing")
+                            this._status = status;
+                        }
+                        this.trackEncodingStatus(true)
+                        break;
+
+
+                    case "error":
+                        break;
+                    case "completed":
+                        break;
+                }
+
+            },
+
+            render:function () {
                 return this;
             }
         })
         var Tracks = Backbone.Collection.extend({
-            model:Track
+            model:Track,
+            toJSON:function () {
+                var json = {};
+                _(this.models).each(function (model, i) {
+                    json["tracks[" + i + "]"] = model.toJSON()
+                })
+                return json;
+            }
         })
 
 

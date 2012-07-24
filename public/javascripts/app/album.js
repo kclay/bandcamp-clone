@@ -1,8 +1,15 @@
-define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload) {
+define(["binder", "backbone", "app/upload", "app/common", "app/track"], function (binder, Backbone, Upload) {
 
 
     var _ = require("underscore");
+    var Common = require("app/common");
+
+
+    var Track = require("app/track");
     var Album = Backbone.Model.extend({
+        initialize:function () {
+            this.tracks = new Track.Collection()
+        },
         validation:{
             name:{
                 required:true,
@@ -23,10 +30,24 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
 
         },
-        urlRoot:"/ajax/albums"
+        urlRoot:"/ajax/albums",
+
+        toJSON:function () {
+            var o = _.clone(this.attributes);
+            delete o["artURL"];
+            return{
+                album:o,
+                tracks:this.tracks.toJSON()
+            }
+
+        }
+
 
     });
 
+    var AlbumOverviewView = Common.OverviewView.extend({
+
+    })
     var AlbumEditView = Backbone.View.extend({
 
 
@@ -53,7 +74,7 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
             this._binder = new Backbone.ModelBinder();
 
             this.artUploadView = new Upload.View(
-                {   el:".album-art",
+                {   el:this.$(".art-upload"),
                     uri:"/artist/upload/art",
                     limit:"4MB",
                     types:"*.jpg;*.gif;*.png"
@@ -66,11 +87,12 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
         },
 
-        _onArtUploaded:function (url, id) {
-            var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".album-art"));
-            wrapper.find("img").attr("src", url);
+        _onArtUploaded:function (info) {
+            var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.artUploadView.el);
+            wrapper.find("img").attr("src", info.url);
 
-            this.model.set({art:id, artURL:url});
+            this.model.set({art:info.id, artURL:info.url});
+            this.artUploadView.reset();
 
 
         },
@@ -89,6 +111,7 @@ define(["binder", "backbone", "app/upload"], function (binder, Backbone, Upload)
 
     return{
         View:AlbumEditView,
-        Model:Album
+        Model:Album,
+        OverviewView:AlbumOverviewView
     }
 })

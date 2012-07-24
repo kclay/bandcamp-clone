@@ -29,25 +29,33 @@ POST     /insert_tags                controllers.Artists.insertTags()
 POST    /insert_domain                controllers.Artists.insertDomain()
 GET    /pick_domain                 controllers.Artists.pickDomain()
 GET     /artists                     controllers.Artists.list(page:Int ?=1,amount:Int ?= 20,query:String ?="")
-GET     /new_album                 controllers.Artists.newAlbum()
+GET     /edit_album                 controllers.Artists.editAlbum()
 
-GET     /add_track                 controllers.Artists.addTrack()
-POST    /ajax/tracks/                    controllers.Artists.insertTrack()
-GET    /ajax/tracks/:id                  controllers.Artists.fetchTrack(id:Long)
+GET     /edit_track                 controllers.Artists.addTrack()
+
+POST    /ajax/albums/                    controllers.Ajax.saveAlbum()
+GET     /ajax/albums/:id                 controllers.Ajax.fetchAlbum(id:Long)
+POST    /ajax/tracks/                    controllers.Ajax.saveTrack()
+GET     /ajax/tracks/:id                  controllers.Ajax.fetchTrack(id:Long)
 
 
-GET     /edit_album/:name            controllers.Artists.editAlbum(name:String)
-GET     /edit_track/:name            controllers.Artists.editTrack(name:String)
+POST    /artist/upload/art              controllers.Upload.art()
 
-POST    /artist/upload/art/:token              controllers.Upload.art(token:String)
+POST    /artist/upload/audio              controllers.Upload.audio()
+POST    /artist/upload/audio_uploaded     controllers.Upload.audioUploaded()
+POST    /artist/upload/status           controllers.Upload.status()
 
-POST    /artist/upload/audio/:token              controllers.Upload.audio(token:String)
+
 
 
 
 
 POST  /change_password              controllers.Application.updatePassword
 GET   /change_password              controllers.Application.changePassword
+
+# Javascript routing
+GET     /assets/javascripts/routes          controllers.Application.javascriptRoutes
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

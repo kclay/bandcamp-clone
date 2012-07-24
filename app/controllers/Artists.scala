@@ -58,9 +58,10 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
       Ok("edit track")
   }
 
-  def newAlbum = authorizedAction(NormalUser) {
+
+  def editAlbum = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
-      Ok(html.artist.newAlbum(albumForm))
+      Ok(html.artist.newAlbum(albumForm.fill(Album(), Seq.empty[Track])))
   }
 
 
@@ -88,24 +89,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
       Ok("")
   }
 
-  def fetchTrack(id: Long) = authorizedAction(NormalUser) {
-    artist => implicit request =>
-
-      Ok(Track.find(id).map {
-        case t => if (t.artistID == artist.id) generate(t) else ""
-      }.getOrElse(""))
-
-
-  }
-
 
   /*private def insertTrack(track: Track) =
-  {
-    db withSession {
-      implicit s =>
-        Tracks insert (Track)
-    }
-  } */
+ {
+   db withSession {
+     implicit s =>
+       Tracks insert (Track)
+   }
+ } */
 
   def list(page: Int, amount: Int, query: String = "") = Action {
     Ok("artists.list")

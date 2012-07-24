@@ -67,14 +67,14 @@
     }
 }
 
-.album-art {
+.art-upload {
 
     border: 1px dotted @gray;
     text-align: center;
 
 }
 
-.art-upload.album-art {
+.right-panel .art-upload {
     height: 210px;
     width: 210px;
 
@@ -88,13 +88,35 @@
     vertical-align: middle;
 } */
 
+#album_name {
+    height: 24px;
+}
+
+.inline label {
+    display: inline-block;
+}
+
+.left-panel {
+    margin-left: 27px;
+}
+
+.left-panel, .input-block {
+    padding-top: 20px;
+}
+
+input[type="text"], input[type="password"] {
+    height: 28px;
+}
+
 .input-block {
 
     margin-right: 10px;
+    background: @white;
     textarea, input[type="text"],
     input[type="date"] {
         width: 90%;
     }
+
     fieldset {
         border-bottom: 1px dotted @grayLight;
     }
@@ -107,6 +129,14 @@
             left: 0;
             top: 0;
             z-index: 10;
+        }
+        .close {
+            .opacity(75);
+
+            position: absolute;
+            right: 0;
+            z-index: 10;
+
         }
         img {
             width: 100%;
@@ -178,7 +208,7 @@ ul.license-selector {
 }
 
 .track-release {
-    width: 130px !important;
+    width: 80px !important;
 }
 
 .pull-right {
@@ -188,7 +218,6 @@ ul.license-selector {
 .content-wrap {
     float: none !important;
     margin: 0 auto !important;
-    padding-top: 20px;
 
     background: @white;
 }
@@ -206,24 +235,33 @@ body.inner {
     padding-top: 120px;
 }
 
-#new-album {
+#inner-wrap {
+    width: 935px;
+}
+
+.editor {
+    background: url('/assets/images/editor-background.png') repeat-y;
     .right-panel {
-        width: 450px;
+        width: 430px;
         float: right;
         margin-right: 0px !important;
-        margin-top: -4px;
 
+        .control-group {
+            margin-right: 10px;
+        }
     }
 
 }
 
 .tracks {
     list-style: none;
-    ol {
-        margin: 0px;
-        counter-reset: track-list;
-    }
+    margin-left: 0px;
+    counter-reset: track-list;
 
+}
+
+#cancel-button {
+    margin-right: 20px;
 }
 
 .no-float {
@@ -233,10 +271,15 @@ body.inner {
 .track-overview {
     position: relative;
     padding: 10px 1px 10px 10px;
-    border-left: 2px solid @purple;
-    border-top: 1px solid @gray;
-    border-bottom: 1px solid @gray;
+    border-left: 2px solid @orange;
+    border-top: 1px solid @grayCustom;
+    border-bottom: 1px solid @grayCustom;
+    background: @white;
 
+    .title {
+        font-size: 15px;
+        margin: 0 0 5px 0;
+    }
     img {
         display: none;
         width: 100%;
@@ -247,6 +290,7 @@ body.inner {
         height: 72px;
         float: left;
         text-align: center;
+        border: 1px @grayLight dashed;
     }
     .album-info {
         float: left;
@@ -261,32 +305,49 @@ body.inner {
 
 }
 
-.tracks .track-overview {
-    padding-left: 72px;
-    .album-art {
-        position: absolute;
-        left: 17px;
-    }
-    .title:before {
-        content: counter(track-list);
-        counter-increment: track-list;
-        display: inline-block;
-        margin-left: -18px;
-        margin-right: 9px;
+.tracks {
 
-    }
-    .delete {
-        float: right;
+    .left-panel {
+        width: 455px;
     }
 
+    .track-overview {
+        padding-left: 72px;
+        .album-art {
+            position: absolute;
+            left: 17px;
+        }
+        .title:before {
+            content: counter(track-list);
+            counter-increment: track-list;
+            display: inline-block;
+            margin-left: -18px;
+            margin-right: 9px;
+
+        }
+        .delete {
+            float: right;
+        }
+
+    }
+}
+
+#album-group {
+    padding-left: 5px;
 }
 
 #tracks-wrapper {
-    padding-top: 100px;
+    padding-top: 120px;
+    h4 {
+
+        margin: 15px 0 15px 20px;
+
+    }
 }
 
 #track-overviews {
     .track-overview {
+        background: white;
         width: 95%;
         cursor: pointer;
     }
@@ -296,11 +357,15 @@ body.inner {
     .progress {
         width: 280px;
     }
+    .trigger {
+        font-size: 22px;
+    }
 
 }
 
 .upload-button {
     position: relative;
+
     .swfupload {
         position: absolute;
         left: 0;
@@ -308,23 +373,34 @@ body.inner {
     }
 }
 
+.upload-container .hit {
+    font-size: 12px;
+    padding-left: 20px;
+    color: @grayLight;
+}
+
 .upload-progress {
     display: none;
     font-weight: normal;
-    color: @infoText;
+    color: @purple;
+    font-size: 12px;
+    margin: 0 0 0 35px;
 
 }
 
 .progress-wrapper {
     display: none;
+    color: @grayLight;
     .remove {
         display: none;
     }
-    .name {
-        color: @gray;
-    }
+
     .status {
         color: @purple;
+        .processing {
+            color: @orangeDark;
+            font-style: italic;
+        }
     }
 }
 

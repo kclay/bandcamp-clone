@@ -16,10 +16,11 @@ define(["dropdown"], function () {
         init:function () {
 
             $('.dropdown-toggle').dropdown();
+            app_config.session = $("input[name='session']").val()
             var path = location.pathname;
             if (path in this.pages) {
                 require(this.pages[path], function (ctr) {
-                    new ctr.View();
+                    window.view = new ctr.View();
                 });
             }
         }

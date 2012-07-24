@@ -6,7 +6,6 @@ import models._
 import models.Forms._
 import com.codahale.jerkson.Json._
 import jp.t2v.lab.play20.auth.Auth
-import views.html
 
 
 /**
@@ -16,8 +15,7 @@ import views.html
  * Time: 11:18 AM
  */
 
-object Ajax extends Controller with Auth with AuthConfigImpl with WithDB
-{
+object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
 
 
   def tags(query: String) = Action {
@@ -31,13 +29,44 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB
     Ok(generate(found))
   }
 
-  def insertTrack() = authorizedAction(NormalUser) {
+  def saveTrack() = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
       singleTrackForm.bindFromRequest.fold(
         errors => BadRequest(""),
         track => {
 
           Ok("") //generate(track.save()))
+        }
+      )
+  }
+
+  def fetchTrack(id: Long) = authorizedAction(NormalUser) {
+    artist => implicit request =>
+      db {
+        Ok(Track.find(id).map {
+          case t => if (t.artistID == artist.id) generate(t) else ""
+        }.getOrElse(""))
+      }
+
+
+  }
+
+  def fetchAlbum(id: Long) = authorizedAction(NormalUser) {
+    artist => implicit request =>
+      Ok(Album.forArtist(artist.id, id).map {
+        case a => generate(Map('album -> a, 'tracks -> Album.withTracks(a.id)))
+      }.getOrElse(""))
+
+  }
+
+  def saveAlbum() = authorizedAction(NormalUser) {
+    implicit artist => implicit request =>
+      albumForm.bindFromRequest.fold(
+        errors => BadRequest(""),
+        value => {
+          val (album, tracks) = value
+          Ok(generate(Map('album -> album, 'tracks -> tracks)))
+
         }
       )
   }

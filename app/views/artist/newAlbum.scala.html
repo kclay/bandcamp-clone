@@ -2,27 +2,60 @@
 @import helper._
 @import utils.session._
 
-@main("New Album","new-album"){
+@main("New Album","editor new-album"){
 
 
-@helper.form(action=routes.Artists.insertTrack){
+@helper.form(action=routes.Ajax.saveAlbum){
+
+<script type="text/template" id="tpl-feedback">
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3><%= title%></h3>
+    </div>
+    <div class="modal-body">
+        <p><%=message%></p>
+    </div>
+    <div class="modal-footer">
+
+        <a href="#" class="btn btn-cancel" data-dismiss="modal">Ok</a>
+
+    </div>
+
+</script>
+<script type="text/template" id="tpl-delete">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>Delete Track</h3>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this track?</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#"  class="btn btn-accept btn-primary">Ok</a>
+            <a href="#" class="btn btn-cancel" data-dismiss="modal">Cancel</a>
+
+        </div>
+
+</script>
 
 <script type="text/template" id="tpl-track">
 
-        <div class="right-panel input-block">
-            @artist.track(albumForm("tracks"))
-        </div>
-        <div class="left-panel span6">
-            <div class="track-overview album-info">
-                <div class="drag"></div>
-                <a class="delete" href="#"><i class="icon-remove"></i></a>
+    <div class="right-panel input-block">
+        @artist.track(albumForm("tracks"))
+    </div>
+    <div class="left-panel span6">
+        <div class="track-overview album-info">
+            <div class="drag"></div>
+            <a class="delete" href="#"><i class="icon-remove"></i></a>
 
-                <p class="title">Unnamed Track</p>
+            <p class="title">Unnamed Track</p>
 
-                @artist.uploadTemplate()
-                <p class="details"></p>
-            </div>
+            @artist.uploadTemplate()
+            <p class="details"></p>
         </div>
+    </div>
 
 
 </script>
@@ -31,31 +64,33 @@
     <div class="left-panel span6">
         @artist.trackOverview("Untitled Album")
     </div>
-    <div class="right-panel album-block">
+    <div class="right-panel input-block album-block">
         @artist.album(albumForm("album"))
     </div>
 </div>
 
-<div id="tracks-wrapper">
-    <h3>Tracks
-     <span class="upload-progress">
+<div id="album-group">
+    <div id="tracks-wrapper">
+        <h4>Tracks
+         <span class="upload-progress" id="main-upload-progress">
             <span class="percent"></span>% complete,
             <span class="duration"></span> remaining
-        </span>
-    </h3>
-    <ol class="tracks">
+            </span>
+        </h4>
+        <ol class="tracks">
+
+          <li id="upload">
+              @artist.upload("","add audio")
+          </li>
+        </ol>
+
+    </div>
 
 
-    </ol>
 
-</div>
-<div id="upload">
-    @artist.upload("Audio","add audio")
-</div>
-
-
-<div id="save" class="span6 row no-float">
-    @artist.save()
+    <div id="save" class="span6 row no-float">
+        @artist.save()
+    </div>
 </div>
 }
 

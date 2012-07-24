@@ -2,6 +2,7 @@ package controllers
 
 import models._
 import actions.Actions._
+import play.api._
 import play.api.mvc._
 import views._
 import models.Forms._
@@ -10,6 +11,16 @@ import models.SiteDB._
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB {
+
+  def javascriptRoutes = Action {
+    implicit request =>
+      import routes.javascript._
+      Ok(
+        Routes.javascriptRouter("jsRoutes")(
+          Upload.audio, Upload.art, Upload.audioUploaded, Upload.status
+        )
+      ).as("text/javascript")
+  }
 
   def index = optionalUserAction {
     artist => implicit request =>
@@ -117,13 +128,13 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   def page(name: String) = Action {
     implicit request =>
-    Ok("name " + name)
+      Ok("name " + name)
 
   }
 
   def track(name: String) = Action {
     implicit request =>
-    Ok("Track")
+      Ok("Track")
   }
 
 }

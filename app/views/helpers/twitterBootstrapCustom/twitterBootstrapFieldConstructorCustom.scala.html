@@ -15,7 +15,7 @@
 case "checkbox"=>{
 
 <div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
 
 <div class="controls ">
     <label class="checkbox inline" for="@elements.id"> @elements.input @elements.label(elements.lang)</label>
@@ -29,7 +29,7 @@ case "checkbox"=>{
 }
 case "inline"=>{
 <div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
 
 <div class="input inline">
     <label for="@elements.id"> @elements.input @elements.label(elements.lang)</label>
@@ -43,7 +43,7 @@ case "inline"=>{
 case "default"=>{
 
 <div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
 <label for="@elements.id">@elements.label(elements.lang)</label>
 <div class="input">
     @elements.input
@@ -54,10 +54,10 @@ case "default"=>{
 }
 case "date"=>{
 <div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
-<label for="@elements.id">@elements.label(elements.lang)</label>
-<div class="input">
-    @elements.input
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
+
+<div class="input inline">
+    <label for="@elements.id"> @elements.label(elements.lang) @elements.input </label>
     <span class="help-inline">@elements.infos(elements.lang).mkString(", ")</span>
     <span class="help-block">@elements.errors(elements.lang).mkString(", ")</span>
 </div>
@@ -67,7 +67,7 @@ case "date"=>{
 case "price"=>{
 
 <div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
 <label for="@elements.id">@elements.label(elements.lang)</label>
 <div class="input price">
     @elements.input
@@ -81,7 +81,7 @@ case "price"=>{
 case _=>{
 
 <div class="control-group @elements.args.get('_class) @if(elements.hasErrors) {error}"
-     id="@elements.args.get('_id).getOrElse(elements.id + " _field")">
+     id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
 <label for="@elements.id" class="control-label">@elements.label(elements.lang)</label>
 <div class="controls">
     @elements.input

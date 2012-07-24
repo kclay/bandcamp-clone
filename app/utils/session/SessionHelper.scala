@@ -2,29 +2,37 @@ package utils.session
 
 import play.api.mvc._
 import models.Artist
+import com.ning.http.util.Base64
 
-import sun.misc.BASE64Encoder
 
-object SessionHelper
-{
+;
+
+//import sun.misc.BASE64Encoder
+
+object SessionHelper {
   val sessionKey = "sessionId"
   val usernameKey = "username"
 
-  def username(implicit request: RequestHeader) =
-  {
+  def username(implicit request: RequestHeader) = {
     request.session.get(usernameKey).get
   }
 
-  def authenticated(implicit request: RequestHeader) =
-  {
+  def band(implicit request: RequestHeader) = {
+    username(request)
+  }
+
+  def authenticated(implicit request: RequestHeader) = {
     request.session.get(sessionKey).exists(_ => true)
   }
 
-  def session(implicit request: RequestHeader) =
-  {
+  def session(implicit request: RequestHeader) = {
 
     val session = request.cookies.get(Session.COOKIE_NAME).get.value
-    new BASE64Encoder().encode(session.getBytes)
+    Base64.encode(session.getBytes)
+
+
+
+    //new BASE64Encoder().encode(session.getBytes).replaceAll("[\r|\n]","")
 
 
   }
