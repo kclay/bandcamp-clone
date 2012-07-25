@@ -1,16 +1,17 @@
 define([
 // Load the original jQuery source file
-    'libs/jquery/jquery-1.7.1.min'
-], function ()
-{
-    (function($) {
+    'libs/jquery/jquery-ui.dev'
+], function () {
+    (function ($) {
         var re = /([^&=]+)=?([^&]*)/g;
         var decodeRE = /\+/g;  // Regex for replacing addition symbol with a space
-        var decode = function (str) {return decodeURIComponent( str.replace(decodeRE, " ") );};
-        $.parseParams = function(query) {
+        var decode = function (str) {
+            return decodeURIComponent(str.replace(decodeRE, " "));
+        };
+        $.parseParams = function (query) {
             var params = {}, e;
-            while ( e = re.exec(query) ) {
-                var k = decode( e[1] ), v = decode( e[2] );
+            while (e = re.exec(query)) {
+                var k = decode(e[1]), v = decode(e[2]);
                 if (k.substring(k.length - 2) === '[]') {
                     k = k.substring(0, k.length - 2);
                     (params[k] || (params[k] = [])).push(v);
@@ -20,18 +21,15 @@ define([
             return params;
         };
     })(jQuery);
-    $.fn.toHex = function (colorStr)
-    {
+    $.fn.toHex = function (colorStr) {
         var hex = '#';
-        $.each(colorStr.substring(4).split(','), function (i, str)
-        {
+        $.each(colorStr.substring(4).split(','), function (i, str) {
             var h = ($.trim(str.replace(')', '')) * 1).toString(16);
             hex += (h.length == 1) ? "0" + h : h;
         });
         return hex;
     };
-    (function ($)
-    {
+    (function ($) {
 
         $.formatCurrency = {};
 
@@ -47,8 +45,7 @@ define([
             groupDigits:true
         };
 
-        $.fn.formatCurrency = function (destination, settings)
-        {
+        $.fn.formatCurrency = function (destination, settings) {
 
             if (arguments.length == 1 && typeof destination !== "string") {
                 settings = destination;
@@ -75,8 +72,7 @@ define([
             }
             settings.regex = generateRegex(settings);
 
-            return this.each(function ()
-            {
+            return this.each(function () {
                 $this = $(this);
 
                 // get number
@@ -170,8 +166,7 @@ define([
         };
 
         // Remove all non numbers from text
-        $.fn.toNumber = function (settings)
-        {
+        $.fn.toNumber = function (settings) {
             var defaults = $.extend({
                 name:"toNumber",
                 region:'',
@@ -184,16 +179,14 @@ define([
             }
             settings.regex = generateRegex(settings);
 
-            return this.each(function ()
-            {
+            return this.each(function () {
                 var method = $(this).is('input, select, textarea') ? 'val' : 'html';
                 $(this)[method]($(this)[method]().replace('(', '(-').replace(settings.regex, ''));
             });
         };
 
         // returns the value from the first element as a number
-        $.fn.asNumber = function (settings)
-        {
+        $.fn.asNumber = function (settings) {
             var defaults = $.extend({
                 name:"asNumber",
                 region:'',
@@ -228,8 +221,7 @@ define([
             return window['parse' + settings.parseType](num);
         };
 
-        function getRegionOrCulture(region)
-        {
+        function getRegionOrCulture(region) {
             var regionInfo = $.formatCurrency.regions[region];
             if (regionInfo) {
                 return regionInfo;
@@ -244,8 +236,7 @@ define([
             return null;
         }
 
-        function validateParseType(parseType)
-        {
+        function validateParseType(parseType) {
             switch (parseType.toLowerCase()) {
                 case 'int':
                     return 'Int';
@@ -256,8 +247,7 @@ define([
             }
         }
 
-        function generateRegex(settings)
-        {
+        function generateRegex(settings) {
             if (settings.symbol === '') {
                 return new RegExp("[^\\d" + settings.decimalSymbol + "-]", "g");
             }

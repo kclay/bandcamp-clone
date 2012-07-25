@@ -9,8 +9,8 @@ define(["dropdown"], function () {
     var controllers = {
 
         pages:{
-            "/add_track":["app/controller/track"],
-            "/new_album":["app/controller/album"],
+            "/edit_track":["app/controller/track"],
+            "/edit_album":["app/controller/album"],
             "/pick_tags":["app/controller/pickTags"]
         },
         init:function () {

@@ -53,9 +53,29 @@ object Upload extends Controller with Auth with AuthConfigImpl {
   def status() = Action {
     implicit request =>
       import models.Forms.trackStatusForm
+      import java.lang.{Long => JLong}
       trackStatusForm.bindFromRequest.fold(
         e => error("no_ids"),
-        ids => json(Map("encodings" -> Queue.status(ids)))
+        value => {
+          val ids = value.map {
+            v =>
+              val splitted = v.split("-")
+              val id = splitted.tail.mkString("-")
+              splitted(0) == Crypto.sign(id) match {
+                case true => JLong.parseLong(id)
+                case false =>
+              }
+          }.asInstanceOf[List[Long]]
+
+          if (ids.nonEmpty) {
+            val status = Queue.status(ids)
+
+            status.foreach {
+              case (id, s) => if (s.equals(Queue.STATUS_COMPLETED)) Queue.delete(id) else None
+            }
+            json(Map("encodings" -> status))
+          } else error("no_ids")
+        }
 
       )
 
@@ -117,8 +137,8 @@ object Upload extends Controller with Auth with AuthConfigImpl {
 
                 import akka.util.duration
                 import play.api.Play.current
-                Akka.system.scheduler.scheduleOnce(Duration("2 seconds"), encodingActor, Encode(queue.toString, session))
-                json(Map("id" -> queue))
+                Akka.system.scheduler.scheduleOnce(Duration("2 seconds"), encodingActor, Encode(queue))
+                json(Map("id" -> "%s-%d".format(Crypto.sign(queue.toString), queue)))
               } else json(Map("error" -> errors))
 
           }.getOrElse(error("invalid"))

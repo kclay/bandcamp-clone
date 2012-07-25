@@ -86,11 +86,7 @@ function init_backbone() {
 
         add:function (model) {
             model.collection = this.collection;
-            var childView = new this._childViewConstructor({
-                tagName:this._childViewTagName,
-                model:model
-            });
-
+            var childView = this._createChildView(model);
             this._childViews.push(childView);
 
             if (this._rendered) {
@@ -99,6 +95,13 @@ function init_backbone() {
 
                 childView.delegateEvents();
             }
+
+        },
+        _createChildView:function (model) {
+            return  new this._childViewConstructor({
+                tagName:this._childViewTagName,
+                model:model
+            });
 
         },
         _attach:function (views) {

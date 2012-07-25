@@ -13,7 +13,7 @@ case class ffmpeg(file: File) {
   private lazy val logger = Logger("ffmpeg")
   private val Duration = """Duration:\s+(\d+):(\d+):(\d+)\.(\d+).+""".r
   private val MediaType = """Input #0, (\w+),.""".r
-  private val Encoding = """Stream #0:0: Audio: (\w+)[^,]+, (\d+) Hz, (\w+).+""".r
+  private val Encoding = """Stream #0:0: Audio: ([^,]+), (\d+) Hz.+""".r
   private val Sample = """Stream.(\d+) Hz"""
   private val base = Seq("ffmpeg", "-i", file.getAbsolutePath)
   private val SUPPORTED_TYPES = List("flac", "wav", "aiff")
@@ -24,12 +24,13 @@ case class ffmpeg(file: File) {
   def encode(output: File, length: Int = 0) = {
 
 
-    var args = Seq("-ar 44100", "-ab 128k")
+    var args = Seq("-ar", "44100", "-ab", "128k")
 
     if (length > 0) args ++= Seq("-t", length.toString)
-    args ++= Seq(file.getAbsolutePath)
+    args ++= Seq(output.getAbsolutePath)
 
     val (exitCode, buffer) = command(args)
+    exitCode == 0
 
 
   }
@@ -40,9 +41,13 @@ case class ffmpeg(file: File) {
 
 
     buffer.toList.map {
+
+
       _.trim match {
         case Duration(hours, mintues, seconds, mills) => if (mintues.toInt < 1) "duration"
-        case Encoding(mediaType, bits, sample) => {
+
+        case Encoding(mediaType, sample) => {
+          Logger.debug(mediaType + " :: " + sample)
           if (!SUPPORTED_TYPES.contains(mediaType)) "media"
           if (!SUPPORTED_SAMPLES.contains(sample)) "sample"
         }
@@ -71,7 +76,7 @@ case class ffmpeg(file: File) {
     val buffer = new scala.collection.mutable.ListBuffer[String]
 
     val logger = ProcessLogger((line: String) => buffer append (line))
-
+    val command = (base ++ args).mkString(" ")
     val exitCode = (base ++ args).!(logger)
 
     (exitCode, buffer)

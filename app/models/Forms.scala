@@ -30,7 +30,7 @@ object Forms {
     single("token" -> text)
   }
   val trackStatusForm = Form {
-    single("ids" -> list(longNumber))
+    single("ids" -> list(text))
   }
   val signupFrom = Form {
     mapping(

@@ -62,7 +62,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
   def saveAlbum() = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
       albumForm.bindFromRequest.fold(
-        errors => BadRequest(""),
+        errors => BadRequest(errors.errorsAsJson),
         value => {
           val (album, tracks) = value
           Ok(generate(Map('album -> album, 'tracks -> tracks)))

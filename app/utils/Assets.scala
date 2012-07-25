@@ -223,9 +223,13 @@ class AudioDataStore extends DataStore {
   override def location(): String = "audio"
 
   def album(folder: String) = {
-    val dir = folder.substring(0, 5).toCharArray.mkString("/")
+    val dir = if (shard) folder.substring(0, 5).toCharArray.mkString("/") else ""
     new File(store, dir + folder)
   }
+
+  def preview(album: File, file: String) = new File(album, file + "_preview.mp3")
+
+  def full(album: File, file: String) = new File(album, file + "_full.mp3")
 }
 
 trait DataStore {
@@ -237,9 +241,15 @@ trait DataStore {
 
   lazy val app = Play.application
   lazy val config = app.configuration
-  lazy val temp = app.getFile(config.getString("datastore." + location + ".temp").get)
-  lazy val fragment = config.getString("datastore." + location + ".location").get
+
+  protected def _s(name: String) = {
+    config.getString("datastore." + location + "." + name).get
+  }
+
+  lazy val temp = app.getFile(_s("temp"))
+  lazy val fragment = _s("location")
   lazy val store = app.getFile(fragment)
+  lazy val shard = _s("shard").equals("true")
 
   protected def ext(file: String): String = {
     val index = file.lastIndexOf(".");

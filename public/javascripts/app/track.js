@@ -9,6 +9,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 }
             },
             defaults:{
+                id:0,
+                artist_id:0,
                 name:"",
                 download:true,
                 price:"1.00",
@@ -21,6 +23,9 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 artURL:"",
                 license:"all_rights"
 
+            },
+            isNew:function () {
+                return this.id == 0
             },
             urlRoot:"/ajax/tracks",
             toJSON:function () {
@@ -64,6 +69,12 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     }
                 })
             },
+            hide:function () {
+                this.$el.hide();
+            },
+            show:function () {
+                this.$el.show();
+            },
             update:function (name, reasons) {
                 this.fileName = name;
                 this.reasons = reasons;
@@ -71,6 +82,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             },
             render:function () {
                 this.$("s").html(this.fileName)
+                this.show();
 
             }
 
@@ -135,7 +147,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         var Routes = jsRoutes.controllers.Upload;
         var TrackOverviewView = Common.OverviewView.extend({
 
-            initialize:function () {
+            initialize:function (options, parent) {
 
 
                 if (this.options.createUploadView) {
@@ -143,13 +155,14 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         {el:"#track-upload",
                             uri:"/artist/upload/audio",
                             limit:"291MB",
-                            types:"*.wav;*.aif;*.flac"
+                            types:"*.wav;*.aif;*.flac",
+                            proxy:true
 
                         })
                     this.attachUploadListeners(this.trackUploadView);
 
                 }
-                this._super("initialize");
+                this._super("initialize", [options, parent]);
 
 
             },
@@ -159,14 +172,25 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 view
                     .on("uploaded", this._onTrackUploaded, this)
                     .on("canceled", this._onTrackCanceled, this)
-                    .on("stopped", this._onTrackStopped, this);
+                    .on("stopped", this._onTrackStopped, this)
+                    .on("started", this._onTrackStarted, this)
+
             },
             removeUploadListeners:function (view) {
                 this.trackUploadView = null;
                 view
                     .off("uploaded", this._onTrackUploaded, this)
                     .off("canceled", this._onTrackCanceled, this)
-                    .off("stopped", this._onTrackStopped, this);
+                    .off("stopped", this._onTrackStopped, this)
+                    .off("started", this._onTrackStarted, this)
+
+
+            },
+
+            _onTrackStarted:function () {
+                if (this.trackUploadErrorView) {
+                    this.trackUploadErrorView.hide();
+                }
             },
             _onTrackCanceled:function () {
                 this.is("canceled", true);
@@ -194,10 +218,11 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
                 } else {
                     this._encodingTrack = info;
-                    this.trackUploadView.$(".progress").hide();
+
                     Routes.audioUploaded().ajax({
                         data:{
-                            id:info.id
+                            id:info.id,
+                            session:app_config.session
                         }
                     }).done(this._onAudioUploaded).error(this._onAudioUploaded)
 
@@ -213,7 +238,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 } else if (res.id) {      // passed verify
                     this._status = null;
                     this._currentStatusId = res.id;
-                    this.trackEncodingStatus();
+                    this.trackEncodingStatus(false);
                 } else if (res.error) {
                     if (!this.trackUploadErrorView) {
                         this.trackUploadErrorView = new TrackErrorView({
@@ -238,21 +263,23 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                             ids:{0:self._currentStatusId }
                         }
                     }).done(self._onEncodingStatus).error(self._onEncodingStatus)
-                }, delay ? 2 : 0);
+                }, ( delay ? 5 : 0) * 1000);
+            },
+            statusId:function () {
+                return (this._currentStatusId || "").split("-")[1];
             },
             _onEncodingStatus:function (status) {
                 if (!status)return;
                 var enc = status.encodings;
 
-                var status = enc[this._currentStatusId];
+                var status = enc[this.statusId()];
                 switch (status) {
                     case "new":
                     case "processing":
                         if (!this._status) {
-                            this.trackUploadView.$(".status")
-                                .removeClass("uploading")
-                                .addClass("processing")
-                                .html("processing")
+
+
+                            this._onStatusChange("processing");
                             this._status = status;
                         }
                         this.trackEncodingStatus(true)
@@ -262,9 +289,13 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     case "error":
                         break;
                     case "completed":
+                        this._onStatusChange("processed");
                         break;
                 }
 
+            },
+            _onStatusChange:function (status) {
+                this.trackUploadView._onStatusChange(status)
             },
 
             render:function () {
@@ -274,11 +305,12 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         var Tracks = Backbone.Collection.extend({
             model:Track,
             toJSON:function () {
-                var json = {};
+                var data = [];
                 _(this.models).each(function (model, i) {
-                    json["tracks[" + i + "]"] = model.toJSON()
+
+                    data.push(model.toJSON());
                 })
-                return json;
+                return data;
             }
         })
 

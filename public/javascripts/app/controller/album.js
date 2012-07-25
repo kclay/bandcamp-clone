@@ -10,7 +10,6 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
     var CollectionView = UpdatingCollectionView.extend({
 
-
         viewByModel:function (model) {
             return _(this._childViews).find(function (view) {
                 return view.model == model
@@ -61,11 +60,11 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         tagName:"div",
         className:"track-overview span6",
         createUploadView:false,
-        initialize:function () {
+        initialize:function (options, parent) {
 
             $(this.el).html($("#tpl-track-overview").html());
 
-            this._super("initialize");
+            this._super("initialize", [options, parent]);
         }
     })
     var trackBindings = {};
@@ -80,7 +79,12 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             "click .delete":"deleteView"
         },
 
-
+        hide:function () {
+            this.$el.addClass("inactive");
+        },
+        show:function () {
+            this.$el.removeClass("inactive");
+        },
         deleteView:function () {
             var self = this;
             new ConfirmDeleteView({
@@ -100,7 +104,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this.overviewView = new Track.OverviewView({
                 createUploadView:false,
                 el:this.$(".track-overview"),
-                model:this.model});
+                model:this.model}, this);
 
             this.editView = new Track.EditView({bindings:trackBindings, el:this.$(".input-block"), model:this.model});
 
@@ -132,6 +136,9 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         initialize:function () {
             // _.bindAll(this);
 
+
+            this._uploaders = {};
+
             this._canSave = false;
             this.album = new Album.Model().on("change", this._onAttributeChanged, this);
 
@@ -142,17 +149,22 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
             this.albumOverviewView = new Common.OverviewView({el:"#album .track-overview", model:this.album})
 
+            this._watchOverView(this.albumOverviewView);
+            this.uploadDefaults = {
+                uri:"/artist/upload/audio",
+                limit:"291MB",
+                types:"*.wav;*.aif;*.flac"
+            }
             this.trackUploadView = new Upload.View(
-                {el:"#track-upload",
-                    uri:"/artist/upload/audio",
-                    limit:"291MB",
-                    types:"*.wav;*.aif;*.flac",
+                $.extend({}, this.uploadDefaults, {el:"#track-upload",
+
                     progressSelector:"#main-upload-progress"
 
-                })
+                }));
 
             this.trackUploadView.on("started", this._onUploadStarted, this)
-                .on("beforeStarted", this._onBeforeUploadStarted, this);
+                .on("beforeStarted", this._onBeforeUploadStarted, this)
+                .on('uploaded', this._onUploaded, this);
 
 
             this.trackCollectionView = new CollectionView({
@@ -169,11 +181,61 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this.trackCollectionView.render();
 
 
-            this.tracks.bind("select", this.select);
-
-
             this.$saveButton = this.$("#save-button").addClass("disabled");
+            this.tracks.bind("add", this._onTrackAdded, this);
             this.tracks.on("remove", this._onTrackRemoved, this);
+            $("ol.tracks").sortable({items:".track", handle:".drag", axis:"y",
+                start:function (event, ui) {
+                    ui.item.height(ui.item.find(".right-panel").height());
+                }});
+
+        },
+        _watchOverView:function (view) {
+            view.on("switch", this._onOverViewSwitchRequest, this);
+            return view;
+        },
+        _unwatchOverView:function (view) {
+            view.off("switch", this._onOverViewSwitchRequest, this);
+            return view;
+        },
+        _onTrackAdded:function (model) {
+            var overviewView = this.trackCollectionView.viewByModel(model).overviewView;
+            if (overviewView) this._watchOverView(overviewView) && this._onOverViewSwitchRequest(overviewView);
+            this._updateHeight();
+        },
+        /**
+         *
+         * @param view {TrackEditView}
+         * @param next
+         * @private
+         */
+        _onRemoveCollectionViewCallback:function (view, next) {
+            view.editView.$el.hide();
+            view.overviewView.$el.slideUp(next)
+            this._unwatchOverView(view.overviewView);
+
+        },
+        _onTrackRemoved:function () {
+            if (!this.tracks.length) {
+                this._onOverViewSwitchRequest(this.albumOverviewView);
+            }
+            this._updateHeight(!this.tracks.length);
+
+        },
+        _updateHeight:function (auto) {
+            this.$el.height(auto ? "auto" : this.$el.find(".album-group").height());
+        },
+        _onOverViewSwitchRequest:function (view) {
+            var overviewView = this.activeOverview();
+            if (view == this.albumOverviewView) {
+                this.albumView.$(".right-panel").show();
+
+            } else {
+                view.parent().show();
+                this.albumView.$(".right-panel").hide();
+            }
+            if (overviewView && view != overviewView)overviewView.parent().hide();
+
 
         },
         _onAttributeChanged:function (model) {
@@ -193,43 +255,43 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
         },
-        /**
-         *
-         * @param view {TrackEditView}
-         * @param next
-         * @private
-         */
-        _onRemoveCollectionViewCallback:function (view, next) {
-            view.editView.$el.hide();
-            view.overviewView.$el.slideUp(next)
 
-        },
-        _onTrackRemoved:function () {
-            if (!this.tracks.length) {
-                this.albumView.$(".right-panel").show();
-            }
-        },
+
         _activeModel:null,
         activeView:function () {
             return this.trackCollectionView.viewByModel(this._activeModel);
 
 
         },
+        activeOverview:function () {
+            return (this.activeView() || {}).overviewView;
+        },
         _onBeforeUploadStarted:function () {
-            var prevActiveView = this.activeView();
-            if (prevActiveView) {
-                prevActiveView.overviewView.removeUploadListeners(this.trackUploadView);
+            var prevOverviewView = this.activeOverview();
+            if (prevOverviewView) {
+                // if upload is from 'replace' link then exit
+                if (prevOverviewView._active) return;
+                prevOverviewView.removeUploadListeners(this.trackUploadView);
             }
-            this.albumView.$(".right-panel").hide();
-            var model = this._activeModel = new Track.Model();
-            this.tracks.add(model);
 
-            var view = this.activeView();
-            view.overviewView.attachUploadListeners(this.trackUploadView);
-            this.trackUploadView.bindTo(view);
+            var model = new Track.Model();
+            this.tracks.add(model);
+            this._activeModel = model;
+
+            var overviewView = this.activeOverview();
+            overviewView.attachUploadListeners(this.trackUploadView);
+            this.trackUploadView.bindTo(overviewView);
         },
         _onUploadStarted:function () {
+            var view = this.activeView();
+            if (!this._uploaders[view]) {
+                this._uploaders[view] = new Upload.ReplaceView($.extend({},
+                    this.uploadDefaults, {el:view.overviewView.el}),
+                    this.trackUploadView, view.overviewView);
+            }
 
+        },
+        _onUploaded:function () {
 
         },
         changeIndex:function () {
@@ -242,10 +304,10 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                     var name = this.album.get("name");
                     if (_.isEmpty(name)) {
                         this.$saveButton.addClass("disabled")
-                        this._canSave = true;
+                        this._canSave = false;
                     } else {
                         this.$saveButton.removeClass("disabled");
-                        this._canSave = false;
+                        this._canSave = true;
                     }
                 }
             }

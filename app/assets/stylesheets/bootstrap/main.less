@@ -253,13 +253,6 @@ body.inner {
 
 }
 
-.tracks {
-    list-style: none;
-    margin-left: 0px;
-    counter-reset: track-list;
-
-}
-
 #cancel-button {
     margin-right: 20px;
 }
@@ -275,6 +268,7 @@ body.inner {
     border-top: 1px solid @grayCustom;
     border-bottom: 1px solid @grayCustom;
     background: @white;
+    cursor: pointer;
 
     .title {
         font-size: 15px;
@@ -302,11 +296,38 @@ body.inner {
     #upload-progress {
         display: none;
     }
+    &:hover {
+        .drag {
+            visibility: visible;
+            cursor: move;
+        }
+    }
+    .drag {
+        visibility: hidden;
+        position: absolute;
+        left: 20;
+
+    }
 
 }
 
 .tracks {
-
+    list-style: none;
+    margin-left: 0px;
+    counter-reset: track-list;
+    .track {
+        &.inactive {
+            .right-panel {
+                display: none;
+            }
+            .track-overview {
+                background: none;
+                border-left: none;
+                border-top: 1px dashed @grayCustom;
+                border-bottom: 1px dashed @grayCustom;
+            }
+        }
+    }
     .left-panel {
         width: 455px;
     }
@@ -363,7 +384,7 @@ body.inner {
 
 }
 
-.upload-button {
+.upload-button, .progress-wrapper .remove {
     position: relative;
 
     .swfupload {
@@ -391,17 +412,47 @@ body.inner {
 .progress-wrapper {
     display: none;
     color: @grayLight;
-    .remove {
+    .ok {
         display: none;
     }
-
+    .remove {
+        left: -999999px;
+    }
     .status {
         color: @purple;
-        .processing {
+
+    }
+    &.active {
+        display: block;
+    }
+
+    &.uploaded, &.processed {
+
+        .cancel, .progress {
+            display: none;
+        }
+        .remove {
+            left: 0;
+        }
+        .status {
+            display: none;
+        }
+
+    }
+    &.processed {
+        .ok {
+            display: inline;
+
+        }
+    }
+
+    &.processing {
+        .status {
             color: @orangeDark;
             font-style: italic;
         }
     }
+
 }
 
 .progress {

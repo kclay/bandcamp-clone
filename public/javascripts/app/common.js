@@ -44,8 +44,15 @@ define(["backbone"], function () {
         }
     })
     var OverviewView = Backbone.View.extend({
-        initialize:function () {
+        events:{
+            'click':'switchToView'
+        },
+        parent:function () {
+            return this._parent;
+        },
+        initialize:function (options, parent) {
             _.bindAll(this);
+            this._parent = parent;
 
 
             this.$title = this.$(".title");
@@ -59,6 +66,9 @@ define(["backbone"], function () {
             this._loaded = true;
 
 
+        },
+        switchToView:function () {
+            this.trigger("switch", this);
         },
 
         _onModelChange:function (model) {

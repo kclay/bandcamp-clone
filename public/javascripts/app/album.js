@@ -17,6 +17,8 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             }
         },
         defaults:{
+            id:0,
+            artist_id:0,
             name:"",
             download:true,
             price:"1.00",
@@ -29,11 +31,14 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             artURL:""
 
 
+        }, isNew:function () {
+            return this.id == 0;
         },
         urlRoot:"/ajax/albums",
 
         toJSON:function () {
             var o = _.clone(this.attributes);
+
             delete o["artURL"];
             return{
                 album:o,

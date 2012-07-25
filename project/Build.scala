@@ -16,7 +16,7 @@ object ApplicationBuild extends Build
     "jp.t2v" %% "play20.auth" % "0.3-SNAPSHOT",
     // use single % instead of %% since binary are compatible
     //https://groups.google.com/group/scalaquery/browse_thread/thread/fbdd2f25dc4bf7d6
-     "org.squeryl" %% "squeryl" % "0.9.5-SNAPSHOT" withSources(),
+     "org.squeryl" %% "squeryl" % "0.9.5-2" withSources(),
     //"org.scalaquery" % "scalaquery_2.9.0-1" % "0.9.5",
     "mysql" % "mysql-connector-java" % "5.1.18"
     //"org.mindrot" % "jbcrypt" % "0.3m"

@@ -17,7 +17,7 @@ import utils.{AudioDataStore, ffmpeg}
 
 
 
-case class Encode(id: String, session: String)
+case class Encode(id: Long)
 
 case class EncodeFailed(id: String, message: String)
 
@@ -30,27 +30,43 @@ class Encoding extends Actor {
   private val PREVIEW_LENGTH = 90
   lazy val audioDataStore = new AudioDataStore()
 
-  def encode(id: String, session: String) {
-    audioDataStore.tempFile(id).map {
-      file => {
-        val f = ffmpeg(file)
-        val album = audioDataStore.album(session)
-        album.mkdirs()
-        val preview = new File(album, id + "_preview.mp3")
-        val output = new File(album, id + "_full.mp3")
-        val duration = f.duration
+  def encode(queueId: Long) {
+    import models.Queue;
 
-        if (duration > PREVIEW_LENGTH) {
-          f.encode(preview, PREVIEW_LENGTH)
+    Queue.fetch(queueId).map {
+      queue =>
+        audioDataStore.tempFile(queue.file).map {
+          file => {
+            Queue.updateStatus(queue.id, Queue.STATUS_PROCESSING)
+            val f = ffmpeg(file)
+            val album = audioDataStore.album(queue.session)
+            album.mkdirs()
+            val preview = audioDataStore.preview(album, queue.file)
+            val output = audioDataStore.full(album, queue.file)
+            val duration = f.duration
+
+
+            if (!f.encode(preview, if (duration > PREVIEW_LENGTH) PREVIEW_LENGTH else 0)) {
+              Queue.updateStatus(queue.id, Queue.STATUS_ERROR_PREVIEW);
+              return
+            }
+
+            if (!f.encode(output)) {
+              Queue.updateStatus(queue.id, Queue.STATUS_ERROR_FULL);
+              preview.delete()
+              return
+            }
+            Queue.updateStatus(queue.id, Queue.STATUS_COMPLETED);
+            file.delete()
+          }
         }
-      }
     }
   }
 
   protected def receive = {
-    case Encode(id, session) => {
+    case Encode(queueId) => {
 
-      encode(id, session)
+      encode(queueId)
 
     }
 

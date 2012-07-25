@@ -1,6 +1,6 @@
 package models
 
-import utils.Image
+import utils.{AudioDataStore, Image}
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{Query, Session, KeyedEntity, Schema}
 import org.squeryl.annotations.Column
@@ -52,6 +52,10 @@ object Queue {
 
   val STATUS_NEW = "new"
   val STATUS_PROCESSING = "processing"
+  val STATUS_ERROR_PREVIEW = "error_encode_preview"
+  val STATUS_ERROR_FULL = "error_encode_full"
+  val STATUS_COMPLETED = "completed"
+  lazy val audioDataStore = new AudioDataStore()
 
   def status(ids: List[Long]) = inTransaction {
     from(queue)(q =>
@@ -66,6 +70,19 @@ object Queue {
     )
 
   }
+
+  def fetch(id: Long) = inTransaction {
+    queue.where(q => q.id === id).headOption
+  }
+
+  def delete(queue: Queue): Boolean = inTransaction {
+    delete(queue.id)
+  }
+
+  def delete(queueId: Long): Boolean = inTransaction {
+    queue.delete(queueId)
+  }
+
 
   /* def forName(name: String) = inTransaction {
     queue.where(q => q.name === name)
