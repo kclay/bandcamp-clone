@@ -49,7 +49,8 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             this.swf = new SWFUpload({
                 upload_url:options.uri,
                 post_params:{
-                    token:app_config.token
+                    token:app_config.token,
+                    session:app_config.session
 
                 },
                 flash_url:"/assets/swfupload.swf",
@@ -122,6 +123,11 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             }
 
         },
+        setPostParam:function (key, value) {
+            // TODO Implement post params update
+            return this;
+        },
+
         cancelUpload:function () {
             if (this._file) {
                 this.swf.stopUpload();
@@ -243,6 +249,15 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 this._onUploadError(this._file, SWFUpload.UPLOAD_ERROR.UPLOAD_STOPPED)
                 this._onUploadError(this._file, SWFUpload.UPLOAD_ERROR.FILE_CANCELLED);
             },
+            _extraFields:{},
+            setPostParam:function (key, value) {
+                var options = this.$input[0].html5_upload.options;
+                if (value) {
+                    this._extraFields[key] = value
+                } else {
+                    delete this._extraFields[key];
+                }
+            },
             finalize:function (options, button, hit) {
                 var self = this;
                 SWFUpload.prototype.initSWFUpload = function () {
@@ -272,11 +287,15 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                     fieldName:"Filedata",
                     url:options.uri,
                     extraFields:{
-                        token:app_config.token
+                        token:app_config.token,
+                        session:app_config.session
 
                     },
 
                     sendBoundary:window.FormData || $.browser.mozilla,
+                    beforeFormData:function (params) {
+                        return $.extend(params, self._extraFields);
+                    },
                     onStartOne:function (event, file, name, number, total) {
                         _file = self._file = {
                             name:name,

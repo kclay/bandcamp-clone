@@ -123,12 +123,12 @@ object Upload extends Controller with Auth with AuthConfigImpl {
 
   def audioUploaded = authorizedAction(NormalUser) {
     artist => implicit request =>
-      import models.Forms.uploadedForm
-      uploadedForm.bindFromRequest.fold(
+      import models.Forms.trackUploadedForm
+      trackUploadedForm.bindFromRequest.fold(
         e => error("error"),
         value => {
           val (id, session) = value
-          audioDataStore.tempFile(id).map {
+          audioDataStore.tempFile(id,session).map {
             file =>
               import utils.ffmpeg
               val errors = ffmpeg(file).verify
@@ -159,9 +159,11 @@ object Upload extends Controller with Auth with AuthConfigImpl {
 
           request.body.file("Filedata").map {
             file =>
-              val (created, name, tempFile) = audioDataStore.moveToTemp(file, false)
+              import models.Forms.idSessionForm
+              val (id, session) = idSessionForm.bindFromRequest.get
+              val (created, name, tempFile) = audioDataStore.toTempMaybeId(id,file,session, false)
 
-              if (created)  json(AudioResponse(file.filename, name)) else None
+              if (created) json(AudioResponse(file.filename, name)) else None
 
 
           }.getOrElse(error("no_file"))
@@ -177,8 +179,11 @@ object Upload extends Controller with Auth with AuthConfigImpl {
           request.body.file("Filedata").map {
             file =>
               import utils.{Medium, TempImage}
+              import models.Forms.idSessionForm
+              val (id, session) = idSessionForm.bindFromRequest.get
 
-              val image = TempImage(file).resizeTo(Medium())
+              // check if replacing previous uploaded image
+              val image = (if (id.nonEmpty) TempImage(id.get, session, file) else TempImage(file, session)).resizeTo(Medium())
 
 
               json(ArtResponse(image.exists, image.url, image.id))

@@ -35,13 +35,14 @@ class Encoding extends Actor {
 
     Queue.fetch(queueId).map {
       queue =>
-        audioDataStore.tempFile(queue.file).map {
+        audioDataStore.tempFile(queue.file, queue.session).map {
           file => {
             Queue.updateStatus(queue.id, Queue.STATUS_PROCESSING)
             val f = ffmpeg(file)
             val album = audioDataStore.album(queue.session)
             album.mkdirs()
             val preview = audioDataStore.preview(album, queue.file)
+
             val output = audioDataStore.full(album, queue.file)
             val duration = f.duration
 
@@ -58,6 +59,7 @@ class Encoding extends Actor {
             }
             Queue.updateStatus(queue.id, Queue.STATUS_COMPLETED);
             file.delete()
+            if (file.getParentFile.list().length == 0) file.getParentFile.delete
           }
         }
     }

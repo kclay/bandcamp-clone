@@ -4,6 +4,7 @@ import collection.mutable.ListBuffer
 import java.io.File
 import play.api.Logger
 import collection.mutable
+import play.api.libs.Files
 
 case class Error(kind: String)
 
@@ -24,12 +25,18 @@ case class ffmpeg(file: File) {
   def encode(output: File, length: Int = 0) = {
 
 
+    // if the output file already exists then create a temp file for encoding just in case
+    // the encoding fails
+    val maybeAdjustedOutput = if (output.exists()) new File(output.getParentFile, "temp_" + output.getName) else output
     var args = Seq("-ar", "44100", "-ab", "128k")
 
     if (length > 0) args ++= Seq("-t", length.toString)
-    args ++= Seq(output.getAbsolutePath)
+    args ++= Seq(maybeAdjustedOutput.getAbsolutePath)
 
     val (exitCode, buffer) = command(args)
+    // if the encoding was OK then check if we encoded the temp file, if so replace it with the correct output
+    if (exitCode == 0 && !maybeAdjustedOutput.equals(output)) Files.moveFile(maybeAdjustedOutput, output, true)
+
     exitCode == 0
 
 

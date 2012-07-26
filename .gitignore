@@ -1,3 +1,4 @@
+#ignore me
 logs
 project/project
 project/target
@@ -7,3 +8,4 @@ tmp
 dist
 .idea
 .idea_modules
+public/media/*

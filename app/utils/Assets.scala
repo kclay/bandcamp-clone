@@ -2,7 +2,7 @@ package utils
 
 import org.apache.commons.codec.digest.DigestUtils._
 import play.api.Play
-import java.io.File
+import java.io.{FileFilter, File}
 import play.api.libs.Files.TemporaryFile
 import javax.imageio.{IIOImage, ImageIO}
 import java.awt.image.BufferedImage
@@ -180,13 +180,39 @@ case class BaseImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
 
 }
 
-case class TempImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends Image(_id, imageSize, tempFile) {
+case class TempImageDataStore(session: String) extends DataStore {
+  override def location(): String = "images"
 
-  override lazy val path = "temp/" + filename
+  lazy val path = "temp/" + session
+
+  def toDir(): File = new File(store, path)
+
+  def commit = {
+    toDir().listFiles(new FileFilter {
+      def accept(file: File) = file.getName.contains("_normal")
+    }).map {
+      tempFile => {
+        val id = tempFile.getName.split("_")(0)
+
+
+        val filePart = FilePart(tempFile.getName, tempFile.getName, None, TemporaryFile(tempFile))
+
+        BaseImage(id, Normal(), Some(filePart)).validate()
+      }
+
+    }
+    toDir().delete()
+
+  }
+}
+
+case class TempImage(_id: String, session: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends Image(_id, imageSize, tempFile) {
+
+  override lazy val path = "temp/" + session + "/" + filename
 
   override def resizeTo(size: ImageSize): Image = {
     validate()
-    val out = TempImage(id, size, None)
+    val out = TempImage(id, session, size, None)
     out.toFile().getParentFile.mkdirs();
     resize(toFile, out.toFile, size.width, size.height, true)
 
@@ -194,23 +220,30 @@ case class TempImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
   }
 }
 
-object TempImage {
-  def apply(id: String) = new TempImage(id)
 
-  def apply(file: FilePart[TemporaryFile]) = {
+object TempImage {
+  def apply(id: String, session: String) = new TempImage(id, session)
+
+  def apply(id: String, session: String, file: FilePart[TemporaryFile]) = new TempImage(id, session, Normal(), Some(file))
+
+  def apply(file: FilePart[TemporaryFile], session: String) = {
     val id = shaHex(System.nanoTime() + file.filename)
-    new TempImage(id, Normal(), Some(file))
+    new TempImage(id, session, Normal(), Some(file))
+  }
+
+  def commit(session: String) = {
+    TempImageDataStore(session).commit
   }
 
 }
 
 object Image {
 
-  def fromTemp(id: String): Image = {
+  /* def fromTemp(id: String): Image = {
     val tempFile = TempImage(id).toFile()
     val filePart = FilePart(tempFile.getName, tempFile.getName, None, TemporaryFile(tempFile))
     return BaseImage(id, Normal(), Some(filePart))
-  }
+  }*/
 
   def apply(id: String) = new BaseImage(id)
 
@@ -268,6 +301,25 @@ trait DataStore {
     if (f.exists()) Some(f) else None
   }
 
+  def tempFile(name: String, session: String): Option[File] = {
+    val f = new File(temp, session + "/" + name)
+    if (f.exists()) Some(f) else None
+  }
+
+
+  def tempExists(name: String, session: String) = new File(temp, session + "/" + name).exists()
+
+  def toTempMaybeId(id: Option[String], file: FilePart[TemporaryFile], session: String, withExt: Boolean = true): (Boolean, String, File) = {
+    val name = (if (id.isDefined) id.get else shaHex(System.currentTimeMillis().toString())) + (if (withExt) ("." + ext(file.filename)) else "")
+    val tempFile = new File(temp, session + "/" + name);
+
+
+    //Logger.debug(tempFile.getAbsolutePath)
+    file.ref.moveTo(tempFile, true)
+    return (tempFile.exists(), tempFile.getName, tempFile)
+
+
+  }
 
   def tempExists(name: String) = new File(temp, name).exists()
 

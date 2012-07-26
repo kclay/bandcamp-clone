@@ -103,6 +103,10 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.artUploadView.el);
             wrapper.find("img").attr("src", info.url);
 
+            if (!this._artID) {
+                this._artID = info.id;
+                this.artUploadView.setPostParam("id", info.id)
+            }
             this.model.set({art:info.id, artURL:info.url});
             this.artUploadView.reset();
 

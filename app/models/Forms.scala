@@ -20,13 +20,21 @@ import models._
 
 object Forms {
 
-  val uploadedForm = Form {
+  val trackUploadedForm = Form {
     tuple(
       "id" -> text,
       "session" -> text
     )
 
   }
+  val idSessionForm = Form {
+    tuple(
+      "id" -> optional(text),
+      "session" -> text
+    )
+
+  }
+
   val authTokenForm = Form {
     single("token" -> text)
   }
@@ -87,7 +95,7 @@ object Forms {
     "id" -> longNumber,
     "artist_id" -> artist,
     "name" -> text(minLength = 1, maxLength = 50),
-    "slug"->slug,
+    "slug" -> slug,
     "donate" -> boolean,
     "download" -> boolean,
     "price" -> of[Double],

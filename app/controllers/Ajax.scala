@@ -73,6 +73,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
         value => {
           import models.SiteDB._
           import PrimitiveTypeMode._
+          import utils.TempImage.commit
           var (album, allTracks) = value
           db {
             // update or delete album
@@ -95,6 +96,9 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
               order += 1
               AlbumTracks(album.id, t.id, order)
             }))
+
+
+            commit(album.session)
 
 
           }

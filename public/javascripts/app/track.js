@@ -134,7 +134,10 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             _onArtUploaded:function (info) {
                 var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
                 wrapper.find("img").attr("src", info.url);
-
+                if (!this._artID) {
+                    this._artID = info.id;
+                    this.artUploadView.setPostParam("id", info.id)
+                }
                 this.model.set({art:info.id, artURL:info.url});
 
 
@@ -177,6 +180,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
             attachUploadListeners:function (view) {
                 this.trackUploadView = view;
+                this._updatePostParams();
                 view
                     .on("uploaded", this._onTrackUploaded, this)
                     .on("canceled", this._onTrackCanceled, this)
@@ -185,6 +189,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
             },
             removeUploadListeners:function (view) {
+                this._updatePostParams(true);
                 this.trackUploadView = null;
                 view
                     .off("uploaded", this._onTrackUploaded, this)
@@ -299,9 +304,16 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         break;
                     case "completed":
                         this._onStatusChange(Status.COMPLETED);
+                        this._updatePostParams();
                         break;
                 }
 
+            },
+            _updatePostParams:function (remove) {
+                if (this.trackUploadView) {
+                    value = remove ? null : (this._encodingTrack ? this._encodingTrack.id : null);
+                    this.trackUploadView.setPostParam("id", value)
+                }
             },
             _onStatusChange:function (status) {
                 this.trackUploadView._onStatusChange(status)
