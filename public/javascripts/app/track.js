@@ -1,6 +1,7 @@
 define(["binder", "backbone", "app/upload", "app/common"], function (binder, Backbone, Upload) {
         var _ = require("underscore");
         var Common = require("app/common");
+        var V = Common.Validate
         var Track = Backbone.Model.extend({
             validation:{
                 name:{
@@ -23,15 +24,22 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 artURL:"",
                 license:"all_rights",
                 status:"",
-                order:0
+                order:0,
+                session:app_config.session
 
 
             },
+            validate:function (attrs, options) {
+                if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {
+                    return "releaseDate"
+                }
 
+
+            },
             urlRoot:"/ajax/tracks",
             toJSON:function () {
                 var t = _.clone(this.attributes);
-
+                if (this.isNew())t.id = 0
                 return t;
             }
 
@@ -53,7 +61,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             lyrics:"[name='track.lyrics']",
             credits:"[name='track.credits']",
             artist:"[name='track.artist']",
-            license:"[name='track.license']"
+            license:"[name='track.license']",
+            releaseDate:"[name='track.releaseDate']"
 
         }
 
@@ -127,8 +136,22 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         types:"*.jpg;*.gif;*.png"
                     }
                 );
-
+                this.model.on("error", this._onAttributeError, this)
+                this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
                 this.artUploadView.on("uploaded", this._onArtUploaded);
+            },
+            _onAttributeError:function (model, attr) {
+                this._modelAttributeChanged(model, attr, true)
+            },
+            _onModelAttributeChanged:function (model) {
+                _.each(model.changed, function (value, key) {
+                    this._modelAttributeChanged(model, key, false)
+                }, this)
+            },
+            _modelAttributeChanged:function (model, attr, error) {
+                var input = this.$('[name="album.' + attr + '"]')
+
+                input.parents("div.control-group")[error ? 'addClass' : 'removeClass']("error")
             },
 
             _onArtUploaded:function (info) {
@@ -304,7 +327,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         break;
                     case "completed":
                         this._onStatusChange(Status.COMPLETED);
-                        this._updatePostParams();
+                        this.model.set("file", this._encodingTrack.id)
+                        this._updatePostParams(false);
                         break;
                 }
 

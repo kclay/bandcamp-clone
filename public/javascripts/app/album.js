@@ -5,6 +5,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
     var Common = require("app/common");
 
 
+    var V = Common.Validate
     var Track = require("app/track");
     var Album = Backbone.Model.extend({
         initialize:function () {
@@ -17,7 +18,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             }
         },
         defaults:{
-            id:0,
+            id:null,
             artist_id:0,
             name:"",
             download:true,
@@ -29,11 +30,17 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             artist:"",
             art:"",
             artURL:"",
+            releaseDate:"",
             session:app_config.session
 
 
-        }, isNew:function () {
-            return this.id == 0;
+        },
+        validate:function (attrs, options) {
+            if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {
+                return "releaseDate"
+            }
+
+
         },
         urlRoot:"/ajax/albums",
         parse:function (resp, xhr) {
@@ -45,7 +52,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
         },
         toJSON:function () {
             var o = _.clone(this.attributes);
-
+            if (this.isNew())o.id = 0
             delete o["artURL"];
             return{
                 album:o,
@@ -73,7 +80,8 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             about:"[name='album.about']",
 
             credits:"[name='album.credits']",
-            artist:"[name='album.artist']"
+            artist:"[name='album.artist']",
+            releaseDate:"[name='album.releaseDate']"
 
 
         },
@@ -94,9 +102,24 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             );
 
             this.artUploadView.on("uploaded", this._onArtUploaded);
-
+            this.model.on("error", this._onAttributeError, this)
+            this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
             this.render();
 
+        },
+
+        _onAttributeError:function (model, attr) {
+            this._modelAttributeChanged(model, attr, true)
+        },
+        _onModelAttributeChanged:function (model) {
+            _.each(model.changed, function (value, key) {
+                this._modelAttributeChanged(model, key, false)
+            }, this)
+        },
+        _modelAttributeChanged:function (model, attr, error) {
+            var input = this.$('[name="album.' + attr + '"]')
+
+            input.parents("div.control-group")[error ? 'addClass' : 'removeClass']("error")
         },
 
         _onArtUploaded:function (info) {

@@ -81,13 +81,20 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
 
             // rema
             // val items: Seq[Either[Track, Track]] = allTracks.map(track => if (track.id == 0) Left(track) else Right(track))
-
+            // filter out tracks that have been saved already
             val updates = allTracks.filter(_.id != 0)
 
+            // save all the new tracks
             allTracks.foreach(t => if (t.id == 0) t.save)
 
-
+            // update the tracks
             tracks.update(updates)
+
+            val currentTrackIds = allTracks.map(_.id)
+
+            tracks.deleteWhere(t => t.id notIn currentTrackIds and t.artistID === artist.id)
+
+
 
             albumTracks.delete(albumTracks.where(at => at.albumID === album.id))
             var order = 0
@@ -113,6 +120,6 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
         }
       )
   }
-
-
 }
+
+

@@ -37,6 +37,12 @@ define(['libs/backbone/backbone.min'], function () {
 
         _.each(["Model", "Collection", "View", "Router"], function (klass) {
             Backbone[klass].prototype._super = _super;
+
+            Backbone[klass].prototype.debug = function () {
+                if (window.console && window.console.log) {
+                    window.console.log(arguments);
+                }
+            }
             Backbone[klass].prototype.log = function () {
                 if (window.console && window.console.log) {
                     window.console.log(arguments);

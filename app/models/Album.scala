@@ -71,10 +71,10 @@ case class AlbumTracks(@Column("album_id") albumID: Long, @Column("track_id") tr
 
 }
 
-case class Track(var id: Long = 0, var artistID: Long, name: String, slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
+case class Track(var id: Long = 0, var artistID: Long, session:String,file: String, name: String, slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
                  license: String, artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date], active: Boolean = false) extends KeyedEntity[Long] {
-  def this() = this(0, 0, "", "", true, true, 1.00, "", Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false)
+  def this() = this(0, 0,"", "", "", "", true, true, 1.00, "", Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false)
 
 
 }

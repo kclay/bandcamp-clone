@@ -90,6 +90,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             new ConfirmDeleteView({
                 callback:function (answer) {
                     if (answer) {
+
                         self.model.collection.remove(self.model);
                     }
                 }
@@ -187,7 +188,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
             this.$saveButton = this.$("#save-button").addClass("disabled");
-            this.tracks.bind("add", this._onTrackAdded, this);
+            this.tracks.on("add", this._onTrackAdded, this);
             this.tracks.on("remove", this._onTrackRemoved, this);
             $("ol.tracks").sortable({items:".track", handle:".drag", axis:"y",
                 start:function (event, ui) {
@@ -213,9 +214,9 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
         },
         _onTrackArtChanged:function (model) {
-            var art = model.get("artURL")
+            var artURL = model.get("artURL")
             if (!this.album.get("artURL")) {
-                this._setAlbumArt(model.get("art"), art);
+                this._setAlbumArt(model.get("art"), artURL);
             }
 
         },
@@ -277,9 +278,9 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             $(window).bind('beforeunload', function (e) {
                 return 'Are you sure you want to leave?';
             })
-            this.album.on("change", this._onModelChanged, this);
+            this.album.on("change:name change:art", this._onAlbumChanged, this);
             if (model == this.album) {
-                this._onModelChanged(model);
+                this._onAlbumChanged(model);
             }
 
 
@@ -327,22 +328,38 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             console.log(arguments);
         },
         _setAlbumArt:function (id, url) {
-            this.albumOverviewView.setArtURL(url);
+            if (id instanceof Backbone.Model) {
+                url = id.get("artURL")
+                id = id.get("art")
+            }
+            this.album.set({art:id, artURL:url});
+            //this.albumOverviewView.setArtURL(id, url);
         },
-        _onModelChanged:function (model) {
-            if (model == this.album) {
-                if ("name" in this.album.changed) {
+        _onAlbumChanged:function (album) {
 
-                    var name = this.album.get("name");
-                    if (_.isEmpty(name)) {
-                        this.$saveButton.addClass("disabled")
-                        this._canSave = false;
-                    } else {
-                        this.$saveButton.removeClass("disabled");
-                        this._canSave = true;
-                    }
+            if ("name" in album.changed) {
+
+                var name = album.get("name");
+                if (_.isEmpty(name)) {
+                    this.$saveButton.addClass("disabled")
+                    this._canSave = false;
+                } else {
+                    this.$saveButton.removeClass("disabled");
+                    this._canSave = true;
                 }
             }
+            if ("art" in album.changed) {
+                if (_.isEmpty(album.get("art"))) {
+
+                    var model = _.chain(this.tracks)
+                        .filter(function (model) {
+                            return !_.isEmpty(model.get("art"))
+                        }).first().value()
+
+                    if (model)this._setAlbumArt(model)
+                }
+            }
+
 
         },
         save:function () {

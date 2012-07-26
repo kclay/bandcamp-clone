@@ -188,20 +188,22 @@ case class TempImageDataStore(session: String) extends DataStore {
   def toDir(): File = new File(store, path)
 
   def commit = {
-    toDir().listFiles(new FileFilter {
-      def accept(file: File) = file.getName.contains("_normal")
-    }).map {
-      tempFile => {
-        val id = tempFile.getName.split("_")(0)
+    if (toDir().exists()) {
+      toDir().listFiles(new FileFilter {
+        def accept(file: File) = file.getName.contains("_normal")
+      }).map {
+        tempFile => {
+          val id = tempFile.getName.split("_")(0)
 
 
-        val filePart = FilePart(tempFile.getName, tempFile.getName, None, TemporaryFile(tempFile))
+          val filePart = FilePart(tempFile.getName, tempFile.getName, None, TemporaryFile(tempFile))
 
-        BaseImage(id, Normal(), Some(filePart)).validate()
+          BaseImage(id, Normal(), Some(filePart)).validate()
+        }
+
       }
-
+      toDir().delete()
     }
-    toDir().delete()
 
   }
 }

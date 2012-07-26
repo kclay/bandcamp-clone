@@ -17,12 +17,12 @@ define(["app/track"], function ()
             _.bindAll(this);
             this.$saveButton = this.$("#save-button").addClass("disabled");
             var model = this.model = new Track.Model();
-            this.model.on("change", this._onModelChanged)
+            this.model.on("change", this._onAlbumChanged)
             this.trackView = new Track.OverviewView({el:".track-overview", model:model});
             this.editView = new Track.EditView({el:"#track", model:model});
 
         },
-        _onModelChanged:function (target, info)
+        _onAlbumChanged:function (target, info)
         {
             if ("name" in info.changes) {
 

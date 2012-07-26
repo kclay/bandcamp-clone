@@ -1,4 +1,4 @@
-define(["backbone"], function () {
+define(["underscore", "backbone"], function (_) {
 
 
     var FeedbackView = Backbone.View.extend({
@@ -52,7 +52,10 @@ define(["backbone"], function () {
         },
         setArtURL:function (url) {
             if (!_.isEmpty(url)) {
-                this.$art.find("img").attr("src", url).show();
+                // add cache buster for browser and hide/show for rendering flaw
+                this.$art.find("img")
+                    .attr("src", url + "?r=" + (new Date()).getTime())
+                    .hide().show()
             } else {
                 this.$art.find("img").hide();
             }
@@ -66,7 +69,7 @@ define(["backbone"], function () {
             this.$details = this.$(".details");
             this.$art = this.$(".album-art");
             this.$by = this.$(".by span");
-            this.model.on("change:name change:download change:price change:donateMore change:artURL,change:artist", this._onModelChange)
+            this.model.on("change:name change:download change:price change:donateMore change:artURL change:artist", this._onModelChange)
 
 
             this._onModelChange(this.model);
@@ -118,9 +121,23 @@ define(["backbone"], function () {
 
         }
     });
+    var Validators = {
+        date:function (value) {
+            var parts = _.filter((value || "").split("/"), function (value) {
+                return value.length == 2
+            })
+
+
+            if (parts.length != 3)return false
+
+            if (isNaN(Date.parse(value)))return false
+            return true
+        }
+    }
     return {
         OverviewView:OverviewView,
         FeedbackView:FeedbackView,
-        ConfirmView:ConfirmView
+        ConfirmView:ConfirmView,
+        Validate:Validators
     }
 })
