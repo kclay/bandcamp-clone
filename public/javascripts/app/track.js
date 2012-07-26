@@ -9,7 +9,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 }
             },
             defaults:{
-                id:0,
+                id:null,
                 artist_id:0,
                 name:"",
                 download:true,
@@ -21,21 +21,29 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 artist:"",
                 art:"",
                 artURL:"",
-                license:"all_rights"
+                license:"all_rights",
+                status:"",
+                order:0
+
 
             },
-            isNew:function () {
-                return this.id == 0
-            },
+
             urlRoot:"/ajax/tracks",
             toJSON:function () {
                 var t = _.clone(this.attributes);
-                delete t["artURL"];
+
                 return t;
             }
 
         });
 
+        var Status = {
+            EVENT_CHANGED:"statusChanged",
+            NEW:"new",
+            UPLOADED:"uploaded",
+            PROCESSING:"processing",
+            COMPLETED:"processed"
+        }
         var EditBindings = {
             name:"[name='track.name']",
             download:"[name='track.download']",
@@ -94,7 +102,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
 
             events:{
-                "click .album-art .close":"removeArt"
+                "click .track-art .close":"removeArt"
             },
 
             initialize:function () {
@@ -124,7 +132,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             },
 
             _onArtUploaded:function (info) {
-                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".album-art"));
+                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
                 wrapper.find("img").attr("src", info.url);
 
                 this.model.set({art:info.id, artURL:info.url});
@@ -217,6 +225,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 if (info.error) {
 
                 } else {
+                    this._onStatusChange(Status.UPLOADED)
                     this._encodingTrack = info;
 
                     Routes.audioUploaded().ajax({
@@ -279,7 +288,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         if (!this._status) {
 
 
-                            this._onStatusChange("processing");
+                            this._onStatusChange(Status.PROCESSING);
                             this._status = status;
                         }
                         this.trackEncodingStatus(true)
@@ -289,13 +298,14 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     case "error":
                         break;
                     case "completed":
-                        this._onStatusChange("processed");
+                        this._onStatusChange(Status.COMPLETED);
                         break;
                 }
 
             },
             _onStatusChange:function (status) {
                 this.trackUploadView._onStatusChange(status)
+                this.trigger(Status.EVENT_CHANGED, status)
             },
 
             render:function () {
@@ -320,7 +330,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             OverviewView:TrackOverviewView,
             Model:Track,
             Collection:Tracks,
-            Bindings:EditBindings
+            Bindings:EditBindings,
+            Status:Status
         }
 
     }

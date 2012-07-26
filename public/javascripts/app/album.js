@@ -28,14 +28,21 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             credits:"",
             artist:"",
             art:"",
-            artURL:""
+            artURL:"",
+            session:app_config.session
 
 
         }, isNew:function () {
             return this.id == 0;
         },
         urlRoot:"/ajax/albums",
-
+        parse:function (resp, xhr) {
+            _(this.tracks).each(function (model, index) {
+                model.set(resp.tracks[index], {slient:true})
+            })
+            //this.tracks.reset(resp.tracks, {slient:true});
+            return resp.album
+        },
         toJSON:function () {
             var o = _.clone(this.attributes);
 

@@ -50,6 +50,13 @@ define(["backbone"], function () {
         parent:function () {
             return this._parent;
         },
+        setArtURL:function (url) {
+            if (!_.isEmpty(url)) {
+                this.$art.find("img").attr("src", url).show();
+            } else {
+                this.$art.find("img").hide();
+            }
+        },
         initialize:function (options, parent) {
             _.bindAll(this);
             this._parent = parent;
@@ -80,11 +87,7 @@ define(["backbone"], function () {
             } else if ("artURL" in model.changed) {
 
                 var url = this.model.get("artURL");
-                if (!_.isEmpty(url)) {
-                    this.$art.find("img").attr("src", url).show();
-                } else {
-                    this.$art.find("img").hide();
-                }
+                this.setArtURL(url);
 
             } else {
 

@@ -61,6 +61,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
 
   def editAlbum = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
+
       Ok(html.artist.newAlbum(albumForm.fill(Album(), Seq.empty[Track])))
   }
 

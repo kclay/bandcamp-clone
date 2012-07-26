@@ -5,8 +5,7 @@ import Keys._
 import PlayProject._
 
 
-object ApplicationBuild extends Build
-{
+object ApplicationBuild extends Build {
 
   val appName = "bulabowl"
   val appVersion = "1.0-SNAPSHOT"
@@ -16,7 +15,7 @@ object ApplicationBuild extends Build
     "jp.t2v" %% "play20.auth" % "0.3-SNAPSHOT",
     // use single % instead of %% since binary are compatible
     //https://groups.google.com/group/scalaquery/browse_thread/thread/fbdd2f25dc4bf7d6
-     "org.squeryl" %% "squeryl" % "0.9.5-2" withSources(),
+    "org.squeryl" %% "squeryl" % "0.9.5-2" withSources(),
     //"org.scalaquery" % "scalaquery_2.9.0-1" % "0.9.5",
     "mysql" % "mysql-connector-java" % "5.1.18"
     //"org.mindrot" % "jbcrypt" % "0.3m"
@@ -33,7 +32,8 @@ object ApplicationBuild extends Build
     // Add your own project settings here
     resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/",
     resolvers += "Scala-Tools Maven2 Repository" at "http://scala-tools.org/repo-releases",
-    lessEntryPoints <<= baseDirectory(customLessEntryPoints)
+    lessEntryPoints <<= baseDirectory(customLessEntryPoints),
+    routesImport += "binders.Binders"
   )
 
 }

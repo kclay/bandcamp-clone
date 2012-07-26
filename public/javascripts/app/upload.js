@@ -258,6 +258,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                     input.click();
                     return false;
                 })
+                options.types = _((options.types || "").split(";")).map(function (value, index) {
+                    return value.replace("*.", "");
+                })
                 var _file = {};
 
                 function extend() {
@@ -280,6 +283,14 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                             id:(new Date().getTime()),
                             size:file.size || file.fileSize
                         }
+                        if (options.types.length) {
+                            if (!options.types.indexOf(name.split(".").pop()) == -1) {
+                                self._onUploadError(_file, SWFUpload.QUEUE_ERROR.INVALID_FILETYPE);
+                                return false;
+                            }
+
+                        }
+
                         self._onDialogComplete(total);
 
                         setTimeout(function () {

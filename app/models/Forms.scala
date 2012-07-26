@@ -14,6 +14,7 @@ import play.api.data.Forms._
 import play.api.data.Forms._
 
 import utils.format.Formats._
+
 import models._
 
 
@@ -84,8 +85,9 @@ object Forms {
 
   val trackMapping = mapping(
     "id" -> longNumber,
-    "artist_id" -> longNumber,
+    "artist_id" -> artist,
     "name" -> text(minLength = 1, maxLength = 50),
+    "slug"->slug,
     "donate" -> boolean,
     "download" -> boolean,
     "price" -> of[Double],
@@ -98,14 +100,17 @@ object Forms {
     "date" -> optional(sqlDate("MM-dd-yyyy")),
     "activate" -> boolean
   )(Track.apply)(Track.unapply)
+
+
   val albumForm: Form[(Album, Seq[Track])] = Form {
     tuple(
       "album" -> mapping(
-        "artist_id" -> longNumber,
-        "session"->text,
+        "id" -> longNumber,
+        "artist_id" -> artist,
+        "session" -> text,
         "name" -> text(minLength = 1, maxLength = 50),
         "artist" -> optional(text),
-        "slug" -> text,
+        "slug" -> slug,
         "active" -> boolean,
         "download" -> boolean,
         "donate" -> boolean,

@@ -60,6 +60,8 @@ trait AuthConfigImpl extends AuthConfig {
    */
   def resolveUser(id: Id): Option[User] = {
     import org.squeryl.PrimitiveTypeMode._
+    import utils.Utils.artistId
+    artistId(id)
     inTransaction(Artist.find(id))
   }
 
@@ -101,6 +103,6 @@ trait AuthConfigImpl extends AuthConfig {
       case _ => false
     }
 
-  override def resolver[A](implicit request: Request[A]): RelationResolver[Id] =  new CookieRelationResolver[Id, A](request)
+  override def resolver[A](implicit request: Request[A]): RelationResolver[Id] = new CookieRelationResolver[Id, A](request)
 
 }

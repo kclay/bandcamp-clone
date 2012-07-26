@@ -1,3 +1,4 @@
+import java.util
 import org.squeryl.adapters.{H2Adapter, MySQLAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
@@ -5,6 +6,9 @@ import play.api.db.DB
 import play.api.GlobalSettings
 
 import play.api.Application
+import play.api.mvc._
+import play.mvc.Http
+import utils.Context
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,23 +18,28 @@ import play.api.Application
  */
 // Import the session management, including the implicit threadLocalSession
 
-object Global extends GlobalSettings
-{
+object Global extends GlobalSettings {
 
+  import Results._
 
   /*case class RestoreSessionRequest(token: String, request: RequestHeader)
-    extends WrappedRequest(request)
-  {
+  extends WrappedRequest(request)
+{
 
-    override lazy val cookies: Cookies = Cookies(Option(token))
+  override lazy val cookies: Cookies = Cookies(Option(token))
 
-  }  */
+}  */
 
+  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
+     Context.current()
+    val results=super.onRouteRequest(request)
+    Context.remove()
+    results
+  }
 
   val dbAdapter = new H2Adapter();
 
-  override def onStart(app: Application)
-  {
+  override def onStart(app: Application) {
     SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
       case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
       case Some("com.mysql.jdbc.Driver") => Some(() => getSession(new MySQLAdapter, app))

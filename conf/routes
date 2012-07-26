@@ -62,3 +62,6 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 
 GET  /:page                         controllers.Application.page(page:String)
+
+GET /mocks/paypal                   controllers.Mocks.paypal
+GET /mocks/paypal/callback          controllers.Mocks.paypalCallback()

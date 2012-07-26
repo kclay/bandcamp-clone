@@ -110,6 +110,10 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
         },
+        init:function () {
+            if (this.editView.init)this.editView.init()
+            if (this.overviewView.init)this.overviewView.init()
+        },
         remove:function () {
             this.editView.remove();
             this.overviewView.remove();
@@ -156,7 +160,8 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 types:"*.wav;*.aif;*.flac"
             }
             this.trackUploadView = new Upload.View(
-                $.extend({}, this.uploadDefaults, {el:"#track-upload",
+                $.extend({}, this.uploadDefaults, {
+                    el:"#track-upload",
 
                     progressSelector:"#main-upload-progress"
 
@@ -190,6 +195,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 }});
 
         },
+
         _watchOverView:function (view) {
             view.on("switch", this._onOverViewSwitchRequest, this);
             return view;
@@ -200,8 +206,18 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
         _onTrackAdded:function (model) {
             var overviewView = this.trackCollectionView.viewByModel(model).overviewView;
+            model.on(Track.Status.EVENT_CHANGED, this._onTrackStatusChanged, this);
+            model.on("change:artURL", this._onTrackArtChanged, this);
             if (overviewView) this._watchOverView(overviewView) && this._onOverViewSwitchRequest(overviewView);
             this._updateHeight();
+
+        },
+        _onTrackArtChanged:function (model) {
+            var art = model.get("artURL")
+            if (!this.album.get("artURL")) {
+                this._setAlbumArt(model.get("art"), art);
+            }
+
         },
         /**
          *
@@ -215,26 +231,39 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this._unwatchOverView(view.overviewView);
 
         },
-        _onTrackRemoved:function () {
+        _onTrackRemoved:function (model) {
             if (!this.tracks.length) {
                 this._onOverViewSwitchRequest(this.albumOverviewView);
             }
+            model.off(Track.Status.EVENT_CHANGED, this._onTrackStatusChanged, this);
+            model.off("change:artURL", this._onTrackArtChanged, this);
             this._updateHeight(!this.tracks.length);
+
+
+        },
+        _onTrackStatusChanged:function (status) {
 
         },
         _updateHeight:function (auto) {
             this.$el.height(auto ? "auto" : this.$el.find(".album-group").height());
+            $("ol.tracks").sortable("refresh");
+
         },
-        _onOverViewSwitchRequest:function (view) {
-            var overviewView = this.activeOverview();
-            if (view == this.albumOverviewView) {
+        _onOverViewSwitchRequest:function (newOverviewView) {
+            var activeOverviewView = this.activeOverview();
+            if (newOverviewView == this.albumOverviewView) {
                 this.albumView.$(".right-panel").show();
 
             } else {
-                view.parent().show();
+                newOverviewView.parent().show();
+                this._activeModel = newOverviewView.model;
+
                 this.albumView.$(".right-panel").hide();
             }
-            if (overviewView && view != overviewView)overviewView.parent().hide();
+            if (activeOverviewView && newOverviewView != activeOverviewView) {
+                activeOverviewView.$el.height()
+                activeOverviewView.parent().hide();
+            }
 
 
         },
@@ -296,6 +325,9 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
         changeIndex:function () {
             console.log(arguments);
+        },
+        _setAlbumArt:function (id, url) {
+            this.albumOverviewView.setArtURL(url);
         },
         _onModelChanged:function (model) {
             if (model == this.album) {

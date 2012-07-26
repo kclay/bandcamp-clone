@@ -6,6 +6,7 @@ import models._
 import models.Forms._
 import com.codahale.jerkson.Json._
 import jp.t2v.lab.play20.auth.Auth
+import org.squeryl.PrimitiveTypeMode
 
 
 /**
@@ -59,13 +60,51 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB {
 
   }
 
+  def reduce[A, B](s: Seq[Either[A, B]]): Either[A, Seq[B]] =
+    s.foldLeft(Right(Nil): Either[A, List[B]]) {
+      (acc, e) => for (xs <- acc.right; x <- e.right) yield x :: xs
+    }.right.map(_.reverse)
+
   def saveAlbum() = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
+
       albumForm.bindFromRequest.fold(
         errors => BadRequest(errors.errorsAsJson),
         value => {
-          val (album, tracks) = value
-          Ok(generate(Map('album -> album, 'tracks -> tracks)))
+          import models.SiteDB._
+          import PrimitiveTypeMode._
+          var (album, allTracks) = value
+          db {
+            // update or delete album
+            if (album.id == 0) album.save else album.update
+
+            // rema
+            // val items: Seq[Either[Track, Track]] = allTracks.map(track => if (track.id == 0) Left(track) else Right(track))
+
+            val updates = allTracks.filter(_.id != 0)
+
+            allTracks.foreach(t => if (t.id == 0) t.save)
+
+
+            tracks.update(updates)
+
+            albumTracks.delete(albumTracks.where(at => at.albumID === album.id))
+            var order = 0
+
+            albumTracks.insert(allTracks.map(t => {
+              order += 1
+              AlbumTracks(album.id, t.id, order)
+            }))
+
+
+          }
+          /*
+         val updates = items.collect {
+           case Right(t) => t
+         }
+         tracks.update(updates) */
+
+          Ok(generate(Map('album -> album, 'tracks -> allTracks)))
 
         }
       )

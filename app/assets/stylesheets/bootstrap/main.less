@@ -120,7 +120,7 @@ input[type="text"], input[type="password"] {
     fieldset {
         border-bottom: 1px dotted @grayLight;
     }
-    .album-art {
+    .album-art,.track-art {
         position: relative;
         .image {
             position: absolute;
@@ -316,6 +316,7 @@ body.inner {
     margin-left: 0px;
     counter-reset: track-list;
     .track {
+        width:100%;
         &.inactive {
             .right-panel {
                 display: none;
