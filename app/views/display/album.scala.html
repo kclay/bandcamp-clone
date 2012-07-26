@@ -1,0 +1,32 @@
+@(album:Album,tracks:Seq[Track])(implicit request: play.api.mvc.RequestHeader)
+@import utils.session._
+
+
+@main(album.name,"display-album"){
+<script type="text/javascript">
+    window.app_config.update({
+        includes:["jwplayer"],
+        config:{
+            paths:{
+                "jwplayer":"libs/jwplayer/jwplayer"
+            }
+        }
+    })
+</script>
+<h2 class="trackTime">@album.name</h2>
+<h3>by @album.artistName</h3>
+
+<h2>Thanks for joining Bandcamp @SessionHelper.username!</h2>
+
+<p>
+    This is your music's home page. A tabula rasa! Completely
+    unspoiled! Deeply inhale the crisp, clean air, hold it, and then...
+</p>
+
+<div class="row span6 center">
+    <a href="@routes.Artists.newAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a> or <a
+        href="@routes.Artists.addTrack()" class="btn btn-primary btn-xlarge">Add Track</a>
+</div>
+
+
+}

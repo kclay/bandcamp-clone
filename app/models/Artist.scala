@@ -35,6 +35,8 @@ object Artist {
 
   def find(id: Long): Option[Artist] = artists.where(a => a.id === id).headOption
 
+
+
   def updateDomain(artistId: Long, domain: String) = inTransaction {
     update(artists)(a =>
       where(a.id === artistId)

@@ -161,12 +161,9 @@ object Upload extends Controller with Auth with AuthConfigImpl {
             file =>
               val (created, name, tempFile) = audioDataStore.moveToTemp(file, false)
 
-              if (created) {
-                json(AudioResponse(file.filename, name))
+              if (created)  json(AudioResponse(file.filename, name)) else None
 
-              } else {
-                None
-              }
+
           }.getOrElse(error("no_file"))
 
 
@@ -184,7 +181,7 @@ object Upload extends Controller with Auth with AuthConfigImpl {
               val image = TempImage(file).resizeTo(Medium())
 
 
-              json(ArtResponse(image.exists(), image.url, image.id))
+              json(ArtResponse(image.exists, image.url, image.id))
 
           }.getOrElse(error("error"))
         }

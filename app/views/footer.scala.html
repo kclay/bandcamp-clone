@@ -3,13 +3,13 @@
 
 @if(SessionHelper.authenticated){
 <script type="text/javascript">
-    var app_config = {
+    window.app_config = $.extend(window.app_config, {
 
 
         token:"@SessionHelper.session.stripMargin('\n')",
         band_name:"@SessionHelper.band"
 
-    }
+    })
 
 </script>
 

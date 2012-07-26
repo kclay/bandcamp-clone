@@ -13,16 +13,26 @@ import play.api._
 import play.api.http._
 import play.api.mvc._
 import play.api.http.Status._
+import org.squeryl.PrimitiveTypeMode.inTransaction
 
-object Actions
-{
-
-
-  def WithArtist(f: Artist => Request[AnyContent] => Result) =
-  {
+trait SquerylTransaction {
+  def TransAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
     Action {
       request =>
-        request.host.split("\\").headOption.flatMap(
+        inTransaction {
+          f(request)
+        }
+    }
+  }
+}
+
+object Actions {
+
+
+  def WithArtist(f: Artist => Request[AnyContent] => Result) = {
+    Action {
+      request =>
+        request.host.split("\\.").headOption.flatMap(
           domain => models.Artist.findByDomain(domain)
         ).map {
 

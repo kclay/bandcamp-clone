@@ -1,0 +1,35 @@
+@(albums:Seq[Album])(implicit request: play.api.mvc.RequestHeader)
+@import utils.session._
+
+
+@main("My Albums","albums"){
+
+@if(albums.isEmpty){
+<h2>No Albums go create some</h2>
+<div class="row span4 center">
+    <a href="@routes.Artists.newAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a>
+</div>
+}else{
+<div class="row">
+    <ul>
+        @albums.map{a=>
+
+        <li>
+            <a href="@routes.Artists.editAlbum(a.slug)">
+                @a.artImage.map{i=>
+
+                    <img src="@i.url"/>
+                }
+                @a.name
+            </a>
+
+        </li>
+
+        }
+    </ul>
+</div>
+
+}
+
+
+}

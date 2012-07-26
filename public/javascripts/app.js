@@ -10,8 +10,11 @@ define(["dropdown"], function () {
 
         pages:{
             "/edit_track":["app/controller/track"],
+            "/new_album":["app/controller/album"],
             "/edit_album":["app/controller/album"],
-            "/pick_tags":["app/controller/pickTags"]
+            "/pick_tags":["app/controller/pickTags"],
+            "/album":["app/controller/display"],
+            "/track":["app/controller/display"]
         },
         init:function () {
 

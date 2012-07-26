@@ -29,32 +29,32 @@ case class Small() extends ImageSize(72, 72, "small")
 abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
   override def location(): String = "images"
 
-  def id(): String = _id
+  def id: String = _id
 
   def filename(): String = String.format("%s_%s.jpg", id, imageSize.suffix)
 
   lazy val host = config.getString("datastore.art.host").get
 
 
-  def dir(): String = {
+  def dir: String = {
 
 
-    id.substring(0, 5).toCharArray.mkString("/")
+    if (shard) id.substring(0, 5).toCharArray.mkString("/") else ""
 
 
   }
 
-  def uri(): String = "/media/images/" + path
+  def uri: String = "/media/images/" + path
 
   lazy val path = dir + filename
 
   def toFile(): File = new File(store, path)
 
 
-  def url(): String = {
+  def url: String = {
     validate()
     Some(exists).map {
-      case true => "/assets" + uri()
+      case true => "/assets" + uri
       case _ => ""
 
     }.getOrElse("")
@@ -67,10 +67,14 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
     tempFile.map(_.ref.moveTo(toFile, replace = true))
   }
 
-  def exists(): Boolean = {
+  def exists: Boolean = {
     toFile().exists()
   }
 
+  def getOrResize(size: ImageSize): Image = {
+    val image = BaseImage(id, size)
+    if (image.exists) image else resizeTo(size)
+  }
 
   def resizeTo(size: ImageSize): Image = {
     validate()
@@ -209,6 +213,8 @@ object Image {
   }
 
   def apply(id: String) = new BaseImage(id)
+
+  def apply(id: String, imageSize: ImageSize) = new BaseImage(id, imageSize)
 
   def apply(file: FilePart[TemporaryFile]) = {
     val id = shaHex(System.nanoTime() + file.filename)

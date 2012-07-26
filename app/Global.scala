@@ -21,6 +21,8 @@ import utils.Context
 object Global extends GlobalSettings {
 
   import Results._
+  import org.squeryl.PrimitiveTypeMode._
+
 
   /*case class RestoreSessionRequest(token: String, request: RequestHeader)
   extends WrappedRequest(request)
@@ -30,11 +32,12 @@ object Global extends GlobalSettings {
 
 }  */
 
-  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-     Context.current()
-    val results=super.onRouteRequest(request)
-    Context.remove()
-    results
+  override def onRouteRequest(request: RequestHeader): Option[Handler] = inTransaction {
+
+
+    super.onRouteRequest(request)
+
+
   }
 
   val dbAdapter = new H2Adapter();

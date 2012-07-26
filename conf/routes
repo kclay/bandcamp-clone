@@ -29,7 +29,9 @@ POST     /insert_tags                controllers.Artists.insertTags()
 POST    /insert_domain                controllers.Artists.insertDomain()
 GET    /pick_domain                 controllers.Artists.pickDomain()
 GET     /artists                     controllers.Artists.list(page:Int ?=1,amount:Int ?= 20,query:String ?="")
-GET     /edit_album                 controllers.Artists.editAlbum()
+GET     /new_album                  controllers.Artists.newAlbum()
+GET     /edit_album/:name                 controllers.Artists.editAlbum(name)
+GET     /my_albums                  controllers.Artists.albums(page:Int ?=1,amount:Int ?= 30)
 
 GET     /edit_track                 controllers.Artists.addTrack()
 
@@ -44,6 +46,7 @@ POST    /artist/upload/art              controllers.Upload.art()
 POST    /artist/upload/audio              controllers.Upload.audio()
 POST    /artist/upload/audio_uploaded     controllers.Upload.audioUploaded()
 POST    /artist/upload/status           controllers.Upload.status()
+
 
 
 

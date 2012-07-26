@@ -10,6 +10,7 @@ import models.Forms._
 import com.codahale.jerkson.Json._
 import models.Forms.domainForm
 import models.Artist
+import actions._
 import utils.AudioDataStore
 
 /**
@@ -20,7 +21,7 @@ import utils.AudioDataStore
  */
 
 
-object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
+object Artists extends Controller with Auth with AuthConfigImpl with WithDB with SquerylTransaction {
 
 
   def index = authorizedAction(NormalUser) {
@@ -48,10 +49,6 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
     parts.size >= 2
   }
 
-  def editAlbum(name: String) = authorizedAction(NormalUser) {
-    artist => implicit request =>
-      Ok("edit album")
-  }
 
   def editTrack(name: String) = authorizedAction(NormalUser) {
     artist => implicit request =>
@@ -59,7 +56,13 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
   }
 
 
-  def editAlbum = authorizedAction(NormalUser) {
+  def newAlbum = authorizedAction(NormalUser) {
+    implicit artist => implicit request =>
+
+      Ok(html.artist.newAlbum(albumForm.fill(Album(), Seq.empty[Track])))
+  }
+
+  def editAlbum(name: String) = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
 
       Ok(html.artist.newAlbum(albumForm.fill(Album(), Seq.empty[Track])))
@@ -101,6 +104,13 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB {
 
   def list(page: Int, amount: Int, query: String = "") = Action {
     Ok("artists.list")
+  }
+
+  def albums(page: Int, amount: Int) = TransAction {
+    authorizedAction(NormalUser) {
+      artist => implicit request =>
+        Ok(html.artist.albums(Album.forArtist(artist.id, page, amount)))
+    }
   }
 
 
