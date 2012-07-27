@@ -1,5 +1,6 @@
 @import tags._
-<ul class="nav">
+
+<ul id="navbar" class="nav clearfix">
     <li class="dropdown" id="add-music">
         <a class="dropdown-toggle" href="#add-music" data-toggle="dropdown">add music<b class="caret"></b></a>
         <ul class="dropdown-menu">
@@ -8,4 +9,9 @@
 
         </ul>
     </li>
+    <li  >
+            <a class="dropdown-toggle" href="@routes.Artists.albums()" data-toggle="dropdown">my albums</a>
+
+        </li>
 </ul>
+

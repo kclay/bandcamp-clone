@@ -36,7 +36,8 @@ GET     /my_albums                  controllers.Artists.albums(page:Int ?=1,amou
 GET     /edit_track                 controllers.Artists.addTrack()
 
 POST    /ajax/albums                    controllers.Ajax.saveAlbum()
-GET     /ajax/albums/:id                 controllers.Ajax.fetchAlbum(id:Long)
+GET     /ajax/albums/:slug                controllers.Ajax.fetchAlbum(slug:String)
+
 
 POST    /ajax/tracks                    controllers.Ajax.saveTrack()
 GET     /ajax/tracks/:id                  controllers.Ajax.fetchTrack(id:Long)

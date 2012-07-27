@@ -7,7 +7,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
     var Backbone = require("backbone");
 
-
+    var Ajax = jsRoutes.controllers.Ajax
     var CollectionView = UpdatingCollectionView.extend({
 
         viewByModel:function (model) {
@@ -135,6 +135,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         events:{
             "click #save-button":"save",
             "click #cancel":"cancel",
+            "click #publish-button":"publish",
             "click #track-overviews .track-overview":"changeIndex"
         },
 
@@ -194,6 +195,12 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 start:function (event, ui) {
                     ui.item.height(ui.item.find(".right-panel").height());
                 }});
+            var path = window.location.pathname.split("/");
+            var slug = _.last(path)
+            if (!_.isEmpty(slug) && slug.indexOf("_album") == -1) {
+                this.album.fetch({url:Ajax.fetchAlbum(slug).url});
+            }
+
 
         },
 
@@ -364,7 +371,21 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
         save:function () {
             if (!this._canSave)return;
-            this.album.save()
+            $("#saving").slideDown()
+            var finish = function () {
+                $("#saving").delay(500).slideUp()
+            }
+            this.album.save(null, {
+                success:function () {
+                    finish()
+                },
+                error:function () {
+                    finish()
+                }
+            })
+        },
+        publish:function () {
+
         },
         cancel:function () {
 

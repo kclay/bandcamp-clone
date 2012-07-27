@@ -9,7 +9,7 @@ import org.squeryl.annotations._
 import scala.Some
 import org.apache.commons.codec.digest.DigestUtils.shaHex
 
-case class Album(var id: Long = 0, var artistID: Long, session: String, name: String, artistName: Option[String], slug: String, active: Boolean = false,
+case class Album(var id: Long = 0, var artistID: Long, session: String, name: String, artistName: Option[String], slug: String, var active: Boolean = false,
                  download: Boolean = true, donateMore: Boolean = true, price: Double = 1.00,
                  art: Option[String], about: Option[String], credits: Option[String], upc: Option[String], releaseDate: Option[Date]) extends KeyedEntity[Long] {
 
@@ -54,7 +54,7 @@ object Album {
     ).headOption
   }
 
-  def withTracks(albumID: Long): List[Option[Track]] =
+  def withTracks(albumID: Long) =
     join(albumTracks, tracks.leftOuter)((at, t) =>
       where(at.albumID === albumID)
         select (t)
@@ -62,7 +62,7 @@ object Album {
         on (at.trackID === t.map(_.id))
 
 
-    ).toList
+    )
 }
 
 
@@ -71,10 +71,10 @@ case class AlbumTracks(@Column("album_id") albumID: Long, @Column("track_id") tr
 
 }
 
-case class Track(var id: Long = 0, var artistID: Long, session:String,file: String, name: String, slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
+case class Track(var id: Long = 0, var artistID: Long, session: String, file: String, name: String, slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
                  license: String, artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date], active: Boolean = false) extends KeyedEntity[Long] {
-  def this() = this(0, 0,"", "", "", "", true, true, 1.00, "", Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false)
+  def this() = this(0, 0, "", "", "", "", true, true, 1.00, "", Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false)
 
 
 }
