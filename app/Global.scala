@@ -46,7 +46,7 @@ object Global extends GlobalSettings {
     SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
       case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
       case Some("com.mysql.jdbc.Driver") => Some(() => getSession(new MySQLAdapter, app))
-      case _ => sys.error("Database driver must be either org.h2.Driver or com.mysql.jdbc.Driver yours is" + _)
+      case _ => sys.error("Database driver must be either org.h2.Driver or com.mysql.jdbc.Driver yours is" + app.configuration.getString("db.default.driver") )
     }
     import org.squeryl.PrimitiveTypeMode._
     import models.SiteDB;
