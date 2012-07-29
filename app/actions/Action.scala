@@ -18,7 +18,7 @@ import org.squeryl.PrimitiveTypeMode.inTransaction
 trait SquerylTransaction {
   def TransAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
     Action {
-      request =>
+      implicit request =>
         inTransaction {
           f(request)
         }
@@ -31,7 +31,7 @@ object Actions {
 
   def WithArtist(f: Artist => Request[AnyContent] => Result) = {
     Action {
-      request =>
+      implicit request =>
         request.host.split("\\.").headOption.flatMap(
           domain => models.Artist.findByDomain(domain)
         ).map {

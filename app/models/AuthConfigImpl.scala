@@ -60,9 +60,11 @@ trait AuthConfigImpl extends AuthConfig {
    */
   def resolveUser(id: Id): Option[User] = {
     import org.squeryl.PrimitiveTypeMode._
-    import utils.Utils.artistId
-    artistId(id)
-    inTransaction(Artist.find(id))
+    import utils.Utils.{artist => setArtist}
+
+    val artist = inTransaction(Artist.find(id))
+    setArtist(artist)
+    artist
   }
 
   /**

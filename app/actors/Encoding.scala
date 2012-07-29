@@ -4,7 +4,7 @@ package actors
 import akka.actor.Actor
 import java.io.File
 import models.Artist
-import utils.{AudioDataStore, ffmpeg}
+import utils.{TempAudioDataStore, ffmpeg}
 
 
 /**
@@ -28,7 +28,7 @@ case class VerifyResponse(ok: Boolean)
 
 class Encoding extends Actor {
   private val PREVIEW_LENGTH = 90
-  lazy val audioDataStore = new AudioDataStore()
+  lazy val audioDataStore = new TempAudioDataStore()
 
   def encode(queueId: Long) {
     import models.Queue;

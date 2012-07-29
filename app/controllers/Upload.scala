@@ -19,7 +19,7 @@ import play.api.libs.Files.TemporaryFile
 // Use the Applications Default Actor System
 
 import play.libs.Akka.system
-import utils.AudioDataStore
+import utils.{TempAudioDataStore, AudioDataStore}
 
 // Necessary for `actor ? message`
 
@@ -82,7 +82,7 @@ object Upload extends Controller with Auth with AuthConfigImpl {
 
   }
 
-  lazy val audioDataStore = new AudioDataStore()
+  lazy val audioDataStore = new TempAudioDataStore()
 
   val encodingActor = system.actorOf(Props[Encoding], name = "upload")
   private val noUser: Option[User] = None

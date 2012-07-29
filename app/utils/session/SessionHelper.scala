@@ -12,6 +12,7 @@ import com.ning.http.util.Base64
 object SessionHelper {
   val sessionKey = "sessionId"
   val usernameKey = "username"
+  val artistKey = "artist"
 
   def username(implicit request: RequestHeader) = {
     request.session.get(usernameKey).get
@@ -23,6 +24,12 @@ object SessionHelper {
 
   def authenticated(implicit request: RequestHeader) = {
     request.session.get(sessionKey).exists(_ => true)
+  }
+
+  def artist = {
+
+    val a = utils.Utils.artist.get
+    a
   }
 
   def session(implicit request: RequestHeader) = {

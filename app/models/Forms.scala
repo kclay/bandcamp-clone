@@ -95,7 +95,7 @@ object Forms {
     "id" -> longNumber,
     "artist_id" -> artist,
     "session" -> text,
-    "file" -> text,
+    "file" -> optional(text),
 
     "name" -> text(minLength = 1, maxLength = 50),
     "slug" -> slug,

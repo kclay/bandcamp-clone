@@ -1,15 +1,40 @@
+@()(implicit artist:Artist)
 
-
-    <div id="saving" class="hide">
+<div id="saving" class="hide">
     <span>Saving...</span>
-    <div  class="progress progress-striped  active">
-      <div class="bar"
-           style="width: 100%;"></div>
+
+    <div class="progress progress-striped  active">
+        <div class="bar"
+             style="width: 100%;"></div>
     </div>
+</div>
+
+<a href="#" id="save-button" class="btn btn-large pull-left">Save Draft</a>
+
+<a href="#" id="cancel-button" class="pull-right">cancel</a>
+
+<a href="#" id="publish-button" class="btn btn-large pull-left hide">Publish</a>
+
+
+<div id="published">
+    <div class="alert alert-success">Congrats, <%= album %> is now published!</div>
+
+    <a href="#" id="view-album" class="btn btn-right">View Album</a>
+
+    <div id="publish-alert" class="alert alert-info">
+        <p>
+            Payments will go to <strong>@artist.email</strong> via PayPal.
+        </p>
+
+        <p>
+            When a fan buys your music, the money will go directly to the above address via PayPal. If this is not your
+            correct PayPal address, please visit your Profile page to change it.
+        </p>
+
+        <p>If you do not yet have a PayPal account, kindly follow these instructions to set one up.</p>
+
+        <p>Once your PayPal address is correct, please read Sell Your Music on Bulabowl to complete the setup, and be
+            sure to review our pricing page.</p>
+
     </div>
-
-    <a href="#" id="save-button" class="btn btn-large pull-left">Save Draft</a>
-
-    <a href="#" id="cancel-button" class="pull-right">cancel</a>
-
-    <a href="#" id="publish-button" class="btn btn-large pull-left hide">Publish</a>
+</div>

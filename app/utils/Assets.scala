@@ -1,7 +1,7 @@
 package utils
 
 import org.apache.commons.codec.digest.DigestUtils._
-import play.api.Play
+import play.api.{Logger, Play}
 import java.io.{FileFilter, File}
 import play.api.libs.Files.TemporaryFile
 import javax.imageio.{IIOImage, ImageIO}
@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage
 import java.awt.Color
 import javax.imageio.stream.FileImageOutputStream
 import play.api.mvc.MultipartFormData.FilePart
+import play.api.libs.Files
 
 /**
  * Created by IntelliJ IDEA.
@@ -187,10 +188,14 @@ case class TempImageDataStore(session: String) extends DataStore {
 
   def toDir(): File = new File(store, path)
 
-  def commit = {
+  private val noopFileFilter = new FileFilter {
+    def accept(file: File) = true
+  }
+
+  def commit(filter: Option[FileFilter]) = {
     if (toDir().exists()) {
       toDir().listFiles(new FileFilter {
-        def accept(file: File) = file.getName.contains("_normal")
+        def accept(file: File) = filter.getOrElse(noopFileFilter).accept(file) && file.getName.contains("_normal")
       }).map {
         tempFile => {
           val id = tempFile.getName.split("_")(0)
@@ -233,9 +238,8 @@ object TempImage {
     new TempImage(id, session, Normal(), Some(file))
   }
 
-  def commit(session: String) = {
-    TempImageDataStore(session).commit
-  }
+  def commitImagesForSession(session: String, filter: Option[FileFilter]) = TempImageDataStore(session).commit(filter)
+
 
 }
 
@@ -263,14 +267,60 @@ object Image {
 class AudioDataStore extends DataStore {
   override def location(): String = "audio"
 
+
   def album(folder: String) = {
     val dir = if (shard) folder.substring(0, 5).toCharArray.mkString("/") else ""
     new File(store, dir + folder)
+
   }
+
+  override def toRoot(session: String) = album(session)
+
+  override def toDir(session: String) = album(session)
+
 
   def preview(album: File, file: String) = new File(album, file + "_preview.mp3")
 
   def full(album: File, file: String) = new File(album, file + "_full.mp3")
+
+
+}
+
+class TempAudioDataStore extends AudioDataStore {
+
+  override lazy val store = temp
+
+
+}
+
+object TempAudioDataStore {
+  private lazy val audioStore = new AudioDataStore()
+
+  private lazy val tempAudioStore = new TempAudioDataStore()
+
+  import DataStore.transferToDataStore
+
+  def commitAudioForSession(session: String, filter: Option[FileFilter]) = transferToDataStore(tempAudioStore, audioStore, session, filter)
+
+
+}
+
+object DataStore {
+  private val noopFileFilter = new FileFilter {
+    def accept(file: File) = true
+  }
+
+  def transferToDataStore(from: DataStore, to: DataStore, session: String, filter: Option[FileFilter]) = {
+    val root = from.toDir(session)
+    if (root.exists()) {
+      root.listFiles(filter.getOrElse(noopFileFilter)).map {
+        file =>
+          Logger.debug("Moving %s to %s" format(file.getAbsolutePath, to.toFile(session, file.getName)))
+          Files.moveFile(file, to.toFile(session, file.getName), true)
+      }
+      if (root.list().isEmpty) root.delete()
+    }
+  }
 }
 
 trait DataStore {
@@ -298,6 +348,8 @@ trait DataStore {
     file.substring(index + 1, file.length());
   }
 
+  protected def composeFile(base: File, path: String) = new File(base, path)
+
   def tempFile(name: String): Option[File] = {
     val f = new File(temp, name)
     if (f.exists()) Some(f) else None
@@ -308,6 +360,12 @@ trait DataStore {
     if (f.exists()) Some(f) else None
   }
 
+  def toRoot(session: String) = new File(store, session)
+
+
+  def toDir(session: String) = toRoot(session)
+
+  def toFile(session: String, file: String) = new File(toDir(session), file)
 
   def tempExists(name: String, session: String) = new File(temp, session + "/" + name).exists()
 

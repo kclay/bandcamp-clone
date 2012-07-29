@@ -44,9 +44,16 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
         },
         urlRoot:"/ajax/albums",
         parse:function (resp, xhr) {
-            _(this.tracks).each(function (model, index) {
-                model.set(resp.tracks[index], {slient:true})
-            })
+            var edit = !this.tracks.models.length && !this._init;
+            this._init = true;
+            _(resp.tracks).each(function (attrs, index) {
+                if (edit) {
+                    this.tracks.add(attrs)
+                } else {
+                    this.tracks.at(index).set(attrs, {slient:true})
+                }
+            }, this)
+
             //this.tracks.reset(resp.tracks, {slient:true});
             return resp.album
         },

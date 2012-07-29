@@ -1,5 +1,7 @@
 package utils
 
+import models.Artist
+
 /**
  * Created by IntelliJ IDEA.
  * User: Keyston
@@ -17,6 +19,7 @@ object Utils {
   }
 
   private val CONTEXT_USER_ID = "_user_id_"
+  private val CONTEXT_ARTIST = "_artist_"
 
 
   def artistId(id: Long) = {
@@ -27,12 +30,27 @@ object Utils {
 
   def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
 
+  def artist = {
+    val args = Context.current().args
+    if (args.containsKey(CONTEXT_ARTIST)) Some(args.get(CONTEXT_ARTIST).asInstanceOf[Artist]) else None
+  }
+
+  def artist(artist: Option[Artist]) = {
+    artist.map {
+      a =>
+        artistId(a.id)
+        Context.current().args.put(CONTEXT_ARTIST, artist)
+    }
+
+  }
+
   def artistId = {
     import play.mvc.Http
     import binders._
 
     import java.lang.{Long => JLong}
     val args = Context.current().args
+
     if (args.containsKey(CONTEXT_USER_ID)) Some(args.get(CONTEXT_USER_ID).asInstanceOf[Long]) else None
 
   }
