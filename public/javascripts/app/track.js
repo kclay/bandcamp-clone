@@ -277,20 +277,22 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     this._currentStatusId = res.id;
                     this.trackEncodingStatus(false);
                 } else if (res.error) {
-                    if (!this.trackUploadErrorView) {
-                        this.trackUploadErrorView = new TrackErrorView({
-                            fileName:this.encodingName(),
-                            reasons:res.error
-                        })
-                        this.trackUploadView.$(".progress-wrapper").after(this.trackUploadErrorView.el);
-                    } else {
-                        this.trackUploadErrorView.update(this.encodingName(), res.error)
-                    }
 
-
+                    this._onEncodingError(res.error)
                 }
 
 
+            },
+            _onEncodingError:function (error) {
+                if (!this.trackUploadErrorView) {
+                    this.trackUploadErrorView = new TrackErrorView({
+                        fileName:this.encodingName(),
+                        reasons:error
+                    })
+                    this.trackUploadView.$(".progress-wrapper").after(this.trackUploadErrorView.el);
+                } else {
+                    this.trackUploadErrorView.update(this.encodingName(), error)
+                }
             },
             trackEncodingStatus:function (delay) {
                 var self = this;
@@ -330,6 +332,10 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         this.model.set("file", this._encodingTrack.id)
                         this._updatePostParams(false);
                         break;
+                    default:
+                        // TODO : Notify of error
+                        this.
+                            break;
                 }
 
             },

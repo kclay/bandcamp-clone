@@ -28,7 +28,7 @@ case class ffmpeg(file: File) {
     // if the output file already exists then create a temp file for encoding just in case
     // the encoding fails
     val maybeAdjustedOutput = if (output.exists()) new File(output.getParentFile, "temp_" + output.getName) else output
-    var args = Seq("-ar", "44100", "-ab", "128k")
+    var args = Seq("-vn", "-c:a", "libmp3lame", "-ar", "44100", "-ab", "128k")
 
     if (length > 0) args ++= Seq("-t", length.toString)
     args ++= Seq(maybeAdjustedOutput.getAbsolutePath)
