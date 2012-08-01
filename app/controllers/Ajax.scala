@@ -130,111 +130,124 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     }
   }
 
+  def updateAlbum(slug: String) = TransAction {
+    authorizedAction(NormalUser) {
+      implicit artist => implicit request =>
+
+        commitAlbum(artist)
+    }
+  }
+
   def saveAlbum() = TransAction {
     authorizedAction(NormalUser) {
       implicit artist => implicit request =>
 
-        albumForm.bindFromRequest.fold(
-          errors => BadRequest(errors.errorsAsJson),
-          value => {
+        commitAlbum(artist)
 
-            import utils.TempImage.commitImagesForSession
-            import utils.TempAudioDataStore.commitAudioForSession
 
-            var (album, allTracks) = value
-            val albumSlugs = from(albums)(a =>
-              where(a.artistID === artist.id)
-                select (a.slug)
-            ).toList
+    }
+  }
 
-            val albumSlug = album.slug
+  private def commitAlbum(artist: Artist)(implicit request: play.api.mvc.Request[_]): play.api.mvc.Result = {
+
+    albumForm.bindFromRequest.fold(
+      errors => BadRequest(errors.errorsAsJson),
+      value => {
+
+        import utils.TempImage.commitImagesForSession
+        import utils.TempAudioDataStore.commitAudioForSession
+
+        var (album, allTracks) = value
+        val albumSlugs = from(albums)(a =>
+          where(a.artistID === artist.id)
+            select (a.slug)
+        ).toList
+
+        val albumSlug = album.slug
+        var counter = 2
+        while (albumSlugs.contains(album.slug)) {
+          album.slug = albumSlug + "-" + counter
+          counter += 1
+        }
+
+        // update or delete album
+        if (album.id == 0) album.save else album.update
+
+        // select all slugs
+        var slugs = from(tracks)(t =>
+          where(t.artistID === artist.id)
+            select (t.slug)
+        ).toList
+
+        allTracks.foreach {
+          t =>
             var counter = 2
-            while (albumSlugs.contains(album.slug)) {
-              album.slug = albumSlug + "-" + counter
+            val slug = t.slug
+
+            while (slugs.contains(t.slug)) {
+              t.slug = slug + "-" + counter
               counter += 1
             }
 
-            // update or delete album
-            if (album.id == 0) album.save else album.update
+            // update active slug list just in case a user inputs the same title twice in
+            // the same update session
 
-            // select all slugs
-            var slugs = from(tracks)(t =>
-              where(t.artistID === artist.id)
-                select (t.slug)
-            ).toList
-
-            allTracks.foreach {
-              t =>
-                var counter = 2
-                val slug = t.slug
-
-                while (slugs.contains(t.slug)) {
-                  t.slug = slug + "-" + counter
-                  counter += 1
-                }
-
-                // update active slug list just in case a user inputs the same title twice in
-                // the same update session
-
-                if (slug != t.slug) slugs ++= List(t.slug)
-            }
+            if (slug != t.slug) slugs ++= List(t.slug)
+        }
 
 
-            // update the tracks
-            tracks.update(allTracks.filter(_.id != 0))
+        // update the tracks
+        tracks.update(allTracks.filter(_.id != 0))
 
 
 
-            // save all the new tracks
-            allTracks.foreach(t => if (t.id == 0) t.save)
+        // save all the new tracks
+        allTracks.foreach(t => if (t.id == 0) t.save)
 
 
 
-            // all tracks have their id now, so create a map of all ideas
-            val currentTrackIds = allTracks.map(_.id)
+        // all tracks have their id now, so create a map of all ideas
+        val currentTrackIds = allTracks.map(_.id)
 
-            // create a list of active hashs from the art and file attribute,
-            // this will allow us to only copy files that are being saved,
-            // so if the user deletes a file before a save we don't worry about saving that one,
-            // this will prevent any false overwritting of files
-            val activeHashes = List(album.art.getOrElse(None)) ++ allTracks.map(_.file) ++ allTracks.map(_.art.getOrElse(None))
+        // create a list of active hashs from the art and file attribute,
+        // this will allow us to only copy files that are being saved,
+        // so if the user deletes a file before a save we don't worry about saving that one,
+        // this will prevent any false overwritting of files
+        val activeHashes = List(album.art.getOrElse(None)) ++ allTracks.map(_.file) ++ allTracks.map(_.art.getOrElse(None))
 
-            // go ahead and delete files that were not send over with this save
-            // TODO: maybe this should clean up on the delete files
-            tracks.deleteWhere(t => t.id notIn currentTrackIds and t.artistID === artist.id)
-
-
-
-            // delete all the album order information and reinsert
-            albumTracks.delete(albumTracks.where(at => at.albumID === album.id))
-            var order = 0
-
-            albumTracks.insert(allTracks.map(t => {
-              order += 1
-              AlbumTracks(album.id, t.id, order)
-            }))
-
-            // compose our filter that checks for active file hashes(art and mp3) for the giving session
-            val commitFileFilter = new FileFilter() {
-              def accept(file: File) = {
-                val answer = file.getName.split("_").headOption.map(f => activeHashes.contains(f)).getOrElse(false)
-                answer
-              }
-            }
-            commitImagesForSession(album.session, Some(commitFileFilter))
-            commitAudioForSession(album.session, Some(commitFileFilter))
+        // go ahead and delete files that were not send over with this save
+        // TODO: maybe this should clean up on the delete files
+        tracks.deleteWhere(t => t.id notIn currentTrackIds and t.artistID === artist.id)
 
 
 
+        // delete all the album order information and reinsert
+        albumTracks.delete(albumTracks.where(at => at.albumID === album.id))
+        var order = 0
 
+        albumTracks.insert(allTracks.map(t => {
+          order += 1
+          AlbumTracks(album.id, t.id, order)
+        }))
 
-            Ok(generate(Map("album" -> album, "tracks" -> allTracks)))
-
+        // compose our filter that checks for active file hashes(art and mp3) for the giving session
+        val commitFileFilter = new FileFilter() {
+          def accept(file: File) = {
+            val answer = file.getName.split("_").headOption.map(f => activeHashes.contains(f)).getOrElse(false)
+            answer
           }
+        }
+        commitImagesForSession(album.session, Some(commitFileFilter))
+        commitAudioForSession(album.session, Some(commitFileFilter))
 
-        )
-    }
 
+
+
+
+        Ok(generate(Map("album" -> album, "tracks" -> allTracks)))
+
+      }
+    )
   }
 }
 
