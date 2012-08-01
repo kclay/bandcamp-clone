@@ -1,13 +1,13 @@
-define(["underscore", "backbone"], function (_) {
+define(["underscore", "backbone", "modal"], function (_) {
 
 
     var FeedbackView = Backbone.View.extend({
         tagName:"div",
         className:"modal hide",
-        template:_.template($("#tpl-feedback").html()),
+        template:"#tpl-feedback",
 
         initialize:function (options) {
-
+            this.template = _.template($(this.template).html());
             this.render();
         },
 
@@ -26,11 +26,15 @@ define(["underscore", "backbone"], function (_) {
             return this;
         }
     })
+
+
     var ConfirmView = FeedbackView.extend({
         events:{
             "click .btn-accept":"accept",
             "click .btn-cancel":"cancel"
         },
+        template:"#tpl-confirm",
+
         initialize:function (options) {
             this._super("initialize", options);
             this._callback = options.callback;
@@ -134,10 +138,67 @@ define(["underscore", "backbone"], function (_) {
             return true
         }
     }
+    var STATES = {
+        PROCESSING:"processing",
+        DATA_CHANGED:"data_changed",
+        UPLOADING:"uploading",
+        PROCESSED:"processed"
+    }
+    var StatesManager = function () {
+
+
+        $(window).bind('beforeunload', _.bind(this._onBeforeWindowUnload, this))
+        this.reset();
+
+    }
+    $.extend(StatesManager.prototype, {
+        reset:function () {
+            this._states = {};
+            this._states[STATES.PROCESSING] = {
+                msg:"You Currently have (<%= models %>) tracks(s) being processed.\nAre you sure you want to close, all current data will be lost?",
+                models:[]
+            };
+            this._states[STATES.PROCESSED] = {
+                msg:"You Currently have (<%= models %>) tracks(s) that have been uploaded.\nAre you sure you want to close, all current data will be lost?",
+                models:[]
+            };
+            this._states[STATES.DATA_CHANGED] = {
+                msg:"You Currently have (<%= models %>) item(s) that have been changed since last save.\nAre you sure you want to close, all current data will be lost?",
+                models:[]
+            };
+            this._states[STATES.UPLOADING] = {
+                msg:"You Currently have (<%= models %>) track(s) being uploading.\nAre you sure you want to close, all current data will be lost?",
+                models:[]
+            };
+        },
+        _onBeforeWindowUnload:function () {
+            var activeState = _.chain(this._states)
+                .filter(function (info) {
+                    return info.models.length
+                })
+                .first().value();
+
+
+            if (activeState)return _.template(activeState.msg, {models:activeState.models.length});
+
+
+        },
+        update:function (model, state, add) {
+            var models = this._states[state].models;
+            if (add) {
+                if (_.indexOf(models, model) == -1)  models.push(model)
+            } else {
+                this._states[state].models = _.without(models, model);
+            }
+        }
+    })
     return {
         OverviewView:OverviewView,
         FeedbackView:FeedbackView,
         ConfirmView:ConfirmView,
-        Validate:Validators
+
+        Validate:Validators,
+        STATES:STATES,
+        StateManager:StatesManager
     }
 })

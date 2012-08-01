@@ -35,6 +35,9 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
 
         },
+        refresh:function () {
+
+        },
         validate:function (attrs, options) {
             if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {
                 return "releaseDate"
@@ -111,6 +114,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             this.artUploadView.on("uploaded", this._onArtUploaded);
             this.model.on("error", this._onAttributeError, this)
             this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
+
             this.render();
 
         },

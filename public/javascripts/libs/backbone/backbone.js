@@ -92,7 +92,7 @@ function init_backbone() {
 
         add:function (model) {
             model.collection = this.collection;
-            var childView = this._createChildView(model);
+            var childView = this._createChildView(model, this._childViews.length);
             this._childViews.push(childView);
 
             if (this._rendered) {
@@ -103,7 +103,7 @@ function init_backbone() {
             }
 
         },
-        _createChildView:function (model) {
+        _createChildView:function (model,index) {
             return  new this._childViewConstructor({
                 tagName:this._childViewTagName,
                 model:model

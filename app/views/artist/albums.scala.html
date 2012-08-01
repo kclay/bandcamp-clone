@@ -11,17 +11,19 @@
 </div>
 }else{
 <div class="row">
-    <ul>
+    <ul id="my-albums">
         @albums.map{a=>
 
         <li>
             <a href="@routes.Artists.editAlbum(a.slug)">
-                @a.artImage.map{i=>
+                @a.smallArtImage.map{i=>
 
                     <img src="@i.url"/>
                 }
-                @a.name
+                @a.name<br/>
+
             </a>
+            <a class="delete" href="#"><i class="icon-remove"></i></a>
 
         </li>
 

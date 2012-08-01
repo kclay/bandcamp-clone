@@ -27,7 +27,9 @@ case class Medium() extends ImageSize(210, 210, "medium")
 case class Small() extends ImageSize(72, 72, "small")
 
 
-abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
+
+
+abstract class Image(_id: String,  imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
   override def location(): String = "images"
 
   def id: String = _id
@@ -36,14 +38,17 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
 
   lazy val host = config.getString("datastore.art.host").get
 
+  protected val key = _id
 
   def dir: String = {
 
 
-    if (shard) id.substring(0, 5).toCharArray.mkString("/") else ""
+    if (shard) key.substring(0, 5).toCharArray.mkString("/") else ""
 
 
   }
+
+  def toDir(): File = new File(store, dir)
 
   def uri: String = "/media/images/" + path
 
@@ -181,6 +186,7 @@ case class BaseImage(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
 
 }
 
+
 case class TempImageDataStore(session: String) extends DataStore {
   override def location(): String = "images"
 
@@ -284,6 +290,31 @@ class AudioDataStore extends DataStore {
   def full(album: File, file: String) = new File(album, file + "_full.mp3")
 
 
+}
+
+object Assets {
+
+  def deleteDirectory(file: File): Unit = {
+    if (file.exists()) {
+      file.listFiles().foreach {
+        f =>
+          if (f.isDirectory()) deleteDirectory(f)
+          f.delete()
+      }
+
+      file.delete()
+    }
+  }
+}
+
+object AudioDataStore {
+  private lazy val audioStore = new AudioDataStore()
+
+
+  def deleteAudioSession(session: String) = {
+    Assets.deleteDirectory(audioStore.album(session))
+
+  }
 }
 
 class TempAudioDataStore extends AudioDataStore {

@@ -14,7 +14,8 @@ define(["dropdown"], function () {
             "edit_album":["app/controller/album"],
             "pick_tags":["app/controller/pickTags"],
             "album":["app/controller/display"],
-            "track":["app/controller/display"]
+            "track":["app/controller/display"],
+            "my_albums":["app/controller/albums"]
         },
         init:function () {
 
@@ -31,6 +32,7 @@ define(["dropdown"], function () {
     }
 
     return {
-        initialize:initialize
+        initialize:initialize,
+        Routes:jsRoutes.controllers
     };
 });

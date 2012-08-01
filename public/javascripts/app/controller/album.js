@@ -9,7 +9,14 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
     var Ajax = jsRoutes.controllers.Ajax
     var CollectionView = UpdatingCollectionView.extend({
+        _createChildView:function (model, index) {
+            return  new this._childViewConstructor({
+                tagName:this._childViewTagName,
+                model:model,
+                id:"track_" + index
+            });
 
+        },
         viewByModel:function (model) {
             return _(this._childViews).find(function (view) {
                 return view.model == model
@@ -129,6 +136,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
     })
 
 
+    var STATES = Common.STATES;
     var View = Backbone.View.extend({
         el:".content-wrap",
 
@@ -142,13 +150,16 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         initialize:function () {
             // _.bindAll(this);
 
+            this.stateManager = new Common.StateManager();
 
             this._uploaders = {};
 
             this._canSave = false;
-            this.album = new Album.Model().on("change", this._onAttributeChanged, this);
+            this.album = new Album.Model()
+                .on("change", this._onAlbumChanged, this)
+                .on("change", this._onAttributeChanged, this);
 
-            this.tracks = this.album.tracks.on("add", this._onAttributeChanged, this);
+            this.tracks = this.album.tracks;
 
 
             this.albumView = new Album.View({el:"#album", model:this.album});
@@ -189,33 +200,81 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
             this.$saveButton = this.$("#save-button").addClass("disabled");
-            this.tracks.on("add", this._onTrackAdded, this);
-            this.tracks.on("remove", this._onTrackRemoved, this);
-            $("ol.tracks").sortable({items:".track", handle:".drag", axis:"y",
-                start:function (event, ui) {
-                    ui.item.height(ui.item.find(".right-panel").height());
-                }});
+
+            this.$sort = $("ol.tracks").sortable({items:".track", handle:".drag", axis:"y",
+                start:this._onDragSortStart.bind(this),
+                update:this._onDragSortStop.bind(this)
+            });
             var path = window.location.pathname.split("/");
             var slug = _.last(path)
             if (!_.isEmpty(slug) && slug.indexOf("_album") == -1) {
-                this.album.fetch({url:Ajax.fetchAlbum(slug).url});
+                var self = this;
+                this.album.fetch({url:Ajax.fetchAlbum(slug).url, success:function () {
+                    self.album.refresh();
+                }});
             }
 
+            this.tracks.on("add", this._onTrackAdded, this);
+            this.tracks.on("remove", this._onTrackRemoved, this);
+
 
         },
-
-        _watchOverView:function (view) {
-            view.on("switch", this._onOverViewSwitchRequest, this);
-            return view;
+        _onDragSortStart:function (event, ui) {
+            this._currentTrackOrder = this.$sort.sortable("toArray")
+            ui.item.height(ui.item.find(".right-panel").height());
         },
-        _unwatchOverView:function (view) {
-            view.off("switch", this._onOverViewSwitchRequest, this);
-            return view;
+        _onDragSortStop:function (event, ui) {
+            var trackOrder = this.$sort.sortable("toArray");
+            if (!_.isEqual(this._currentTrackOrder, trackOrder)) {
+                var models = this.tracks.models;
+                // get id of moved track
+                var id = ui.item[0].id;
+                // find were it was moved to
+                var at = trackOrder.indexOf(id)
+                // parse out the index
+                var index = parseInt(id.split("_")[1], 10)
+
+                // use _.find rather then model[index] since
+                // the indices will change after the first move
+                var model = _.find(models, function (m) {
+                    return m.id == index
+                })
+
+                // remove
+                models.splice(index, 1)
+
+                // add
+                models.splice(at, 0, model)
+
+
+                model.trigger("refresh")
+            }
+        },
+        /**
+         * Applies a listener to an {Common.OverviewView} to listen for the "switch" event
+         * @param overviewView
+         * @return {*}
+         * @private
+         */
+        _watchOverView:function (overviewView) {
+            overviewView.on("switch", this._onOverViewSwitchRequest, this);
+            return overviewView;
+        },
+        /**
+         * Removes a listener to the {Common.OverviewView}
+         * @param overviewView
+         * @return {*}
+         * @private
+         */
+        _unwatchOverView:function (overviewView) {
+            overviewView.off("switch", this._onOverViewSwitchRequest, this);
+            return overviewView;
         },
         _onTrackAdded:function (model) {
             var overviewView = this.trackCollectionView.viewByModel(model).overviewView;
             model.on(Track.Status.EVENT_CHANGED, this._onTrackStatusChanged, this);
             model.on("change:artURL", this._onTrackArtChanged, this);
+            model.on("change", this._onAttributeChanged, this);
             if (overviewView) this._watchOverView(overviewView) && this._onOverViewSwitchRequest(overviewView);
             this._updateHeight();
 
@@ -249,8 +308,28 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
         },
-        _onTrackStatusChanged:function (status) {
 
+        /**
+         * Updates the state manager upon track status change
+         * @see Track.STATUS
+         * @see Common.STATES
+         * @param model {Track.Model|Album.Model}
+         * @param status {Track.STATUS.*}
+         * @private
+         */
+        _onTrackStatusChanged:function (model, status) {
+
+            switch (status) {
+                case Track.Status.UPLOADED:
+                    this.stateManager.update(model, STATES.PROCESSING, true)
+                    break;
+                case Track.Status.COMPLETED:
+                    this.stateManager.update(model, STATES.PROCESSED, true);
+                case Track.Status.ERROR:
+
+                    this.stateManager.update(model, STATES.PROCESSING, false);
+                    break;
+            }
         },
         _updateHeight:function (auto) {
             this.$el.height(auto ? "auto" : this.$el.find(".album-group").height());
@@ -278,17 +357,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         _onAttributeChanged:function (model) {
 
 
-            this.album.off("change", this._onAttributeChanged);
-            this.tracks.off("change", this._onAttributeChanged);
-
-
-            $(window).bind('beforeunload', function (e) {
-                return 'Are you sure you want to leave?';
-            })
-            this.album.on("change:name change:art", this._onAlbumChanged, this);
-            if (model == this.album) {
-                this._onAlbumChanged(model);
-            }
+            this.stateManager.update(model, STATES.DATA_CHANGED, true);
 
 
         },
@@ -318,9 +387,13 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             var overviewView = this.activeOverview();
             overviewView.attachUploadListeners(this.trackUploadView);
             this.trackUploadView.bindTo(overviewView);
+
+
         },
         _onUploadStarted:function () {
             var view = this.activeView();
+
+            this.stateManager.update(this._activeModel, STATES.UPLOADING, true)
             if (!this._uploaders[view]) {
                 this._uploaders[view] = new Upload.ReplaceView($.extend({},
                     this.uploadDefaults, {el:view.overviewView.el}),
@@ -375,9 +448,11 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             var finish = function () {
                 $("#saving").delay(500).slideUp()
             }
+            var self = this;
             this.album.save(null, {
                 success:function () {
                     finish()
+                    self.stateManager.reset();
                 },
                 error:function () {
                     finish()

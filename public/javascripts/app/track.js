@@ -50,7 +50,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             NEW:"new",
             UPLOADED:"uploaded",
             PROCESSING:"processing",
-            COMPLETED:"processed"
+            COMPLETED:"processed",
+            ERROR:"error"
         }
         var EditBindings = {
             name:"[name='track.name']",
@@ -138,8 +139,12 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 );
                 this.model.on("error", this._onAttributeError, this)
                 this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
+                this.model.on("refresh", this.render, this);
+
                 this.artUploadView.on("uploaded", this._onArtUploaded);
             },
+
+
             _onAttributeError:function (model, attr) {
                 this._modelAttributeChanged(model, attr, true)
             },
@@ -256,6 +261,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     this._onStatusChange(Status.UPLOADED)
                     this._encodingTrack = info;
 
+
                     Routes.audioUploaded().ajax({
                         data:{
                             id:info.id,
@@ -326,6 +332,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
 
                     case "error":
+                        this._onStatusChange(Status.ERROR);
                         break;
                     case "completed":
                         this._onStatusChange(Status.COMPLETED);

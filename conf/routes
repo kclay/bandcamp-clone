@@ -37,10 +37,12 @@ GET     /edit_track                 controllers.Artists.addTrack()
 
 POST    /ajax/albums                    controllers.Ajax.saveAlbum()
 GET     /ajax/albums/:slug                controllers.Ajax.fetchAlbum(slug:String)
+DELETE     /ajax/albums/:slug                controllers.Ajax.deleteAlbum(slug:String)
 
 
 POST    /ajax/tracks                    controllers.Ajax.saveTrack()
 GET     /ajax/tracks/:id                  controllers.Ajax.fetchTrack(id:Long)
+
 
 
 

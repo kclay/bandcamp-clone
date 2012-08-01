@@ -9,6 +9,8 @@ import jp.t2v.lab.play20.auth.Auth
 import org.squeryl.PrimitiveTypeMode
 import actions.SquerylTransaction
 import java.io.{File, FileFilter}
+import scala.Some
+import models.AlbumTracks
 
 
 /**
@@ -97,6 +99,36 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     }
   }
 
+  private def g(obj: Any) = generate(obj)
+
+  private def json(obj: Any) = Ok(g(obj)).as("text/json")
+
+  private def error(obj: Any) = BadRequest(g(obj)).as("text/json")
+
+  def deleteAlbum(slug: String) = TransAction {
+    authorizedAction(NormalUser) {
+      artist => implicit request =>
+
+        Album.bySlug(artist.id, slug).map {
+          album =>
+            import utils.AudioDataStore.deleteAudioSession
+            deleteAudioSession(album.session)
+            albums.delete(album.id)
+            val allTracks = from(albumTracks)(at =>
+              where(at.albumID === album.id)
+                select (at)
+
+            )
+            tracks.deleteWhere(t =>
+              (t.id in from(allTracks)(at => select(at.trackID)))
+
+            )
+            albumTracks.delete(allTracks)
+            json(Map("ok" -> true))
+
+        }.getOrElse(error(Map("ok" -> false)))
+    }
+  }
 
   def saveAlbum() = TransAction {
     authorizedAction(NormalUser) {
@@ -110,6 +142,17 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
             import utils.TempAudioDataStore.commitAudioForSession
 
             var (album, allTracks) = value
+            val albumSlugs = from(albums)(a =>
+              where(a.artistID === artist.id)
+                select (a.slug)
+            ).toList
+
+            val albumSlug = album.slug
+            var counter = 2
+            while (albumSlugs.contains(album.slug)) {
+              album.slug = albumSlug + "-" + counter
+              counter += 1
+            }
 
             // update or delete album
             if (album.id == 0) album.save else album.update
@@ -122,7 +165,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
             allTracks.foreach {
               t =>
-                var counter = 1
+                var counter = 2
                 val slug = t.slug
 
                 while (slugs.contains(t.slug)) {
@@ -154,7 +197,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
             // this will allow us to only copy files that are being saved,
             // so if the user deletes a file before a save we don't worry about saving that one,
             // this will prevent any false overwritting of files
-            val activeHashes = allTracks.map(_.file) ++ allTracks.map(_.art.getOrElse(None))
+            val activeHashes = List(album.art.getOrElse(None)) ++ allTracks.map(_.file) ++ allTracks.map(_.art.getOrElse(None))
 
             // go ahead and delete files that were not send over with this save
             // TODO: maybe this should clean up on the delete files
@@ -173,7 +216,10 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
             // compose our filter that checks for active file hashes(art and mp3) for the giving session
             val commitFileFilter = new FileFilter() {
-              def accept(file: File) = file.getName.split("_").headOption.map(f => activeHashes.contains(Some(f))).getOrElse(false)
+              def accept(file: File) = {
+                val answer = file.getName.split("_").headOption.map(f => activeHashes.contains(f)).getOrElse(false)
+                answer
+              }
             }
             commitImagesForSession(album.session, Some(commitFileFilter))
             commitAudioForSession(album.session, Some(commitFileFilter))

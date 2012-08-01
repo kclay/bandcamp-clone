@@ -97,7 +97,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
         },
         bindTo:function (view) {
             this.setElement(view.el, true);
-            console.log(view.$el);
+
             this.$wrapper = this.$(".progress-wrapper");
             this.$bar = this.$(".bar");
 
