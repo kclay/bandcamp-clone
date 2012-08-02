@@ -38,16 +38,16 @@
     'placeholder->"leave blank to use band name",
     '_help->"for complications, labels, etc.")
 
-    @textarea(album("about"),'_label->"about this track")
+    @textarea(album("about"),'_label->"about this album")
 
-    @textarea(album("credits"),'_label->"track credits")
+    @textarea(album("credits"),'_label->"album credits")
 
 
     @input(album("art"),'_label->""){(id, name, value, args) =>
 
 
     <div class="album-art art-upload">
-        <a href="#" class="upload-button">Upload Track Art</a>
+        <a href="#" class="upload-button">Upload Album Art</a>
 
 
         <p>350 x 350 pixels minimum<br/>

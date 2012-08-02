@@ -76,7 +76,7 @@ object Forms {
   }
   val domainForm = Form(
     single(
-      "domain" -> text(minLength = 4, maxLength = 25)
+      "domain" -> slug
     ) verifying(
       "Domain already taken", result => result match {
       case (domain) => Artist.findByDomain(domain).isEmpty
@@ -96,7 +96,7 @@ object Forms {
     "artist_id" -> artist,
     "session" -> text,
     "file" -> optional(text),
-
+    "fileName" -> optional(text),
     "name" -> text(minLength = 1, maxLength = 50),
     "slug" -> slug,
     "donate" -> boolean,
@@ -106,7 +106,7 @@ object Forms {
     "artist" -> optional(text),
     "art" -> optional(text),
     "lyrics" -> optional(text),
-    "about" -> optional(text),
+    /*"about" -> optional(text),*/
     "credits" -> optional(text),
     "date" -> optional(sqlDate("MM-dd-yyyy")),
     "activate" -> boolean,

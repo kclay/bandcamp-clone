@@ -140,8 +140,9 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 this.model.on("error", this._onAttributeError, this)
                 this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
                 this.model.on("refresh", this.render, this);
+                this.artUploder = new Common.ArtUploader(this.$el, this.artUploadView, this.model);
 
-                this.artUploadView.on("uploaded", this._onArtUploaded);
+
             },
 
 
@@ -158,25 +159,30 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
                 input.parents("div.control-group")[error ? 'addClass' : 'removeClass']("error")
             },
+            /*
+             _onArtUploaded:function (info) {
+             if (info.error) {
+             new Common.FeedbackView({title:"Upload Error", message:info.error, error:true});
+             } else {
+             var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
+             wrapper.find("img").attr("src", info.url);
+             if (!this._artID) {
+             this._artID = info.id;
+             this.artUploadView.setPostParam("id", info.id)
+             }
+             this.model.set({art:info.id, artURL:info.url});
+             }
 
-            _onArtUploaded:function (info) {
-                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
-                wrapper.find("img").attr("src", info.url);
-                if (!this._artID) {
-                    this._artID = info.id;
-                    this.artUploadView.setPostParam("id", info.id)
-                }
-                this.model.set({art:info.id, artURL:info.url});
 
-
-            },
+             },       */
             removeArt:function () {
                 this.$(".image").remove();
                 this.model.set({art:"", artURL:""});
             },
             render:function () {
-
-                this._binder.bind(this.model, this.$el, this.options.bindings || EditBindings);
+                var binds = $.extend({}, this.options.bindings || EditBindings);
+                delete binds['about'];
+                this._binder.bind(this.model, this.$el, binds);
 //            Backbone.ModelBinding.bind(this,mo);
                 //          Backbone.Validation.bind(this, {forceUpdate: true});
                 return this;
@@ -204,6 +210,23 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 this._super("initialize", [options, parent]);
 
 
+            },
+            init:function () {
+                if (this.model.get("id")) {
+
+                    this._encodingTrack = {
+                        id:this.model.get("id")
+                    }
+                    if (this.model.get("file")) {
+                        this.$(".file").html(this.model.get("fileName"));
+                        this._onStatusChange(Status.COMPLETED);
+
+
+                        this._updatePostParams(false);
+                    }
+
+
+                }
             },
 
             attachUploadListeners:function (view) {
@@ -336,14 +359,14 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         break;
                     case "completed":
                         this._onStatusChange(Status.COMPLETED);
-                        this.model.set({"file":this._encodingTrack.id, duration:info.duration})
+                        this.model.set({"file":this._encodingTrack.id, duration:info.duration, fileName:this.encodingName()})
 
                         this._updatePostParams(false);
                         break;
                     default:
                         // TODO : Notify of error
-                        this.
-                            break;
+
+                        break;
                 }
 
             },
@@ -354,7 +377,16 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 }
             },
             _onStatusChange:function (status) {
-                this.trackUploadView._onStatusChange(status)
+                if (this.trackUploadView) {
+                    this.trackUploadView._onStatusChange(status)
+                } else {
+                    this.$(".progress-wrapper")
+                        .removeClass()
+                        .addClass("progress-wrapper active " + status)
+                        .find(".status").text(status)
+
+
+                }
                 this.trigger(Status.EVENT_CHANGED, status)
             },
 

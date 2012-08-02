@@ -181,14 +181,21 @@ object Upload extends Controller with Auth with AuthConfigImpl {
           request.body.file("Filedata").map {
             file =>
               import utils.{Medium, TempImage}
+              import utils.Image.size
               import models.Forms.idSessionForm
               val (id, session) = idSessionForm.bindFromRequest.get
 
-              // check if replacing previous uploaded image
-              val image = (if (id.nonEmpty) TempImage(id.get, session, file) else TempImage(file, session)).resizeTo(Medium())
+              val (width, height) = size(file.ref.file)
+              if (width < 350 || height < 350) {
+                error("One of the image size's are to small, must be atleast 350x350 . The image you uploaded is %dx%d".format(width, height))
+              } else {
+                // check if replacing previous uploaded image
+                val image = (if (id.nonEmpty) TempImage(id.get, session, file) else TempImage(file, session)).resizeTo(Medium())
 
 
-              json(ArtResponse(image.exists, image.url, image.id))
+                json(ArtResponse(image.exists, image.url, image.id))
+              }
+
 
           }.getOrElse(error("error"))
         }

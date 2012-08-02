@@ -118,9 +118,18 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
         },
+
+
         init:function () {
-            if (this.editView.init)this.editView.init()
+
             if (this.overviewView.init)this.overviewView.init()
+            if (this.editView.init)this.editView.init()
+            if (this.model.get("id")) {
+                this.editView.render();
+                this.overviewView.render();
+            }
+
+
         },
         remove:function () {
             this.editView.remove();
@@ -272,12 +281,17 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             return overviewView;
         },
         _onTrackAdded:function (model) {
-            var overviewView = this.trackCollectionView.viewByModel(model).overviewView;
+            var modelView = this.trackCollectionView.viewByModel(model);
+            var overviewView = modelView.overviewView;
             model.on(Track.Status.EVENT_CHANGED, this._onTrackStatusChanged, this);
             model.on("change:artURL", this._onTrackArtChanged, this);
             model.on("change", this._onAttributeChanged, this);
             if (overviewView) this._watchOverView(overviewView) && this._onOverViewSwitchRequest(overviewView);
             this._updateHeight();
+            if (model.get("id")) {
+                this._addReplaceUploader(modelView);
+                this._attachOverviewToUploader(overviewView);
+            }
 
         },
         _onTrackArtChanged:function (model) {
@@ -386,15 +400,22 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this._activeModel = model;
 
             var overviewView = this.activeOverview();
+            this._attachOverviewToUploader(overviewView);
+
+        },
+        _attachOverviewToUploader:function (overviewView) {
+
             overviewView.attachUploadListeners(this.trackUploadView);
             this.trackUploadView.bindTo(overviewView);
-
-
         },
         _onUploadStarted:function () {
             var view = this.activeView();
 
             this.stateManager.update(this._activeModel, STATES.UPLOADING, true)
+            this._addReplaceUploader(view);
+        },
+
+        _addReplaceUploader:function (view) {
             if (!this._uploaders[view]) {
                 this._uploaders[view] = new Upload.ReplaceView($.extend({},
                     this.uploadDefaults, {el:view.overviewView.el}),

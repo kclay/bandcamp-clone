@@ -135,7 +135,7 @@ object SiteDB extends Schema {
     t.artistID is(indexed, named("artist_id")),
     t.artistName is (dbType("varchar(45)")),
     t.art is (dbType("varchar(45)")),
-    t.about is (dbType("text")),
+    /*t.about is (dbType("text")),*/
     t.credits is (dbType("text")),
     t.lyrics is (dbType("text"))
   ))

@@ -8,7 +8,11 @@ define(["underscore", "backbone", "modal"], function (_) {
 
         initialize:function (options) {
             this.template = _.template($(this.template).html());
+            if (options.error) {
+                this.$el.addClass("error").find(".btn-cancel").addClass("btn-danger");
+            }
             this.render();
+
         },
 
 
@@ -87,37 +91,38 @@ define(["underscore", "backbone", "modal"], function (_) {
 
         _onModelChange:function (model) {
 
-
-            if ("name" in model.changed) {
+            var refresh = !this._loaded;
+            if (refresh || "name" in model.changed) {
                 var title = this.model.get("name") || "Untitled Track";
                 this.$title.html(title);
-            } else if ("artURL" in model.changed) {
+            }
+            if (refresh || "artURL" in model.changed) {
 
                 var url = this.model.get("artURL");
                 this.setArtURL(url);
 
-            } else {
-
-
-                var text = "";
-                if (this.model.get("download")) {
-                    text = "downloadable,";
-                    var price = this.model.get("price");
-                    var donateMore = this.model.get("donateMore");
-                    if (parseInt(price, 10) == 0) {
-                        this.model.set("price", 1);
-                        return;
-                    } else {
-                        text += "$" + price;
-                    }
-
-
-                }
-
-                this.$details.html(text);
             }
 
-            if ("artist" in model.changed || !this._loaded) {
+
+            var text = "";
+            if (this.model.get("download")) {
+                text = "downloadable,";
+                var price = this.model.get("price");
+                var donateMore = this.model.get("donateMore");
+                if (parseInt(price, 10) == 0) {
+                    this.model.set("price", 1);
+                    return;
+                } else {
+                    text += "$" + price;
+                }
+
+
+            }
+
+            this.$details.html(text);
+
+
+            if (!this._loaded || "artist" in model.changed) {
                 var artist = this.model.get("artist") || app_config.band_name;
                 this.$by.html(artist);
             }
@@ -192,11 +197,36 @@ define(["underscore", "backbone", "modal"], function (_) {
             }
         }
     })
+
+    var ArtUploader = function ($el, artUploadView, model) {
+        this.artUploadView = artUploadView;
+        this.$el = $el;
+        this.model = model;
+        this.artUploadView.on("uploaded", this._onArtUploaded);
+    }
+    $.extend(ArtUploader.prototype, {
+        _onArtUploaded:function (info) {
+            if (info.error) {
+                new FeedbackView({title:"Upload Error", message:info.error, error:true});
+            } else {
+                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
+                wrapper.find("img").attr("src", info.url);
+                if (!this._artID) {
+                    this._artID = info.id;
+                    this.artUploadView.setPostParam("id", info.id)
+                }
+                this.model.set({art:info.id, artURL:info.url});
+                this.artUploadView.reset();
+            }
+
+
+        }
+    })
     return {
         OverviewView:OverviewView,
         FeedbackView:FeedbackView,
         ConfirmView:ConfirmView,
-
+        ArtUploader:ArtUploader,
         Validate:Validators,
         STATES:STATES,
         StateManager:StatesManager

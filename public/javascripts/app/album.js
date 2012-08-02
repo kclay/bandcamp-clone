@@ -111,7 +111,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 }
             );
 
-            this.artUploadView.on("uploaded", this._onArtUploaded);
+            this.artUploder=new Common.ArtUploader(this.$el,this.artUploadView,this.model);
             this.model.on("error", this._onAttributeError, this)
             this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
 
@@ -133,7 +133,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             input.parents("div.control-group")[error ? 'addClass' : 'removeClass']("error")
         },
 
-        _onArtUploaded:function (info) {
+        /*_onArtUploaded:function (info) {
             var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.artUploadView.el);
             wrapper.find("img").attr("src", info.url);
 
@@ -145,7 +145,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             this.artUploadView.reset();
 
 
-        },
+        },     */
         removeArt:function () {
             this.$(".image").remove();
             this.model.set({art:"", artURL:""});

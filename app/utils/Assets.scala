@@ -264,6 +264,12 @@ object Image {
     new BaseImage(id, Normal(), Some(file))
   }
 
+  def size(file: File) = {
+    val source = ImageIO.read(file);
+    (source.getWidth, source.getHeight)
+
+  }
+
 
 }
 

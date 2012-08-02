@@ -206,6 +206,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
         },
+        fileName:function () {
+            return (this._currentFile || {}).name;
+        },
         _onStatusChange:function (status, file) {
             if (file) {
                 this._currentFile = file;

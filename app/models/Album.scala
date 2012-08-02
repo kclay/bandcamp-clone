@@ -74,10 +74,11 @@ case class AlbumTracks(@Column("album_id") albumID: Long, @Column("track_id") tr
 
 }
 
-case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], name: String, var slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
+case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String],fileName:Option[String],
+                 name: String, var slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
                  license: String, artistName: Option[String],
-                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date], active: Boolean = false, var duration: Int = 0) extends KeyedEntity[Long] {
-  def this() = this(0, 0, "", Some(""), "", "", true, true, 1.00, "", Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
+                 art: Option[String], lyrics: Option[String], /*about: Option[String], */credits: Option[String], releaseDate: Option[Date], active: Boolean = false, var duration: Int = 0) extends KeyedEntity[Long] {
+  def this() = this(0, 0, "", Some(""),Some(""), "", "", true, true, 1.00, "", Some(""), Some(""), /*Some(""), */Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
 
   def previewURL(host: String) = {
