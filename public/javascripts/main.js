@@ -36,7 +36,7 @@
 
         }
     }
-    config = $.extend({}, config, app_config.config)
+    config = $.extend(true,{},app_config.config, config)
     require.config(config);
 
 

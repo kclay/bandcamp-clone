@@ -317,8 +317,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 if (!status)return;
                 var enc = status.encodings;
 
-                var status = enc[this.statusId()];
-                switch (status) {
+                var info = enc[this.statusId()];
+                switch (info.status) {
                     case "new":
                     case "processing":
                         if (!this._status) {
@@ -336,7 +336,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                         break;
                     case "completed":
                         this._onStatusChange(Status.COMPLETED);
-                        this.model.set("file", this._encodingTrack.id)
+                        this.model.set({"file":this._encodingTrack.id, duration:info.duration})
+
                         this._updatePostParams(false);
                         break;
                     default:

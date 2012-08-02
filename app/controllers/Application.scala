@@ -8,9 +8,10 @@ import views._
 import models.Forms._
 import jp.t2v.lab.play20.auth._
 import models.SiteDB._
+import actions.SquerylTransaction
 
 
-object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB {
+object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
 
   def javascriptRoutes = Action {
     implicit request =>
@@ -18,7 +19,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
-          Ajax.fetchAlbum,Ajax.deleteAlbum
+          Ajax.fetchAlbum, Ajax.deleteAlbum,Ajax.publish
 
         )
       ).as("text/javascript")
@@ -119,13 +120,15 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   def updatePassword = TODO
 
-  def album(name: String) = WithArtist {
-    artist => implicit request =>
+  def album(name: String) = TransAction {
+    WithArtist {
+      artist => implicit request =>
 
-      Album.bySlug(artist.id, name).map(album =>
-        Ok("hello")
-      ) getOrElse (NotFound("Album not found"))
+        Album.bySlug(artist.id, name).map(album =>
+          Ok(html.display.album(artist, album, Album.withTracks(album.id).toList))
+        ) getOrElse (NotFound("Album not found"))
 
+    }
   }
 
   def page(name: String) = Action {

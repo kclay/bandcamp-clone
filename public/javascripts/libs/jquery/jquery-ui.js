@@ -1,6 +1,6 @@
 define([
 // Load the original jQuery source file
-    'libs/jquery/jquery-ui.dev'
+    'libs/jquery/jquery-ui.min'
 ], function () {
     (function ($) {
         var re = /([^&=]+)=?([^&]*)/g;

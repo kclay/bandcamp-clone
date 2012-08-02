@@ -26,6 +26,8 @@ object SessionHelper {
     request.session.get(sessionKey).exists(_ => true)
   }
 
+
+
   def artist = {
 
     val a = utils.Utils.artist.get

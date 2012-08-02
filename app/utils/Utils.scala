@@ -39,7 +39,7 @@ object Utils {
     artist.map {
       a =>
         artistId(a.id)
-        Context.current().args.put(CONTEXT_ARTIST, artist)
+        Context.current().args.put(CONTEXT_ARTIST, a)
     }
 
   }

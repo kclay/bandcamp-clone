@@ -250,8 +250,35 @@ body.inner {
     width: 935px;
 }
 
-.my-albums {
+#my-albums {
     list-style: none;
+    position: relative;
+    li {
+        border-top: 1px solid @purple;
+        border-bottom: 1px solid @purple;
+
+        padding: 5px;
+        &:hover {
+            background: #ffffe2;
+
+        }
+    }
+    a {
+        display: inline-block;
+    }
+    .album-info {
+        display: inline-block;
+        width: 60%;
+    }
+    .album-actions {
+        display: inline-block;
+        width: 30%;
+        div {
+            float: left;
+            margin: 10px;
+        }
+    }
+
 }
 
 .editor {
@@ -479,10 +506,32 @@ body.inner {
 
 #published {
     .hide;
-    display: inline-block;
+
     margin-top: 20px;
 }
 
 #publish-alert {
     margin-top: 20px;
+}
+
+#player {
+    .action {
+        i, img {
+            display: none;
+        }
+        &.play .icon-play {
+            display: block;
+        }
+        &.loading img {
+            display: block;
+        }
+        &.pause .icon-pause {
+            display: block;
+        }
+
+    }
+}
+#player-proxy{
+    position: absolute;
+    top:-999999px;
 }

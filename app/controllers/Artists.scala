@@ -62,10 +62,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
   }
 
-  def editAlbum(name: String) = authorizedAction(NormalUser) {
-    implicit artist => implicit request =>
-
-      Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
+  def editAlbum(name: String) = TransAction {
+    authorizedAction(NormalUser) {
+      implicit artist => implicit request =>
+        Album.bySlug(artist.id, name).map {
+          a =>
+            Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
+        }.getOrElse(BadRequest("not_found"))
+    }
   }
 
 

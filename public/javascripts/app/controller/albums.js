@@ -8,8 +8,8 @@ define(["underscore", "backbone", "app/common", "app"], function (_, Backbone) {
             "click a.delete":"confirmDelete"
         },
         confirmDelete:function (e) {
-            var $li = $(e.currentTarget).parent();
-            var album = $li.find("a:first").attr("href").split("/").pop();
+            var $li = $(e.currentTarget).parents("li");
+            var album = $li.attr("data-slug")
             new Common.ConfirmView({
                 data:{
                     title:"Delete Album",

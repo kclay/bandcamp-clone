@@ -39,9 +39,9 @@ object Tag {
 }
 
 
-case class Queue(file: String, session: String, status: String = "new", started: Option[Long], ended: Option[Long]) extends DBObject {
+case class Queue(file: String, session: String, status: String = "new", started: Option[Long], ended: Option[Long],duration:Int) extends DBObject {
 
-  def this() = this("", "", "", Some(0L), Some(0L))
+  def this() = this("", "", "", Some(0L), Some(0L),0)
 
 
 }
@@ -60,13 +60,21 @@ object Queue {
   def status(ids: List[Long]) = inTransaction {
     from(queue)(q =>
       where(q.id in ids)
-        select(q.id, q.status)
-    ).toMap
+        select(q.id, q.status,q.duration)
+    ).toList
   }
 
   def updateStatus(id: Long, status: String) = inTransaction {
     update(queue)(q => where(q.id === id)
       set (q.status := status)
+    )
+
+  }
+
+  def updateStatus(id: Long, status: String, duration: Int) = inTransaction {
+    update(queue)(q => where(q.id === id)
+      set(q.status := status,
+        q.duration := duration)
     )
 
   }
@@ -92,7 +100,7 @@ object Queue {
     queue.insert(Queue(name, folder)).id
   }
 
-  def apply(name: String, folder: String) = new Queue(name, folder, "new", Some(0L), Some(0L))
+  def apply(name: String, folder: String) = new Queue(name, folder, "new", Some(0L), Some(0L),0)
 }
 
 case class Encoding(val id: Long, @Column("track_id") trackID: Long)

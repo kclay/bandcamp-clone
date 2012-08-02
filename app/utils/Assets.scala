@@ -27,9 +27,7 @@ case class Medium() extends ImageSize(210, 210, "medium")
 case class Small() extends ImageSize(72, 72, "small")
 
 
-
-
-abstract class Image(_id: String,  imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
+abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends DataStore {
   override def location(): String = "images"
 
   def id: String = _id
@@ -273,6 +271,7 @@ object Image {
 class AudioDataStore extends DataStore {
   override def location(): String = "audio"
 
+  import java.io.File
 
   def album(folder: String) = {
     val dir = if (shard) folder.substring(0, 5).toCharArray.mkString("/") else ""
@@ -284,15 +283,25 @@ class AudioDataStore extends DataStore {
 
   override def toDir(session: String) = album(session)
 
+  def toURL(host: String, file: File) = ("http://" + host + "/" + httpPath + file.getAbsolutePath.replace(store.getAbsolutePath, "")).replace("\\", "/")
+
+  def previewURL(host: String, session: String, file: String) = toURL(host, preview(album(session), file))
+
+  def fullURL(host: String, session: String, file: String) = toURL(host, full(album(session), file))
 
   def preview(album: File, file: String) = new File(album, file + "_preview.mp3")
 
   def full(album: File, file: String) = new File(album, file + "_full.mp3")
 
+  def full(album: String, file: String) = new File(toDir(album), file + "_full.mp3")
+
 
 }
 
 object Assets {
+
+  lazy val audioStore = new AudioDataStore()
+  lazy val tempAudioStore = new TempAudioDataStore()
 
   def deleteDirectory(file: File): Unit = {
     if (file.exists()) {
@@ -308,11 +317,10 @@ object Assets {
 }
 
 object AudioDataStore {
-  private lazy val audioStore = new AudioDataStore()
 
 
   def deleteAudioSession(session: String) = {
-    Assets.deleteDirectory(audioStore.album(session))
+    Assets.deleteDirectory(Assets.audioStore.album(session))
 
   }
 }
@@ -325,13 +333,11 @@ class TempAudioDataStore extends AudioDataStore {
 }
 
 object TempAudioDataStore {
-  private lazy val audioStore = new AudioDataStore()
 
-  private lazy val tempAudioStore = new TempAudioDataStore()
 
   import DataStore.transferToDataStore
 
-  def commitAudioForSession(session: String, filter: Option[FileFilter]) = transferToDataStore(tempAudioStore, audioStore, session, filter)
+  def commitAudioForSession(session: String, filter: Option[FileFilter]) = transferToDataStore(Assets.tempAudioStore, Assets.audioStore, session, filter)
 
 
 }
@@ -368,6 +374,7 @@ trait DataStore {
     config.getString("datastore." + location + "." + name).get
   }
 
+  lazy val httpPath = _s("path")
   lazy val temp = app.getFile(_s("temp"))
   lazy val fragment = _s("location")
   lazy val store = app.getFile(fragment)

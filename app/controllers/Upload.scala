@@ -71,9 +71,11 @@ object Upload extends Controller with Auth with AuthConfigImpl {
             val status = Queue.status(ids)
 
             status.foreach {
-              case (id, s) => if (s.equals(Queue.STATUS_COMPLETED)) Queue.delete(id) else None
+              case (id, s, d) => if (s.equals(Queue.STATUS_COMPLETED)) Queue.delete(id) else None
             }
-            json(Map("encodings" -> status))
+            json(Map("encodings" -> Map(status.map {
+              case (id, s, d) => (id, Map("status" -> s, "duration" -> d))
+            }: _*)))
           } else error("no_ids")
         }
 
@@ -128,7 +130,7 @@ object Upload extends Controller with Auth with AuthConfigImpl {
         e => error("error"),
         value => {
           val (id, session) = value
-          audioDataStore.tempFile(id,session).map {
+          audioDataStore.tempFile(id, session).map {
             file =>
               import utils.ffmpeg
               val errors = ffmpeg(file).verify
@@ -161,7 +163,7 @@ object Upload extends Controller with Auth with AuthConfigImpl {
             file =>
               import models.Forms.idSessionForm
               val (id, session) = idSessionForm.bindFromRequest.get
-              val (created, name, tempFile) = audioDataStore.toTempMaybeId(id,file,session, false)
+              val (created, name, tempFile) = audioDataStore.toTempMaybeId(id, file, session, false)
 
               if (created) json(AudioResponse(file.filename, name)) else None
 

@@ -139,11 +139,12 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
     var STATES = Common.STATES;
     var View = Backbone.View.extend({
         el:".content-wrap",
-
+        publishTemplate:_.template($("#congrats").html()),
         events:{
             "click #save-button":"save",
             "click #cancel":"cancel",
             "click #publish-button":"publish",
+            "click #view-album":"view",
             "click #track-overviews .track-overview":"changeIndex"
         },
 
@@ -452,6 +453,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this.album.save(null, {
                 success:function () {
                     finish()
+                    $("#publish-button").fadeIn();
                     self.stateManager.reset();
                 },
                 error:function () {
@@ -459,8 +461,31 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 }
             })
         },
+        view:function () {
+            window.location.href = "/album/" + this.album.get("slug")
+        },
         publish:function () {
+            $("#saving").slideDown()
+            var finish = function () {
+                $("#saving").delay(500).slideUp()
+            }
+            var self = this;
+            Ajax.publish("album", this.album.get("slug")).ajax({
 
+                success:function () {
+                    var c = $("#published").slideDown(function () {
+                        c.css({display:"inline-block"})
+                    }).find("#congrats")
+                        .find("#congrats").html(
+                        self.publishTemplate({album:self.album.get("name")})
+                    )
+
+                    finish();
+                },
+                error:function () {
+                    alert("an error happened")
+                }
+            })
         },
         cancel:function () {
 

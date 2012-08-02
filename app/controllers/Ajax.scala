@@ -62,25 +62,25 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     }
   }
 
-  def publish(kind: String, id: Long) = TransAction {
+  def publish(kind: String, slug: String) = TransAction {
     authorizedAction(NormalUser) {
       implicit artist => implicit request =>
 
         kind match {
-          case "album" => Album.forArtist(artist.id, id).map {
-            case a => {
+          case "album" => Album.bySlug(artist.id, slug).map {
+            album =>
               update(albums)(a =>
-                where(a.id === id)
+                where(a.id === album.id)
                   set (a.active := true))
 
               update(tracks)(t =>
                 where(t.id in
-                  from(Album.withTracks(a.id))(t2 => select(t2.map(_.id)))
+                  from(Album.withTracks(album.id))(t2 => select(t2.id))
                 )
                   set (t.active := true)
               )
 
-            }
+
           }
           case "track" =>
         }
@@ -93,7 +93,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     authorizedAction(NormalUser) {
       artist => implicit request =>
         Ok(Album.bySlug(artist.id, slug).map {
-          case a => generate(Map("album" -> a, "tracks" -> Album.withTracks(a.id).toList))
+          a => generate(Map("album" -> a, "tracks" -> Album.withTracks(a.id).toList))
         }.getOrElse(""))
 
     }
@@ -156,12 +156,20 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
         import utils.TempImage.commitImagesForSession
         import utils.TempAudioDataStore.commitAudioForSession
+        import utils.Assets.tempAudioStore
+        import utils.ffmpeg
 
         var (album, allTracks) = value
+
         val albumSlugs = from(albums)(a =>
           where(a.artistID === artist.id)
             select (a.slug)
         ).toList
+
+
+
+
+
 
         val albumSlug = album.slug
         var counter = 2
@@ -213,7 +221,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         // this will allow us to only copy files that are being saved,
         // so if the user deletes a file before a save we don't worry about saving that one,
         // this will prevent any false overwritting of files
-        val activeHashes = List(album.art.getOrElse(None)) ++ allTracks.map(_.file) ++ allTracks.map(_.art.getOrElse(None))
+        val activeHashes = List(album.art.getOrElse("")) ++ allTracks.map(_.file.getOrElse("")) ++ allTracks.map(_.art.getOrElse(""))
 
         // go ahead and delete files that were not send over with this save
         // TODO: maybe this should clean up on the delete files
@@ -233,6 +241,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         // compose our filter that checks for active file hashes(art and mp3) for the giving session
         val commitFileFilter = new FileFilter() {
           def accept(file: File) = {
+
             val answer = file.getName.split("_").headOption.map(f => activeHashes.contains(f)).getOrElse(false)
             answer
           }

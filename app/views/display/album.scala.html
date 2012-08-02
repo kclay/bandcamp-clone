@@ -1,8 +1,8 @@
-@(album:Album,tracks:Seq[Track])(implicit request: play.api.mvc.RequestHeader)
+@(artist:Artist,album:Album,tracks:List[Track])(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
 
 
-@main(album.name,"display-album"){
+@main(album.name,"display-album display"){
 <script type="text/javascript">
     window.app_config.update({
         includes:["jwplayer"],
@@ -14,19 +14,75 @@
     })
 </script>
 <h2 class="trackTime">@album.name</h2>
-<h3>by @album.artistName</h3>
+<h3>by @album.artistName.getOrElse(artist.name)</h3>
 
-<h2>Thanks for joining Bandcamp @SessionHelper.username!</h2>
-
-<p>
-    This is your music's home page. A tabula rasa! Completely
-    unspoiled! Deeply inhale the crisp, clean air, hold it, and then...
-</p>
-
-<div class="row span6 center">
-    <a href="@routes.Artists.newAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a> or <a
-        href="@routes.Artists.addTrack()" class="btn btn-primary btn-xlarge">Add Track</a>
+<div id="player-proxy">
+    <div id="player-proxy-inner"></div>
 </div>
+<div id="player">
+    <a href="#" class="play action">
+        <i class="icon-play"></i>
+        <i class="icon-pause"></i>
+        <img src="/assets/images/ajax-loader.gif"/>
+    </a>
+
+    <div id="player-control-bar">
+        <div class="top">
+            <span class="title"></span>
+
+            <div class="slider"></div>
+
+            <div class="nav">
+                <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
+                <a href="#" class="next"><i class="icon-fast-forward"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+<h3>
+    <a href="#">Digital Album</a>
+</h3>
+<p>Digital Album
+    Immediate download of @(tracks.length)-track album in your choice of MP3 320, FLAC, or just about any other format
+    you could possibly desire.</p>
+
+<table>
+
+    @for((t,i) <-tracks.view.zipWithIndex){
+        <tr data-track="@i">
+            @t.previewURL(request.host)
+            <td class="track-play-column"><a href="#"><i class="icon-play"></i></a></td>
+            <td class="track-number-column"><span class="track-number">@(i+1).</span></td>
+            <td class="track-title-column">
+                <a href="#" itemprop="url">@t.name</a>
+                <span class="track-time">00:00</span>
+            </td>
+            <td class="track-info-column">
+                <a href="/track/@(t.slug)#lyrics">lyrics</a>
+            </td>
+            <td class="track-download-column">
+                <a href="/track/@(t.slug)/download">download</a>
+            </td>
+
+        </tr>
+    }
+</table>
+
+
+@defining(request.host.split("\\.").drop(1).mkString("")){domain=>
+
+     <script type="text/javascript">
+         var pl=[];
+         @tracks.map{t=>
+             pl.push({'title':'@t.name','file':'@(t.previewURL(domain))','duration':'@t.duration'});
+
+         }
+         window.app_config.playlist=pl;
+     </script>
+
+}
+
 
 
 }
+

@@ -57,7 +57,8 @@ class Encoding extends Actor {
               preview.delete()
               return
             }
-            Queue.updateStatus(queue.id, Queue.STATUS_COMPLETED);
+            Queue.updateStatus(queue.id, Queue.STATUS_COMPLETED, duration);
+
             file.delete()
             if (file.getParentFile.list().length == 0) file.getParentFile.delete
           }

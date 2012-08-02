@@ -10,26 +10,43 @@
     <a href="@routes.Artists.newAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a>
 </div>
 }else{
-<div class="row">
-    <ul id="my-albums">
-        @albums.map{a=>
 
-        <li>
-            <a href="@routes.Artists.editAlbum(a.slug)">
-                @a.smallArtImage.map{i=>
+<h2>My Albums</h2>
+<ul id="my-albums">
+    @albums.map{a=>
 
-                    <img src="@i.url"/>
-                }
-                @a.name<br/>
+    <li data-slug="@a.slug">
 
-            </a>
-            <a class="delete" href="#"><i class="icon-remove"></i></a>
+        <a href="@routes.Artists.editAlbum(a.slug)">
+            @a.smallArtImage.map{i=>
+            <img src="@i.url"/>
+            }
 
-        </li>
 
-        }
-    </ul>
-</div>
+        </a>
+
+        <div class="album-info">
+            <div class="album-name">@a.name</div>
+            <div class="album-artist">@a.artistName.getOrElse(SessionHelper.artist.name)</div>
+        </div>
+        <div class="album-actions">
+            <div>
+                <a href="@routes.Artists.editAlbum(a.slug)">Edit</a>
+            </div>
+            <div>
+                <a href="#" class="view">View</a>
+            </div>
+            <div>
+                <a href="#" class="delete">Delete</a>
+            </div>
+        </div>
+
+
+    </li>
+
+    }
+</ul>
+
 
 }
 
