@@ -13,6 +13,7 @@
         }
     })
 </script>
+<div class="span5">
 <h2 class="trackTime">@album.name</h2>
 <h3>by @album.artistName.getOrElse(artist.name)</h3>
 
@@ -21,21 +22,25 @@
 </div>
 <div id="player">
     <a href="#" class="play action">
-        <i class="icon-play"></i>
-        <i class="icon-pause"></i>
-        <img src="/assets/images/ajax-loader.gif"/>
+
+
     </a>
 
     <div id="player-control-bar">
-        <div class="top">
+        <div class="bottom">
             <span class="title"></span>
+            <span class="time"></span>
 
-            <div class="slider"></div>
-
-            <div class="nav">
-                <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
-                <a href="#" class="next"><i class="icon-fast-forward"></i></a>
+            <div class="slider">
+                <div class="bar"></div>
+                <div class="fill"></div>
             </div>
+
+
+        </div>
+        <div class="nav">
+            <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
+            <a href="#" class="next"><i class="icon-fast-forward"></i></a>
         </div>
     </div>
 </div>
@@ -67,7 +72,7 @@
         </tr>
     }
 </table>
-
+</div>
 
 @defining(request.host.split("\\.").drop(1).mkString(".")){domain=>
 

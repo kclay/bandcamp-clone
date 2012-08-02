@@ -515,23 +515,81 @@ body.inner {
 }
 
 #player {
+    position: relative;
+    color: @purple;
     .action {
-        i, img {
-            display: none;
+        width: 47px;
+        height: 45px;
+        background: url('/assets/images/playpause.gif') center 45px;
+        display: inline-block;
+
+        &.playing {
+
+            background-position: center 0px;
+
         }
-        &.play .icon-play {
-            display: block;
-        }
-        &.loading img {
-            display: block;
-        }
-        &.pause .icon-pause {
-            display: block;
+        &.busy {
+            background: url('/assets/images/playerbusy.gif') center center no-repeat;
+
         }
 
     }
+
+    .bottom {
+        position: absolute;
+        top: 0;
+        width: 84%;
+    }
+    #player-control-bar {
+
+        display: inline-block;
+        width: 85%;
+    }
+    .title, .time {
+        display: inline-block;
+    }
+    .title {
+        font-style: italic;
+        margin-right: 5px;
+    }
+    .slider {
+        position: relative;
+    }
+    .fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 12px;
+        background: hsla(hue(@orange), saturation(@orange), lightness(@orange), .5);
+    }
+    .nav {
+        a {
+            display: none;
+        }
+        position: absolute;
+        top: 5px;
+        right: 8px;
+    }
+    .ui-slider {
+        z-index: 1;
+        position: relative;
+        height: 12px;
+        width: 100%;
+        border: 1px solid @purple;
+        margin-top: 10px;
+    }
+    .ui-slider-handle {
+        position: absolute;
+        top: -2px;
+        width: 12px;
+        background: @purple;
+
+        border: 1px @grayCustom solid;
+        height: 14px;
+    }
 }
-#player-proxy{
+
+#player-proxy {
     position: absolute;
-    top:-999999px;
+    top: -999999px;
 }
