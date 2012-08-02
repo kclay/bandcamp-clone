@@ -46,7 +46,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   private def withSubdomain(implicit request: RequestHeader): Boolean = {
     val parts = request.host.split("\\.")
 
-    parts.size >= 2
+    if (request.host.contains("localhost")) parts.size >= 2 else parts.size >= 3
   }
 
 
