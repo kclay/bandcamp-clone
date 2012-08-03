@@ -17,7 +17,7 @@ object ApplicationBuild extends Build {
     //https://groups.google.com/group/scalaquery/browse_thread/thread/fbdd2f25dc4bf7d6
     "org.squeryl" %% "squeryl" % "0.9.5-2" withSources(),
     //"org.scalaquery" % "scalaquery_2.9.0-1" % "0.9.5",
-    "mysql" % "mysql-connector-java" % "5.1.18" ,
+    "mysql" % "mysql-connector-java" % "5.1.18",
     "com.typesafe" %% "play-plugins-mailer" % "2.0.4"
     //"org.mindrot" % "jbcrypt" % "0.3m"
   )
@@ -34,7 +34,9 @@ object ApplicationBuild extends Build {
     resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/",
     resolvers += "Scala-Tools Maven2 Repository" at "http://scala-tools.org/repo-releases",
     lessEntryPoints <<= baseDirectory(customLessEntryPoints),
-    routesImport += "binders.Binders"
+    routesImport += "binders.Binders",
+    templatesImport += "org.apache.commons.lang.StringEscapeUtils.escapeJavaScript"
+
   )
 
 }
