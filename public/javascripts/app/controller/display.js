@@ -1,25 +1,96 @@
 define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbone) {
 
-
+    var Common = require("app/common");
+    var Routes = require("app").Routes
     var View = Backbone.View.extend({
         el:".display",
         events:{
-            "click .track-title-column a":"play"
+            "click .track-title-column a":"play",
+            "click .track-download-column a":"download"
         },
 
         initialize:function () {
 
-
-            this.player = new Player({
+            this.items = window.app_config.playlist;
+            var player = this.player = new Player({
                 files:window.app_config.playlist
             });
+            $("table tr").each(function () {
+                new TrackView({el:this, player:player})
+            })
         },
         play:function (event) {
-            var index = parseInt($(event.currentTarget).parents("tr").attr("data-track"), 10)
 
-            this.player.item(index);
+
+            this.player.item(this.index(event));
+            return false;
+        },
+        index:function (event) {
+            return parseInt($(event.currentTarget).parents("tr").attr("data-track"), 10)
+        },
+        item:function (event) {
+            return this.items[this.index(event)];
+        },
+        download:function (event) {
+            var model = this.item(event)
+            new DownloadView({model:model, type:"track", data:{
+                price:model.price
+
+            }});
             return false;
         }
+
+
+    })
+
+    var TrackView = Backbone.View.extend({
+
+        initialize:function (options) {
+            this.index = parseInt(this.$el.attr("data-track"), 10);
+            this.player = options.player;
+        }
+
+
+    })
+
+    var DownloadView = Common.FeedbackView.extend({
+        template:"#tpl-purchase",
+        events:{
+            "click #btn-purchase":"purchase"
+        },
+        purchase:function () {
+            var user_price = parseFloat(this.$("#price").val())
+            var price = this.options.price;
+            if (price && user_price < price) {
+
+                return;
+            }
+            var options = {
+                data:{
+                    price:user_price,
+                    artist_id:this.model.artist_id
+                },
+                success:function (token) {
+                    if (token == "error") {
+                        alert("error");
+                    } else {
+                        var url = Routes.Purchase.checkout(token).url;
+                        window.location = url;
+                    }
+                },
+                error:function () {
+
+                }
+            }
+
+
+            Routes.Purchase[this.options.type](this.model.slug).ajax(options)
+
+
+        }
+
+
+
 
     })
 
@@ -69,6 +140,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             this.$fill = this.$(".fill");
             this.$next = this.$(".next");
             this.$prev = this.$(".prev")
+            this.render(0)
 
 
         },
@@ -161,7 +233,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             }
         },
         render:function (position) {
-            position = position || this.$slider.slider("value");
+            position = typeof position == "undefined" ? this.$slider.slider("value") : position;
             var item = this.items[this._currentIndex];
             this.$title.text(item.title)
             this.$time.text(this._format(position) + "/" + this._format(item.duration));

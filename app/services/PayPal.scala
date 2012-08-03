@@ -95,6 +95,12 @@ case class PayPal() {
     results.get("TOKEN")
   }
 
+  def amount(token: String) = {
+
+    val value = details(token).get("PAYMENTREQUEST_0_AMT").getOrElse("0")
+    java.lang.Double.parseDouble(value)
+  }
+
   def details(token: String) = {
     val params = defaultParams("GetExpressCheckoutDetails")
     params.put("TOKEN", token)
@@ -130,13 +136,17 @@ object PayPal {
 
   import play.api.Play.current
 
+  val FIELD_EMAIL = "EMAIL"
+  val FIELD_CORRELATIONID = "CORRELATIONID"
+  val FIELD_TRANSACTIONID = "TRANSACTIONID"
+
   lazy val app = Play.application
   lazy val config = app.configuration
   lazy val env = config.getString("paypal.env").get
   lazy val site = if (env == "sandbox") "https://www.sandbox.paypal.com/cgi-bin/webscr?" else "https://www.paypal.com/cgi-bin/webscr?"
-  lazy val service = new PayPal();
+  lazy val service = new PayPal()
 
-  def url(token: String) = site + "cmd=_express-checkout&token=" + token
+  def url(token: String): String = site + "cmd=_express-checkout&token=" + token
 
   def ok(results: Map[String, String]) = results.get("ACK").map(_.equals("Success")).getOrElse(false)
 
@@ -144,6 +154,10 @@ object PayPal {
 
   def details(token: String) = {
     service.details(token)
+  }
+
+  def amount(token: String) = {
+    service.amount(token)
   }
 
   def apply(title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {

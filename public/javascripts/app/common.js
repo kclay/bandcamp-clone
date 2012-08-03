@@ -17,7 +17,7 @@ define(["underscore", "backbone", "modal"], function (_) {
 
 
         appendHtml:function () {
-            this.$el.html(this.template(this.options.data));
+            this.$el.html(this.template(this.options.data || {}));
         },
         render:function () {
 
@@ -40,8 +40,8 @@ define(["underscore", "backbone", "modal"], function (_) {
         template:"#tpl-confirm",
 
         initialize:function (options) {
-            this._super("initialize", options);
-            this._callback = options.callback;
+            this._super("initialize", [options]);
+            this._callback = this._onCallback || options.callback;
         },
         cancel:function () {
             this._callback(false);
@@ -202,7 +202,7 @@ define(["underscore", "backbone", "modal"], function (_) {
         this.artUploadView = artUploadView;
         this.$el = $el;
         this.model = model;
-        this.artUploadView.on("uploaded", this._onArtUploaded);
+        this.artUploadView.on("uploaded", this._onArtUploaded, this);
     }
     $.extend(ArtUploader.prototype, {
         _onArtUploaded:function (info) {

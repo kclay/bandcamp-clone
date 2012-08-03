@@ -11,6 +11,7 @@ import actions.SquerylTransaction
 import java.io.{File, FileFilter}
 import scala.Some
 import models.AlbumTracks
+import services.PayPal
 
 
 /**
@@ -24,6 +25,11 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   import models.SiteDB._
   import PrimitiveTypeMode._
+
+
+
+
+
 
   def tags(query: String) = TransAction {
     Action {

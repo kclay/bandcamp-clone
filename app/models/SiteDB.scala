@@ -39,9 +39,9 @@ object Tag {
 }
 
 
-case class Queue(file: String, session: String, status: String = "new", started: Option[Long], ended: Option[Long],duration:Int) extends DBObject {
+case class Queue(file: String, session: String, status: String = "new", started: Option[Long], ended: Option[Long], duration: Int) extends DBObject {
 
-  def this() = this("", "", "", Some(0L), Some(0L),0)
+  def this() = this("", "", "", Some(0L), Some(0L), 0)
 
 
 }
@@ -60,7 +60,7 @@ object Queue {
   def status(ids: List[Long]) = inTransaction {
     from(queue)(q =>
       where(q.id in ids)
-        select(q.id, q.status,q.duration)
+        select(q.id, q.status, q.duration)
     ).toList
   }
 
@@ -74,7 +74,7 @@ object Queue {
   def updateStatus(id: Long, status: String, duration: Int) = inTransaction {
     update(queue)(q => where(q.id === id)
       set(q.status := status,
-        q.duration := duration)
+      q.duration := duration)
     )
 
   }
@@ -100,7 +100,7 @@ object Queue {
     queue.insert(Queue(name, folder)).id
   }
 
-  def apply(name: String, folder: String) = new Queue(name, folder, "new", Some(0L), Some(0L),0)
+  def apply(name: String, folder: String) = new Queue(name, folder, "new", Some(0L), Some(0L), 0)
 }
 
 case class Encoding(val id: Long, @Column("track_id") trackID: Long)
@@ -166,6 +166,15 @@ object SiteDB extends Schema {
     g.name is (named("genre_name"))
   )
   )
+  val transactions = table[Transaction]("transactions")
+  on(transactions)(t => declare(
+    t.token is (named("paypal_token")),
+    t.correlationID is (named("correlation_id")),
+    t.transactionID is (named("transaction_id")),
+    t.payerID is (named("payer_id")),
+    t.created is (named("created_at")),
+    t.itemID is (named("item_id"))
+  ))
 
 
 }

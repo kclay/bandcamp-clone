@@ -5,6 +5,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
     var Common = require("app/common");
 
 
+    var Routes = require("app").Routes
     var V = Common.Validate
     var Track = require("app/track");
     var Album = Backbone.Model.extend({
@@ -33,6 +34,10 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             releaseDate:"",
             session:app_config.session
 
+
+        },
+        purchase:function (options) {
+           Routes.Purchase.album(this.get("slug")).ajax(options);
 
         },
         refresh:function () {
@@ -111,7 +116,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 }
             );
 
-            this.artUploder=new Common.ArtUploader(this.$el,this.artUploadView,this.model);
+            this.artUploder = new Common.ArtUploader(this.$el, this.artUploadView, this.model);
             this.model.on("error", this._onAttributeError, this)
             this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
 
@@ -134,18 +139,18 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
         },
 
         /*_onArtUploaded:function (info) {
-            var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.artUploadView.el);
-            wrapper.find("img").attr("src", info.url);
+         var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.artUploadView.el);
+         wrapper.find("img").attr("src", info.url);
 
-            if (!this._artID) {
-                this._artID = info.id;
-                this.artUploadView.setPostParam("id", info.id)
-            }
-            this.model.set({art:info.id, artURL:info.url});
-            this.artUploadView.reset();
+         if (!this._artID) {
+         this._artID = info.id;
+         this.artUploadView.setPostParam("id", info.id)
+         }
+         this.model.set({art:info.id, artURL:info.url});
+         this.artUploadView.reset();
 
 
-        },     */
+         },     */
         removeArt:function () {
             this.$(".image").remove();
             this.model.set({art:"", artURL:""});

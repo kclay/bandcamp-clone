@@ -76,5 +76,10 @@ GET     /media/*file               controllers.Assets.at(path="/public/media", f
 
 GET  /:page                         controllers.Application.page(page:String)
 
+
+POST /purchase/album/:album                controllers.Purchase.album(album:String)
+POST /purchase/track/:track         controllers.Purchase.track(track:String)
+GET /purchase/checkout/:token               controllers.Purchase.checkout(token:String)
+GET /purchase/callback                     controllers.Purchase.callback()
 GET /mocks/paypal                   controllers.Mocks.paypal
 GET /mocks/paypal/callback          controllers.Mocks.paypalCallback()

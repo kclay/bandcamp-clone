@@ -2,6 +2,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         var _ = require("underscore");
         var Common = require("app/common");
         var V = Common.Validate
+        var Routes=require("app").Routes
         var Track = Backbone.Model.extend({
             validation:{
                 name:{
@@ -34,6 +35,9 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     return "releaseDate"
                 }
 
+
+            },
+            purchase:function(options){
 
             },
             urlRoot:"/ajax/tracks",

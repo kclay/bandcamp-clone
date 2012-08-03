@@ -53,7 +53,7 @@ define(['libs/backbone/backbone.min'], function () {
                 if (typeof value != "undefined") {
                     states[state] = value;
                 } else {
-                    return states[value];
+                    return states[state];
                 }
             }
         });

@@ -219,9 +219,14 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             var slug = _.last(path)
             if (!_.isEmpty(slug) && slug.indexOf("_album") == -1) {
                 var self = this;
-                this.album.fetch({url:Ajax.fetchAlbum(slug).url, success:function () {
-                    self.album.refresh();
-                }});
+                this.is("reloading", true);
+                this.album.fetch({
+                    url:Ajax.fetchAlbum(slug).url,
+                    success:function () {
+                        self.album.refresh();
+                        self.stateManager.reset();
+                        self.is("reloading", false)
+                    }});
             }
 
             this.tracks.on("add", this._onTrackAdded, this);
@@ -439,15 +444,17 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
         _onAlbumChanged:function (album) {
 
-            if ("name" in album.changed) {
+            if (!this.is("reloading")) {
+                if ("name" in album.changed) {
 
-                var name = album.get("name");
-                if (_.isEmpty(name)) {
-                    this.$saveButton.addClass("disabled")
-                    this._canSave = false;
-                } else {
-                    this.$saveButton.removeClass("disabled");
-                    this._canSave = true;
+                    var name = album.get("name");
+                    if (_.isEmpty(name)) {
+                        this.$saveButton.addClass("disabled")
+                        this._canSave = false;
+                    } else {
+                        this.$saveButton.removeClass("disabled");
+                        this._canSave = true;
+                    }
                 }
             }
             if ("art" in album.changed) {

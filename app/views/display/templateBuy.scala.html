@@ -1,0 +1,44 @@
+<script type="text/template" id="tpl-purchase">
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>Digital Album</h3>
+    </div>
+    <div class="modal-body">
+        <div id="purchase-price">
+
+
+            <h3>Name your price</h3>
+            <span class="display-price nyp-symbol">$</span>
+
+
+            <input id="price" class="display-price numeric" size="6" value="" autocomplete="off" type="text">
+                <span class="nyp-summary">
+
+                    USD
+                    ($<%=price%> or more)
+                  </span>
+
+            <!--<a id="currencyToggle" href="#" onclick="TralbumDownload.show_currency_summary(event)">convert</a>-->
+
+
+        </div>
+        <p>Download is available in MP3 320, FLAC, and <a href="/faq_downloading#format">more</a>. You'll choose your
+            format after checkout.</p>
+
+        <div class="row span4 center">
+            <a href="#" id="btn-purchase" class=" btn">Checkout now</a>
+        </div>
+        <img src="http://s0.bcbits.com/img/ccardspp.gif"
+             alt="We accept Visa, MasterCard, American Express, Discover, and PayPal">
+
+        <div>PayPal is not required. <a href="http://bandcamp.com/buying_without_paypal" target="_blank">Show me</a>.
+        </div>
+    </div>
+    <div class="modal-footer">
+
+        <a href="#" class="btn btn-cancel" data-dismiss="modal">Cancel</a>
+
+    </div>
+
+</script>

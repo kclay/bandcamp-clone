@@ -1,6 +1,8 @@
 package utils
 
-import models.Artist
+import models.{SaleAbleItem, Artist}
+import play.api.mvc.RequestHeader
+import play.api.libs.Crypto
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,6 +13,7 @@ import models.Artist
 
 
 object Utils {
+
 
 
   def slugify(str: String): String = {

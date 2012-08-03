@@ -20,6 +20,28 @@ import models._
 
 object Forms {
 
+
+  val downloadForm = Form(
+    tuple(
+      "download" -> mapping(
+        "from" -> text,
+        "token" -> text,
+        "item" -> text,
+        "kind" -> text
+      )(Download.apply)(Download.unapply),
+      "sig" -> text
+    )
+  )
+  val purchaseForm = Form {
+    tuple("artist_id" -> longNumber, "price" -> of[Double])
+  }
+  val paypalCallbackForm = Form(
+    single(
+      "token" -> text
+
+    )
+  )
+
   val trackUploadedForm = Form {
     tuple(
       "id" -> text,

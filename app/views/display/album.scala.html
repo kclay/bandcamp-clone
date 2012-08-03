@@ -1,7 +1,11 @@
 @(artist:Artist,album:Album,tracks:List[Track])(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
-
-
+@addTracks(domain:String)={
+    @tracks.map{t=>
+        pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@t.name', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
+    }
+}
+@display.templateBuy()
 @main(album.name,"display-album display"){
 <script type="text/javascript">
     window.app_config.update({
@@ -14,79 +18,94 @@
     })
 </script>
 <div class="span5">
-<h2 class="trackTime">@album.name</h2>
-<h3>by @album.artistName.getOrElse(artist.name)</h3>
+    <h2 class="trackTime">@album.name</h2>
 
-<div id="player-proxy">
-    <div id="player-proxy-inner"></div>
-</div>
-<div id="player">
-    <a href="#" class="play action">
+    <h3>by @album.artistName.getOrElse(artist.name)</h3>
+
+    <div id="player-proxy">
+        <div id="player-proxy-inner"></div>
+    </div>
+    <div id="player">
+        <a href="#" class="play action">
 
 
-    </a>
+        </a>
 
-    <div id="player-control-bar">
-        <div class="bottom">
-            <span class="title"></span>
-            <span class="time"></span>
+        <div id="player-control-bar">
+            <div class="bottom">
+                <span class="title"></span>
+                <span class="time"></span>
 
-            <div class="slider">
-                <div class="bar"></div>
-                <div class="fill"></div>
+                <div class="slider">
+                    <div class="bar"></div>
+                    <div class="fill"></div>
+                </div>
+
+
             </div>
-
-
-        </div>
-        <div class="nav">
-            <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
-            <a href="#" class="next"><i class="icon-fast-forward"></i></a>
+            <div class="nav">
+                <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
+                <a href="#" class="next"><i class="icon-fast-forward"></i></a>
+            </div>
         </div>
     </div>
-</div>
-<h3>
-    <a href="#">Digital Album</a>
-</h3>
-<p>Digital Album
-    Immediate download of @(tracks.length)-track album in your choice of MP3 320, FLAC, or just about any other format
-    you could possibly desire.</p>
+    <h3>
+        <a href="#">Digital Album</a>
+    </h3>
 
-<table>
+    <p>Digital Album
+        Immediate download of @(tracks.length)-track album in your choice of MP3 320, FLAC, or just about any other
+        format
+        you could possibly desire.</p>
 
-    @for((t,i) <-tracks.view.zipWithIndex){
+    <table>
+
+        @for((t,i) <-tracks.view.zipWithIndex){
         <tr data-track="@i">
-            @t.previewURL(request.host)
+
             <td class="track-play-column"><a href="#"><i class="icon-play"></i></a></td>
             <td class="track-number-column"><span class="track-number">@(i+1).</span></td>
             <td class="track-title-column">
                 <a href="#" itemprop="url">@t.name</a>
-                <span class="track-time">00:00</span>
+                <span class="track-time">@t.withTime</span>
             </td>
             <td class="track-info-column">
-                <a href="/track/@(t.slug)#lyrics">lyrics</a>
+                <div>
+                    <a href="/track/@t.slug">info</a>
+                </div>
+                <div>
+                    <a href="/track/@(t.slug)#lyrics">lyrics</a>
+                </div>
+
             </td>
+            @if(t.download){
             <td class="track-download-column">
-                <a href="/track/@(t.slug)/download">download</a>
+                <div>
+                    <a href="/track/@(t.slug)/download">download</a>
+                </div>
             </td>
+            }
 
         </tr>
-    }
-</table>
+        }
+    </table>
+</div>
+
+<div class="span5 pull-right">
+
+
 </div>
 
 @defining(request.host.split("\\.").drop(1).mkString(".")){domain=>
 
-     <script type="text/javascript">
-         var pl=[];
-         @tracks.map{t=>
-             pl.push({'title':'@t.name','file':'@(t.previewURL(domain))','duration':'@t.duration'});
+<script type="text/javascript">
+    var pl = [];
 
-         }
-         window.app_config.playlist=pl;
-     </script>
+    @addTracks(domain)
+    window.app_config.playlist = pl;
+</script>
 
 }
-
 
 
 }

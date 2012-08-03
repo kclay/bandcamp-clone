@@ -19,10 +19,19 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
-          Ajax.fetchAlbum, Ajax.deleteAlbum,Ajax.publish
+          Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish,
+          Purchase.album, Purchase.track, Purchase.checkout
 
         )
       ).as("text/javascript")
+  }
+
+  def purchaseAlbum(albumSlug: String) = {
+
+  }
+
+  def purchaseTrack(albumSlug: String, trackSlug: String) = {
+
   }
 
   def index = optionalUserAction {

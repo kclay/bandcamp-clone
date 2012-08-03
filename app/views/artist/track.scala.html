@@ -56,6 +56,11 @@
         @inputText(track("name"),'_label->"",'placeholder->"track name",
         'title->"track name",'_showConstraints->false)
 
+        @input(track("releaseDate"),'_style->"date",'_label->"release date:",
+        'placeholder->"optional",
+        '_help->"mm/dd/yy leave blank to use publish date"){(id, name, value, args) =>
+        <input type="text" name="@name" id="@id" class="track-release " @toHtmlArgs(args)>
+        }
 
     </fieldset>
     <fieldset class="control-group">
@@ -74,10 +79,11 @@
         <p>Payments will go to @artist.email</p>
     </fieldset>
     <fieldset class="control-group">
-        @textarea(track("about"),'_label->"about this track")
+        @*@textarea(track("about"),'_label->"about this track")*@
         @textarea(track("lyrics"),'_label->"lyrics")
         @textarea(track("credits"),'_label->"track credits")
         @inputText(track("artist"),
+        '_label->"Track artist",
         'placeholder->"leave blank to use band name",
         '_help->"for complications, labels, etc.")
 
@@ -137,12 +143,6 @@
 
     </fieldset>
 
-    <fieldset class="control-group">
-
-        @input(track("releaseDate"),'_style->"date",'_label->"release date:",'_help->"mm/dd/yy"){(id, name, value, args) =>
-             <input type="text" name="@name" id="@id" class="track-release " @toHtmlArgs(args)>
-        }
-    </fieldset>
 
 
 
