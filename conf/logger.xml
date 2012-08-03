@@ -19,10 +19,12 @@
 
     <logger name="play" level="DEBUG">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <logger name="application" level="DEBUG">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </logger>
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>
