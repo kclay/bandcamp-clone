@@ -3,12 +3,17 @@ package controllers
 import models._
 import actions.Actions._
 import play.api._
+import libs.concurrent.Akka
 import play.api.mvc._
 import views._
 import models.Forms._
 import jp.t2v.lab.play20.auth._
 import models.SiteDB._
 import actions.SquerylTransaction
+
+import utils.Zip
+import java.io.File
+import java.util.concurrent.Callable
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -26,31 +31,43 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       ).as("text/javascript")
   }
 
-  def purchaseAlbum(albumSlug: String) = {
+  def download = TransAction {
+    WithArtist {
+      artist => implicit request =>
+        import utils.ZipCreator
+        downloadForm.bindFromRequest.fold(
+          errors => NotFound(errors.errorsAsJson),
+          download => {
+            val (file, name) = ZipCreator(artist, download, request)
+            if (file.isDefined) Ok.sendFile(file.get, fileName = _ => name) else BadRequest("invalid_url")
+
+
+          }
+        )
+
+    }
+
 
   }
 
-  def purchaseTrack(albumSlug: String, trackSlug: String) = {
-
-  }
 
   def index = optionalUserAction {
     artist => implicit request =>
     // artist.map(_ => {
       Ok(views.html.index())
     /*}).getOrElse({
-     val data = Map("username" -> "cideas", "password" -> "cideas")
-     db {
-       loginForm.bind(data).fold(
-         formWithErrors => BadRequest(html.login(formWithErrors)),
-         user => {
+    val data = Map("username" -> "cideas", "password" -> "cideas")
+    db {
+      loginForm.bind(data).fold(
+        formWithErrors => BadRequest(html.login(formWithErrors)),
+        user => {
 
-           models.Artist.updateDomain(user.get.id, "cideas")
-           gotoLoginSucceeded(user.get.id)
-         }
-       )
+          models.Artist.updateDomain(user.get.id, "cideas")
+          gotoLoginSucceeded(user.get.id)
+        }
+      )
 
-     }
+    }
    }) */
 
 

@@ -15,10 +15,14 @@ import play.api.libs.Crypto
 object Utils {
 
 
-
-  def slugify(str: String): String = {
+  def normalize(str: String, whiteSpace: String = "-"): String = {
     import java.text.Normalizer
-    Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", "-").toLowerCase
+    Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", whiteSpace)
+  }
+
+  def slugify(str: String, lower: Boolean = true): String = {
+
+    normalize(str, "-").toLowerCase
   }
 
   private val CONTEXT_USER_ID = "_user_id_"

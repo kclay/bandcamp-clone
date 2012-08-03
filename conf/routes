@@ -17,6 +17,7 @@ GET     /signup                     controllers.Application.signup
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 
 
+GET /download                       controllers.Application.download
 
 GET     /album/:name                controllers.Application.album(name:String)
 GET     /track/:name                controllers.Application.track(name:String)

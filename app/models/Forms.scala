@@ -22,15 +22,20 @@ object Forms {
 
 
   val downloadForm = Form(
-    tuple(
-      "download" -> mapping(
-        "from" -> text,
-        "token" -> text,
-        "item" -> text,
-        "kind" -> text
-      )(Download.apply)(Download.unapply),
+
+    mapping(
+      "token" -> text,
+      "item" -> text,
+
+
+
+      "kind" -> text,
+      "from" -> text,
       "sig" -> text
-    )
+    )(Download.apply)(Download.unapply)
+
+
+
   )
   val purchaseForm = Form {
     tuple("artist_id" -> longNumber, "price" -> of[Double])

@@ -285,6 +285,47 @@ class AudioDataStore extends DataStore {
 
   }
 
+  def zipFile(kind: String, id: String) = new File(temp, "zips/" + kind + "/" + id + ".zip")
+
+  def zip(kind: String, id: String) = {
+    val file = zipFile(kind, id)
+    if (file.exists()) Some(file) else None
+  }
+
+  def asZip(output: File, files: Iterable[(String, File)])(setter: (Int, String) => String) = {
+    import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
+    import java.util.zip.{ZipEntry, ZipOutputStream}
+    output.getParentFile.mkdirs()
+    val zip = new ZipOutputStream(new FileOutputStream(output))
+    zip.setLevel(6)
+
+
+    for (((name, file), index) <- files.zipWithIndex) {
+
+
+      val b = new Array[Byte](1024)
+      val entry = new ZipEntry(setter(index+1, name))
+      val in = new BufferedInputStream(new FileInputStream(file))
+      entry.setSize(file.length())
+
+      zip.putNextEntry(entry)
+
+
+      var count = in.read(b)
+      while (count > 0) {
+
+        zip.write(b, 0, count)
+        count = in.read(b)
+      }
+
+      in.close()
+      zip.closeEntry()
+    }
+    zip.close()
+
+
+  }
+
   override def toRoot(session: String) = album(session)
 
   override def toDir(session: String) = album(session)

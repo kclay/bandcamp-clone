@@ -14,8 +14,10 @@ case class Signup(username: String, password: String, email: String, name: Strin
 
 case class AlbumModel(album: Album)
 
-case class Download(token: String, item: String, kind: String, from: String = "email") {
+case class Download(token: String, item: String, kind: String, from: String = "email", sig: String = "") {
 
+
+  lazy val withItem = Transaction.withItem(token).get
 
   def url(implicit request: RequestHeader) = "http://%s/download?from=%s&token=%s&item=%s&kind=%s".format(
     request.host, from, token, item, kind)
@@ -26,7 +28,9 @@ case class Download(token: String, item: String, kind: String, from: String = "e
   }
 
 
-  def valid(sig: String)(implicit request: RequestHeader) = {
-    Crypto.sign(url(request)) == sig
+  def valid(implicit request: RequestHeader) = {
+    val u = url(request)
+    val maybeSig = Crypto.sign(u)
+    maybeSig.equals(sig)
   }
 }

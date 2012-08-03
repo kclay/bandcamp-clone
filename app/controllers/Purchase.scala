@@ -56,40 +56,41 @@ object Purchase extends Controller with SquerylTransaction {
   def callback() = TransAction {
     implicit request =>
       paypalCallbackForm.bindFromRequest.fold(
-        errors => BadRequest("wtf"),
+        errors => BadRequest("invalid_callback"),
         token => {
           val details = PayPal details (token)
           Transaction.status(token, Transaction.STATUS_CALLBACK)
           if (PayPal ok details) {
             val email = "info@ihaveinternet.com" //details.get(PayPal.FIELD_EMAIL).get
             val commit = PayPal.commit(details)
-            //if (PayPal ok commit) {
-            Transaction.commit(token,
-              commit get (PayPal.FIELD_CORRELATIONID),
-              commit get (PayPal.FIELD_TRANSACTIONID)
-            )
-            Transaction.withArtistAndItem(token).map {
-              case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
-                import play.api.Play.current
-                import com.typesafe.plugin._
-                val download = new Download(token, item.signature, item.itemType)
-                val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.url).body
-                val textContent = html.email.downloadText(artist.name, item.itemTitle, download.url).body
-                val mail = use[MailerPlugin].email
-                mail.setSubject("Your download from %s".format(artist.name))
-                mail.addRecipient(email)
-                mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
+            val commited = PayPal ok commit
+            if (commited) {
+              Transaction.commit(token,
+                commit get (PayPal.FIELD_CORRELATIONID),
+                commit get (PayPal.FIELD_TRANSACTIONID)
+              )
+              Transaction.withArtistAndItem(token).map {
+                case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
+                  import play.api.Play.current
+                  import com.typesafe.plugin._
+                  val download = new Download(token, item.signature, item.itemType)
+                  val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.signedURL).body
+                  val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
+                  val mail = use[MailerPlugin].email
+                  mail.setSubject("Your download from %s".format(artist.name))
+                  mail.addRecipient(email, "ken@universalwebcaster.com")
+                  mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
 
-                //sends both text and html
-                mail.send(textContent, htmlContent)
-              case _ =>
+                  //sends both text and html
+                  mail.send(textContent, htmlContent)
+                case _ =>
+              }
+              Ok("Details : %s\n\n Commit : %s\n".format(details.mkString("\n"), commit.mkString("\n")))
+
+              // http :// meekmill.bandcamp.com / download ? enc = any & from = email & id = 1329670172 & payment_id = 559531198 & sig = 68d 2746055 ab8bca2df60e14d793c494 & type = album
+            } else {
+              BadRequest("error")
             }
-            Ok("Details : %s\n\n Commit : %s\n".format(details.mkString("\n"), commit.mkString("\n")))
-
-            // http :// meekmill.bandcamp.com / download ? enc = any & from = email & id = 1329670172 & payment_id = 559531198 & sig = 68d 2746055 ab8bca2df60e14d793c494 & type = album
-            /* } else {
-             BadRequest("error")
-           } */
           } else {
             BadRequest("error_no_details")
           }

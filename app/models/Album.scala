@@ -62,6 +62,11 @@ object Album {
     ).headOption
   )
 
+  def bySession(artistId: Long, session: String) = inTransaction(from(albums)(a =>
+    where(a.artistID === artistId and a.session === session)
+      select (a)
+  ).headOption)
+
   def validateSlug(artistId: Long, slug: String) =
     bySlug(artistId, slug).map(a => true).getOrElse(false)
 
@@ -92,6 +97,23 @@ object Album {
 
 
 case class AlbumTracks(@Column("album_id") albumID: Long, @Column("track_id") trackID: Long, order: Int) {
+
+
+}
+
+object AlbumTracks {
+
+  import SiteDB._
+
+  def withAlbum(trackID: Long) =
+    join(albumTracks, albums)((at, a) =>
+      where(at.trackID === trackID )
+        select (a)
+
+        on (at.albumID === a.id)
+
+
+    ).headOption
 
 
 }
@@ -139,6 +161,8 @@ object Track {
     where(t.id === id)
       set (t.active := true)
   )
+
+  def byFile(artistID: Long, file: String): Option[Track] = inTransaction(tracks.where(t => t.artistID === artistID and t.file === Some(file)).headOption)
 }
 
 

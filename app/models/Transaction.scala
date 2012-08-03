@@ -42,6 +42,17 @@ object Transaction {
 
   def fromTimestamp(date: String) = timeFormatter format date
 
+  def withItem(token:String)={
+    byToken(token).map {
+      t =>
+        val item = if (t.kind == PURCHASE_ALBUM)
+          albums.where(a => a.id === t.itemID).head
+        else tracks.where(t => t.id === t.itemID).head
+
+       Some(item)
+
+    }.getOrElse(None)
+  }
   def withArtistAndItem(token: String) = {
     byToken(token).map {
       t =>
