@@ -54,7 +54,7 @@
 
     <fieldset class="control-group">
         @inputText(track("name"),'_label->"",'placeholder->"track name",
-        'title->"track name",'_showConstraints->false)
+        'title->"track name",'_showConstraints->false,'maxlength->"45")
 
         @input(track("releaseDate"),'_style->"date",'_label->"release date:",
         'placeholder->"optional",
@@ -83,7 +83,8 @@
         @textarea(track("lyrics"),'_label->"lyrics")
         @textarea(track("credits"),'_label->"track credits")
         @inputText(track("artist"),
-        '_label->"Track artist",
+        '_label->"Track artist",'maxlength->"45",
+
         'placeholder->"leave blank to use band name",
         '_help->"for complications, labels, etc.")
 

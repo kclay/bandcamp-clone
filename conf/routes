@@ -75,7 +75,7 @@ GET     /crossdomain.xml               controllers.Assets.at(path="/public", fil
 GET     /media/*file               controllers.Assets.at(path="/public/media", file)
 
 
-GET  /:page                         controllers.Application.page(page:String)
+GET  /:page                         controllers.Application.page(path="/public/html/",page:String)
 
 
 POST /purchase/album/:album                controllers.Purchase.album(album:String)

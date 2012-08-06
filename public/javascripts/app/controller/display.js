@@ -6,7 +6,9 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         el:".display",
         events:{
             "click .track-title-column a":"play",
-            "click .track-download-column a":"download"
+            "click .track-download-column a":"download",
+            "click tr.active .track-play-column a":"pause",
+            "click tr:not(.active) .track-play-column a":"play"
         },
 
         initialize:function () {
@@ -15,14 +17,56 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             var player = this.player = new Player({
                 files:window.app_config.playlist
             });
+            player.on("change", this._onPlayerChange, this)
+                .on("play", this._onFirstPlay, this)
+                .on("pause", this._onPause, this);
             $("table tr").each(function () {
                 new TrackView({el:this, player:player})
             })
+            this._currentIndex = -1;
+            this.$tracks = this.$("#track-list tr");
+        },
+        _onPause:function () {
+            this._onPlayerChange(this._currentIndex, true);
+        },
+        _onFirstPlay:function (index) {
+            this._init = true;
+            this._currentIndex = index;
+            this._onPlayerChange(index)
+            this.player.off("play", this._onFirstPlay)
+        },
+        _onPlayerChange:function (index, pause) {
+
+            if (!this._init)return;
+
+            $(this.$tracks.get(this._currentIndex)).removeClass("active")
+                .find(".track-play-column i")
+                .removeClass().addClass("icon-play")
+
+            if (!pause) {
+                $(this.$tracks.get(index)).addClass("active")
+                    .find(".track-play-column i")
+                    .removeClass().addClass("icon-pause")
+            }
+            this._currentIndex = index;
+        },
+        pause:function (event) {
+            this.player.pause();
         },
         play:function (event) {
 
 
-            this.player.item(this.index(event));
+            var index = this.index(event);
+            if (index == this._currentIndex) {
+                if (this.player.paused()) {
+                    this.player.play();
+                }
+            } else {
+
+                this.player.item(index);
+
+            }
+
             return false;
         },
         index:function (event) {
@@ -104,6 +148,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         events:{
             "click a.play":"play",
             "click a.playing":"pause",
+
             "click a.next":"next",
             "click a.prev":"prev"
 
@@ -125,6 +170,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
                 .onReady(_.bind(this._onReady, this))
                 .onPlay(_.bind(this._onPlay, this))
                 .onMeta(_.bind(this._onMeta, this))
+                .onPlaylistItem(_.bind(this._onPlaylistItem, this))
                 .onBufferChange(_.bind(this._onBufferChange, this))
 
 
@@ -143,6 +189,10 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             this.render(0)
 
 
+        },
+        _onPlaylistItem:function (event) {
+            this._currentIndex = event.index;
+            this.trigger("change", this._currentIndex);
         },
         _onReady:function () {
 
@@ -164,6 +214,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         },
         _onPause:function (event) {
             this._state(State.PLAY)
+            this.trigger("pause");
         },
         _onMeta:function () {
 
@@ -193,13 +244,16 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         },
         item:function (index) {
             this.player.playlistItem(index);
-            this._currentIndex = index;
+
             this._state(State.BUSY);
+            this.trigger("play", index)
             this.render();
         },
         play:function () {
             this._state(State.BUSY);
             this.player.play(true);
+            this.trigger("play", this._currentIndex);
+            this.trigger("change", this._currentIndex);
         },
         pause:function () {
             this.player.pause(true);
@@ -231,6 +285,9 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             } else {
                 return '' + nbr;
             }
+        },
+        paused:function () {
+            return this.player.getState() == "PAUSED";
         },
         render:function (position) {
             position = typeof position == "undefined" ? this.$slider.slider("value") : position;

@@ -20,6 +20,11 @@ object Utils {
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\w ]", "").replace(" ", whiteSpace)
   }
 
+  def price(p: Double) = {
+    import java.text.NumberFormat
+    NumberFormat.getCurrencyInstance().format(p)
+  }
+
   def slugify(str: String, lower: Boolean = true): String = {
 
     normalize(str, "-").toLowerCase
@@ -60,5 +65,11 @@ object Utils {
 
     if (args.containsKey(CONTEXT_USER_ID)) Some(args.get(CONTEXT_USER_ID).asInstanceOf[Long]) else None
 
+  }
+
+  def mediaURL = {
+    import play.api.Play.current
+    import play.api.Play
+    Play.configuration.getString("server.media")
   }
 }

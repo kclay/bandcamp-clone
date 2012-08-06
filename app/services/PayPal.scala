@@ -23,7 +23,7 @@ case class Nvp() {
   }
 }
 
-case class PayPal() {
+trait PayPalClient {
 
   import play.api.Play.current
 
@@ -43,8 +43,9 @@ case class PayPal() {
 
   lazy val site = if (env == "sandbox") "https://www.sandbox.paypal.com/cgi-bin/webscr?" else "https://www.paypal.com/cgi-bin/webscr?"
 
+  def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = ""
 
-  private def defaultParams(method: String) = {
+  protected def defaultParams(method: String) = {
     val params = new Nvp()
 
 
@@ -60,7 +61,7 @@ case class PayPal() {
     params
   }
 
-  def express(title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {
+  def checkout(title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {
     val params = defaultParams("SetExpressCheckout")
 
     // Add login infos
@@ -132,6 +133,45 @@ case class PayPal() {
   private def decode(data: String) = java.net.URLDecoder.decode(data, "UTF-8")
 }
 
+case class PaypalExpress() extends PayPalClient
+
+case class PaypalAdaptive() extends PayPalClient {
+
+  lazy val api = "https://svcs.%s.paypal.com/AdaptivePayments/Pay".format(env)
+  lazy val account = config.getString("paypal.account").get
+  lazy val percentage = config.getBytes("paypal.percentage").get
+
+  def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {
+    val fee = (amount * percentage)
+    val params = new Nvp()
+      .put("actionType", "PAY")
+      .put("receiverList.receiver(0).email", account)
+      .put("receiverList.receiver(0).amount", decimalFormat.format(fee))
+      .put("receiverList.receiver(0).paymentType","DIGITALGOODS")
+
+      .put("feesPayer", "PRIMARYRECEIVER")
+      //.put("senderEmail", account)
+      .put("currencyCode", "USD")
+      .put("cancelUrl", cancelURL)
+      .put("returnUrl", returnURL)
+      .put("receiverList.receiver(1).email", email)
+      .put("receiverList.receiver(1).amount", decimalFormat.format(amount - fee))
+      .put("receiverList.receiver(1).primary", "true")
+      .put("receiverList.receiver(1).paymentType","DIGITALGOODS")
+      .put("requestEnvelope.errorLanguage", "en_US")
+
+    val results = call(params)
+    results.get("payKey")
+
+  }
+
+  override def amount(token: String) = {
+
+    val value = details(token).get("PAYMENTREQUEST_0_AMT").getOrElse("0")
+    java.lang.Double.parseDouble(value)
+  }
+}
+
 object PayPal {
 
   import play.api.Play.current
@@ -144,7 +184,7 @@ object PayPal {
   lazy val config = app.configuration
   lazy val env = config.getString("paypal.env").get
   lazy val site = if (env == "sandbox") "https://www.sandbox.paypal.com/cgi-bin/webscr?" else "https://www.paypal.com/cgi-bin/webscr?"
-  lazy val service = new PayPal()
+  lazy val service = new PaypalExpress()
 
   def url(token: String): String = site + "cmd=_express-checkout&token=" + token
 
@@ -158,6 +198,10 @@ object PayPal {
 
   def amount(token: String) = {
     service.amount(token)
+  }
+
+  def apply(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {
+    service.checkoutWithEmail(email, title, amount, returnURL, cancelURL, currencyCode)
   }
 
   def apply(title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD") = {

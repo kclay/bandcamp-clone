@@ -1,0 +1,16 @@
+@(item:String)(implicit request: play.api.mvc.RequestHeader)
+
+@nav={
+
+}
+@common("Paypal Checkout Completed",nav,"inner"){
+<div id="inner-wrap" class="row content-wrap">
+
+    Thank you, your purchase for @item has been made. Please check your email account tied to paypal for your download
+    link.
+
+    <a href="/"> Go back to the site </a>
+
+
+</div>
+}

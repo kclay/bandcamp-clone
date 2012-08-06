@@ -1,0 +1,14 @@
+@(message:String)(implicit request: play.api.mvc.RequestHeader)
+@nav={
+
+}
+@common("Paypal Error",nav,"inner"){
+<div id="inner-wrap" class="row content-wrap">
+
+    @message
+
+    Please start at the <a href="/">beginning and you'll certainly find what you're looking for.</a>
+
+
+</div>
+}

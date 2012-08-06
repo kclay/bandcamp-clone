@@ -19,18 +19,20 @@ case class Download(token: String, item: String, kind: String, from: String = "e
 
   lazy val withItem = Transaction.withItem(token).get
 
-  def url(implicit request: RequestHeader) = "http://%s/download?from=%s&token=%s&item=%s&kind=%s".format(
-    request.host, from, token, item, kind)
+  def query = "from=%s&token=%s&item=%s&kind=%s".format(from, token, item, kind)
+
+  def url(implicit request: RequestHeader) = "http://%s/download?%s".format(
+    request.host, query)
 
   def signedURL(implicit request: RequestHeader) = {
     val u = url(request)
-    u + "&sig=" + Crypto.sign(u)
+    u + "&sig=" + Crypto.sign(query)
   }
 
 
   def valid(implicit request: RequestHeader) = {
     val u = url(request)
-    val maybeSig = Crypto.sign(u)
+    val maybeSig = Crypto.sign(query)
     maybeSig.equals(sig)
   }
 }

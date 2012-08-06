@@ -21,6 +21,8 @@ abstract class Zip(artist: String) {
 
   def file: Option[java.io.File] = None
 
+  def uri: String = file.map(_.getAbsolutePath.replace(audioStore.temp.getAbsolutePath, "")).getOrElse("").replace("\\","/")
+
   def url(implicit request: RequestHeader): String = {
     if (file.isEmpty) toZip
     audioStore.toURL(request.host, file.get)
@@ -84,7 +86,7 @@ object Zip {
 object ZipCreator {
 
 
-  def apply(artist: Artist, download: Download, request: RequestHeader): (Option[File], String) = {
+  def apply(artist: Artist, download: Download, request: RequestHeader): Option[(Zip, String)] = {
 
     import org.squeryl.PrimitiveTypeMode.inTransaction
 
@@ -101,9 +103,9 @@ object ZipCreator {
           }
 
         }
-        (zip.file, fileName)
+        Some(zip, fileName)
       } else {
-        (None, "")
+        None
       }
 
     }

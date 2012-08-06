@@ -1,3 +1,6 @@
+#main-header{
+    height:100px;
+}
 #signup-button {
     background: url('/assets/images/signup_button.png') no-repeat;
     width: 185px;
@@ -68,13 +71,16 @@
     .border-radius(5px);
 }
 
-#welcome {
+.welcome {
     text-align: center;
     p {
 
         color: #666;
         width: 500px;
         margin: 35px auto 65px;
+    }
+    a.btn {
+        margin: 0 30px;
     }
 }
 
@@ -248,6 +254,7 @@ body.inner {
 
 #inner-wrap {
     width: 935px;
+    height: 100%;
 }
 
 #my-albums {
@@ -594,6 +601,32 @@ body.inner {
     top: -999999px;
 }
 
+#purchase-price {
+    display: table;
+}
+
+#btn-purchase {
+    margin-left: 30%;
+}
+
+#track-list {
+    tr {
+        font-size: 85%;
+        &.active {
+            .track-title-column a{
+                font-weight: 700;
+            }
+        }
+
+        &.active, &:hover {
+            .track-info-column div, .track-download-column div {
+                visibility: visible;
+            }
+        }
+    }
+}
+
+
 .track-play-column {
     width: 17px;
 }
@@ -605,23 +638,18 @@ body.inner {
 .track-title-column {
     width: 220px;
     .track-time {
-        font-size: 85%;
+
         padding-left: 0.3em;
     }
 }
 
 .track-info-column div, .track-download-column div {
     width: 25px;
-    font-size: 85%;
+
     margin-right: 5px;
     display: inline-block;
     padding-right: 0.3em;
+    visibility: hidden;
 }
 
-#purchase-price {
-    display: table;
-}
 
-#btn-purchase {
-    margin-left: 30%;
-}

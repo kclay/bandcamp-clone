@@ -9,7 +9,7 @@
 
 <fieldset class="control-group">
     @inputText(album("name"),'_label->"",'placeholder->"track name",
-    'title->"track name",'_showConstraints->false)
+    'title->"track name",'_showConstraints->false,'maxlength->"45")
     @input(album("releaseDate"),'_style->"date",'_label->"release date:",
     'placeholder->"optional",
     '_help->"mm/dd/yy leave blank to use publish date"){(id, name, value, args) =>
@@ -37,7 +37,7 @@
     @inputText(album("artist"),
     '_label->"Artist Name",
     'placeholder->"leave blank to use band name",
-    '_help->"for complications, labels, etc.")
+    '_help->"for complications, labels, etc.",'maxlength->"45")
 
     @textarea(album("about"),'_label->"about this album")
 

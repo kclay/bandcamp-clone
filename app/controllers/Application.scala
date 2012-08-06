@@ -3,18 +3,18 @@ package controllers
 import models._
 import actions.Actions._
 import play.api._
-import libs.concurrent.Akka
+
 import play.api.mvc._
 import views._
 import models.Forms._
 import jp.t2v.lab.play20.auth._
 import models.SiteDB._
 import actions.SquerylTransaction
+import Play.current
 
 
-import utils.Zip
+import utils.{ZipCreator, Zip}
 import java.io.File
-import java.util.concurrent.Callable
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -32,18 +32,21 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       ).as("text/javascript")
   }
 
+
   def download = TransAction {
     WithArtist {
       artist => implicit request =>
-        import utils.ZipCreator
+
         downloadForm.bindFromRequest.fold(
           errors => NotFound(errors.errorsAsJson),
           download => {
-            val (file, name) = ZipCreator(artist, download, request)
-            if (file.isDefined) Ok.sendFile(file.get, fileName = _ => name) else BadRequest("invalid_url")
-
-
+            ZipCreator(artist, download, request).map {
+              case (zip, name) => Ok.withHeaders("X-Accel-Redirect" -> zip.uri)
+                .withHeaders(CONTENT_DISPOSITION -> "attachment; filename=%s".format(name))
+                .withHeaders(CONTENT_TYPE -> "application/zip")
+            }.getOrElse(NotFound).asInstanceOf[Result]
           }
+
         )
 
     }
@@ -54,22 +57,8 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   def index = optionalUserAction {
     artist => implicit request =>
-    // artist.map(_ => {
+
       Ok(views.html.index())
-    /*}).getOrElse({
-    val data = Map("username" -> "cideas", "password" -> "cideas")
-    db {
-      loginForm.bind(data).fold(
-        formWithErrors => BadRequest(html.login(formWithErrors)),
-        user => {
-
-          models.Artist.updateDomain(user.get.id, "cideas")
-          gotoLoginSucceeded(user.get.id)
-        }
-      )
-
-    }
-   }) */
 
 
   }
@@ -153,14 +142,37 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
         Album.bySlug(artist.id, name).map(album =>
           Ok(html.display.album(artist, album, Album.withTracks(album.id).toList))
-        ) getOrElse (NotFound("Album not found"))
+        ) getOrElse (NotFound)
 
     }
   }
 
-  def page(name: String) = Action {
+  def page(path: String, file: String) = Action {
     implicit request =>
-      Ok("name " + name)
+
+
+      val resourceName = Option(path + file + ".html").map(name => if (name.startsWith("/")) name else ("/" + name)).get
+
+      if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
+        NotFound
+      } else {
+
+
+        val resource = {
+          Play.resource(resourceName + ".gz").map(_ -> true)
+            .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
+            .orElse(Play.resource(resourceName).map(_ -> false))
+        }
+        resource.map {
+          case (url, _) if new File(url.getFile).isDirectory => NotFound
+
+          case (url, isGzipped) => {
+
+            val content = scala.io.Source.fromFile(url.getFile).mkString
+            Ok(html.page(file, content))
+          }:Result
+        }.getOrElse(NotFound)
+      }
 
   }
 

@@ -68,7 +68,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
         Album.bySlug(artist.id, name).map {
           a =>
             Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
-        }.getOrElse(BadRequest("not_found"))
+        }.getOrElse(NotFound)
     }
   }
 
@@ -78,24 +78,8 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       Ok(html.artist.addTrack(singleTrackForm))
   }
 
-  def insertTrack = authorizedAction(NormalUser) {
-    implicit artist => implicit request =>
 
-      singleTrackForm.bindFromRequest.fold(
-        errors => BadRequest(""),
-        track => {
 
-          Ok("") //generate(track.save()))
-        }
-      )
-
-  }
-
-  def publishTrack(id: Long) = authorizedAction(NormalUser) {
-    artist => implicit request =>
-      Track.publish(id)
-      Ok("")
-  }
 
 
   /*private def insertTrack(track: Track) =

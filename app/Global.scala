@@ -57,6 +57,10 @@ object Global extends GlobalSettings {
 
   def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
 
+  override def onHandlerNotFound(request: RequestHeader): Result = {
+    NotFound(views.html.notFound(request))
+  }
+
   /*SessionFactory.concreteFactory = Some(
 () => Session.create(DB.getDataSource().getConnection(),
 dbAdapter))    */

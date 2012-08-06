@@ -8,6 +8,8 @@ import services.PayPal
 import models.Forms.{purchaseForm, paypalCallbackForm}
 import scala.Some
 import views._
+import models.Download
+import scala.Some
 
 /**
  * Created by IntelliJ IDEA.
@@ -61,7 +63,9 @@ object Purchase extends Controller with SquerylTransaction {
           val details = PayPal details (token)
           Transaction.status(token, Transaction.STATUS_CALLBACK)
           if (PayPal ok details) {
-            val email = "info@ihaveinternet.com" //details.get(PayPal.FIELD_EMAIL).get
+            var email = details.get(PayPal.FIELD_EMAIL).get
+            if (email.contains("conceptual-ideas.com"))
+              email = "info@ihaveinternet.com";
             val commit = PayPal.commit(details)
             val commited = PayPal ok commit
             if (commited) {
@@ -78,21 +82,27 @@ object Purchase extends Controller with SquerylTransaction {
                   val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
                   val mail = use[MailerPlugin].email
                   mail.setSubject("Your download from %s".format(artist.name))
-                  mail.addRecipient(email, "ken@universalwebcaster.com")
+                  mail.addRecipient(email)
                   mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
 
                   //sends both text and html
-                  mail.send(textContent, htmlContent)
+                  try {
+                    mail.send(textContent, htmlContent)
+                  } catch {
+                    case _ =>
+                  }
+
                 case _ =>
               }
+              //Ok(html.paypalSuccess(item.itemType))
               Ok("Details : %s\n\n Commit : %s\n".format(details.mkString("\n"), commit.mkString("\n")))
 
               // http :// meekmill.bandcamp.com / download ? enc = any & from = email & id = 1329670172 & payment_id = 559531198 & sig = 68d 2746055 ab8bca2df60e14d793c494 & type = album
             } else {
-              BadRequest("error")
+              BadRequest(html.paypalError("Unable to process your request"))
             }
           } else {
-            BadRequest("error_no_details")
+            BadRequest(html.paypalError("Unable to process your request"))
           }
         }
 

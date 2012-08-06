@@ -1,0 +1,29 @@
+@(index:Int,track:Track)
+<tr data-track="@index">
+
+    <td class="track-play-column"><a href="#"><i class="icon-play"></i></a></td>
+    <td class="track-number-column"><span class="track-number">@(index+1).</span></td>
+    <td class="track-title-column">
+        <a href="#" itemprop="url">@track.name</a>
+        <span class="track-time">@track.withTime</span>
+    </td>
+    <td class="track-info-column">
+        <div>
+            <a href="/track/@track.slug">info</a>
+        </div>
+        @if(track.lyrics.isDefined){
+            <div>
+                <a href="/track/@(track.slug)#lyrics">lyrics</a>
+            </div>
+        }
+
+    </td>
+    @if(track.download){
+    <td class="track-download-column">
+        <div>
+            <a href="/track/@(track.slug)/download">download</a>
+        </div>
+    </td>
+    }
+
+</tr>

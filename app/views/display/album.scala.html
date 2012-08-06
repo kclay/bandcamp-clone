@@ -1,9 +1,10 @@
 @(artist:Artist,album:Album,tracks:List[Track])(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
+@import utils.Utils.price
 @addTracks(domain:String)={
-    @tracks.map{t=>
-        pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@escapeJavaScript(t.name)', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
-    }
+@tracks.map{t=>
+pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@escapeJavaScript(t.name)', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
+}
 }
 @display.templateBuy()
 @main(album.name,"display-album display"){
@@ -17,7 +18,7 @@
         }
     })
 </script>
-<div class="span5">
+<div id="details-left" class="span5">
     <h2 class="trackTime">@album.name</h2>
 
     <h3>by @album.artistName.getOrElse(artist.name)</h3>
@@ -58,41 +59,24 @@
         format
         you could possibly desire.</p>
 
-    <table>
+    <p>
+        <a href="/album/@(album.slug)/download">Buy Now</a>  @price(album.price) USD  or more
+    </p>
+
+    <table id="track-list">
 
         @for((t,i) <-tracks.view.zipWithIndex){
-        <tr data-track="@i">
-
-            <td class="track-play-column"><a href="#"><i class="icon-play"></i></a></td>
-            <td class="track-number-column"><span class="track-number">@(i+1).</span></td>
-            <td class="track-title-column">
-                <a href="#" itemprop="url">@t.name</a>
-                <span class="track-time">@t.withTime</span>
-            </td>
-            <td class="track-info-column">
-                <div>
-                    <a href="/track/@t.slug">info</a>
-                </div>
-                <div>
-                    <a href="/track/@(t.slug)#lyrics">lyrics</a>
-                </div>
-
-            </td>
-            @if(t.download){
-            <td class="track-download-column">
-                <div>
-                    <a href="/track/@(t.slug)/download">download</a>
-                </div>
-            </td>
-            }
-
-        </tr>
+        @display.track(i,t)
         }
     </table>
 </div>
 
-<div class="span5 pull-right">
-
+<div id="details-right" class="span5 pull-left">
+    <div class="album-art">
+        @if(!album.artURL.isEmpty){
+            <img src="@album.artURL"/>
+        }
+    </div>
 
 </div>
 
