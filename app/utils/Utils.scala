@@ -3,6 +3,7 @@ package utils
 import models.{SaleAbleItem, Artist}
 import play.api.mvc.RequestHeader
 import play.api.libs.Crypto
+import play.api.Logger
 
 /**
  * Created by IntelliJ IDEA.
@@ -70,11 +71,13 @@ object Utils {
   def mediaURL = {
     import play.api.Play.current
     import play.api.Play
-    Play.configuration.getString("server.media")
+
+    Play.configuration.getString("server.media").get
   }
+
   def uploadURL = {
     import play.api.Play.current
     import play.api.Play
-    Play.configuration.getString("server.upload")
+    Play.configuration.getString("server.upload").get
   }
 }

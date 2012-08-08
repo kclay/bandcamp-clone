@@ -31,11 +31,15 @@ object Artist {
 
   private def hash(pass: String): String = pass
 
-  def findByEmail(email: String): Option[Artist] = artists.where(a => a.email === email).headOption
+  def byEmail(email: String): Option[Artist] = artists.where(a => a.email === email).headOption
+
+  def byEmailOrName(value: String) = artists.where(a => a.email === value or a.username === value).headOption
 
   def find(id: Long): Option[Artist] = artists.where(a => a.id === id).headOption
 
-
+  def updatePassword(artistID: Long, pass: String) = update(artists)(a => where(a.id === artistID)
+    set (a.pass := hash(pass))
+  )
 
   def updateDomain(artistId: Long, domain: String) = inTransaction {
     update(artists)(a =>

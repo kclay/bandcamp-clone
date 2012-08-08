@@ -15,7 +15,10 @@ import play.api.Play.current
 
 import utils.{ZipCreator, Zip}
 import java.io.File
-import models.{Album, NormalUser, Artist, AuthConfigImpl}
+import models._
+import play.api.Play
+
+import com.typesafe.plugin._
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -68,9 +71,58 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
 
-  def sendForgottenPassword = TODO
+  def sendForgottenPassword = TransAction {
+    Action {
+      implicit request =>
+        forgotForm.bindFromRequest.fold(
+          errors => Ok(html.forgotPassword(errors)),
+          value => {
 
-  def forgotPassword = TODO
+            val artist = value.asInstanceOf[Artist]
+            val reset = PasswordReset(artist)
+
+            val sent = Notification("BulaBowl reset password request", artist.email,
+              html.email.passwordText(artist.name, reset.token).body)
+
+            Ok(html.passwordSent())
+          }
+
+        )
+
+
+    }
+  }
+
+  def resetPassword(token: String) = TransAction {
+    Action {
+      PasswordReset.find(token).map {
+        r => Ok(html.resetPassword(resetForm))
+      }.getOrElse(BadRequest)
+    }
+  }
+
+  def updatePassword(token: String) = TransAction {
+    Action {
+      implicit request =>
+        resetForm.bindFromRequest.fold(
+          errors => Ok(html.resetPassword(errors)),
+          value => {
+            val (password, _) = value
+            PasswordReset.find(token).map {
+              r =>
+                Artist.updatePassword(r.artistID, password)
+                PasswordReset.delete(r.id)
+                Ok(html.passwordChanged())
+            }.getOrElse(BadRequest)
+          }
+        )
+    }
+  }
+
+  def forgotPassword = Action {
+    implicit request =>
+      Ok(html.forgotPassword(forgotForm))
+  }
 
   def validateSignup = Action {
     implicit request =>

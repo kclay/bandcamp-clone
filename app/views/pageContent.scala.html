@@ -1,0 +1,12 @@
+@(page:String)(content:Html)(implicit request: play.api.mvc.RequestHeader)
+@nav={
+@header()
+}
+@common(page,nav,"inner"){
+<div id="inner-wrap" class="row content-wrap" style="padding:10px;">
+
+    @content
+
+
+</div>
+}

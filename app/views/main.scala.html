@@ -1,7 +1,8 @@
 @(title: String,id: String="wrap")(content: Html)(implicit request: play.api.mvc.RequestHeader)
 
+@import utils.session._
 @nav={
-    @artist.header()
+
 }
 <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 

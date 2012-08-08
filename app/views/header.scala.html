@@ -7,14 +7,14 @@
         <div class="container">
 
             <ul class="nav">
-                <li><a href="@routes.Application.page(" features")">Features</a></li>
-                <li><a href="@routes.Application.page(" pricing")">Pricing</a></li>
+                <li><a href="@routes.Application.page("features")">Features</a></li>
+                <li><a href="@routes.Application.page("pricing")">Pricing</a></li>
 
                 <li><a href="@routes.Artists.list()">Artists</a></li>
-                <li><a href="@routes.Application.page(" faqs")>Faqs</a></li>
-                <li><a href="@routes.Application.page(" blog")">Blog</a></li>
-                @if(SessionHelper.authenticated){
+                <li><a href="@routes.Application.page("faqs")>Faqs</a></li>
 
+                @if(SessionHelper.authenticated){
+                 <li><a href="@routes.Artists.index()">My Profile</a></li>
                  <li><a href="@routes.Application.logout()">Logout</a></li>
                 }else{
                 <li><a href="@routes.Application.login()">Login</a></li>

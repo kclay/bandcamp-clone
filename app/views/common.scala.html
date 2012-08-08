@@ -1,5 +1,5 @@
 @(title: String, nav: Html = Html(""),bodyClass:String="")(content: Html)(implicit request: play.api.mvc.RequestHeader)
-@import utils.Utils
+@import utils.Utils.mediaURL
 
 <!DOCTYPE html>
 
@@ -10,10 +10,10 @@
         window["app_config"] = {
             includes:[],
             config: {
-               baseUrl:"@Utils.mediaURL/javascripts"
+               baseUrl:"@mediaURL/javascripts"
             },
             uri:{
-                media:"@Utils.mediaURL",
+                media:"@mediaURL",
                 upload:""
 
             },
@@ -25,12 +25,12 @@
         };
     </script>
     <link rel="stylesheet" media="screen" href="http://localhost:9001/assets/stylesheets/bootstrap/bootstrap.min.css"/>
-    <!--<link rel="stylesheet" media="screen" href="@(Utils.mediaURL)/stylesheets/bootstrap/bootstrap.min.css"/> -->
+    <!--<link rel="stylesheet" media="screen" href="@(mediaURL)/stylesheets/bootstrap/bootstrap.min.css"/> -->
 
-    <link rel="shortcut icon" type="image/png" href="@(Utils.mediaURL)/images/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="@(mediaURL)/images/favicon.png">
 
 
-    <script data-main="@(Utils.mediaURL)/javascripts/main" src="@(Utils.mediaURL)/javascripts/require.js" type="text/javascript"></script>
+    <script data-main="@(mediaURL)/javascripts/main" src="@(mediaURL)/javascripts/require.js" type="text/javascript"></script>
 
 </head>
 <body class="@bodyClass">

@@ -6,6 +6,7 @@
 GET     /                           controllers.Application.index
 POST    /forgot_password            controllers.Application.sendForgottenPassword
 GET     /forgot_password            controllers.Application.forgotPassword
+GET     /reset_password/:token             controllers.Application.resetPassword(token:String)
 POST    /login                      controllers.Application.login
 GET     /login                      controllers.Application.login
 

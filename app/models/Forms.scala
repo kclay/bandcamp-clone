@@ -21,6 +21,18 @@ import models._
 object Forms {
 
 
+  val forgotForm = Form(
+    single("email" -> email)
+  )
+  val resetForm = Form(
+    tuple(
+      "password" -> text,
+      "confirm_password" -> text
+    ) verifying(
+      // Add an additional constraint: both passwords must match
+      "Passwords don't match", passwords => passwords._1 == passwords._2
+      )
+  )
   val downloadForm = Form(
 
     mapping(
@@ -28,12 +40,10 @@ object Forms {
       "item" -> text,
 
 
-
       "kind" -> text,
       "from" -> text,
       "sig" -> text
     )(Download.apply)(Download.unapply)
-
 
 
   )
@@ -79,7 +89,7 @@ object Forms {
       }),
       "password" -> text(minLength = 6),
       "email" -> email.verifying("This email has already been registered", {
-        models.Artist.findByEmail(_).isEmpty
+        models.Artist.byEmail(_).isEmpty
       }
       ),
       "name" -> text(minLength = 4),
@@ -92,7 +102,7 @@ object Forms {
       "This username is not avilable",
       (s: Signup) =>! Seq("admin", "guest").contains(s.username) && Artists$.findByName(s.username).isEmpty
     ).verifying("This email has already been registered",
-      (s: Signup) => Artists$.findByEmail(s.email).isEmpty
+      (s: Signup) => Artists$.byEmail(s.email).isEmpty
     )  */
 
   }
