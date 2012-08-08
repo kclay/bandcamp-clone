@@ -14,6 +14,8 @@
             "modal":"libs/bootstrap-modal",
             "html5":"libs/jquery/jquery.html5_upload"
         },
+
+
         shim:{
 
             'backbone':{
@@ -36,7 +38,7 @@
 
         }
     }
-    config = $.extend(true,{}, config,app_config.config)
+    config = $.extend(true, {}, config, app_config.config)
     require.config(config);
 
 

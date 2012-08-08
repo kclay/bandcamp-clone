@@ -22,7 +22,7 @@ object Mocks extends Controller with Auth with AuthConfigImpl with WithDB {
 
   def paypal() = Action {
     implicit request =>
-      PayPal("First Test", 10.0, "http://" + request.host + "/mocks/paypal/callback", "http://yahoo.com").map(
+      PayPal("a@yahoo.com", "First Test", 10.0, "http://" + request.host + "/mocks/paypal/callback", "http://yahoo.com").map(
         token => Redirect(PayPal.url(token))
       ).getOrElse(Ok("no_token"))
 
@@ -35,17 +35,5 @@ object Mocks extends Controller with Auth with AuthConfigImpl with WithDB {
     )
   )
 
-  def paypalCallback = Action {
-    implicit request =>
-      callbackForm.bindFromRequest.fold(
-        errors => BadRequest("wtf"),
-        token => {
-          val details = PayPal details (token)
-          if (PayPal ok details) Ok(PayPal commit details mkString ("\n")) else BadRequest("error")
-        }
 
-      )
-
-
-  }
 }

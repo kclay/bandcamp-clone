@@ -72,4 +72,9 @@ object Utils {
     import play.api.Play
     Play.configuration.getString("server.media")
   }
+  def uploadURL = {
+    import play.api.Play.current
+    import play.api.Play
+    Play.configuration.getString("server.upload")
+  }
 }

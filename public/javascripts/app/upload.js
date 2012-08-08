@@ -44,10 +44,10 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             return button;
         },
         finalize:function (options, button, hit) {
-            console.log(button.width());
+
 
             this.swf = new SWFUpload({
-                upload_url:options.uri,
+                upload_url:app_config.uri.upload + options.uri,
                 post_params:{
                     token:app_config.token,
                     session:app_config.session
@@ -140,22 +140,39 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
 
         },
+        _restoreFromError:function () {
+            /*if (!this._currentFile) {
+             this.$hit.show("slow");
+             //this.$progress.hide("");
+             this.$wrapper.hide("slow");
+             } */
+            this.$progress.fadeOut();
+            /*if (this._currentFile) {
+             this._onStatusChange("finished", this._currentFile);
+             } else {
+
+             } */
+            this._onStatusChange("error")
+            //}
+        },
         _onUploadError:function (file, errorCode) {
             switch (errorCode) {
-                case -290:
+                case SWFUpload.UPLOAD_ERROR.UPLOAD_STOPPED:
                     this.trigger("stopped");
 
                     break;
-                case -280:
-                    if (!this._currentFile) {
-                        this.$hit.show("slow");
-                        //this.$progress.hide("");
-                        this.$wrapper.hide("slow");
-                    } else {
-                        this._onStatusChange("finished", this._currentFile);
-                    }
-                    this.trigger("canceled");
+                case SWFUpload.UPLOAD_ERROR.FILE_CANCELLED:
+                    this._restoreFromError();
+
+                    if (errorCode == SWFUpload.UPLOAD_ERROR.FILE_CANCELLED)
+                        this.trigger("canceled");
                     break;
+
+                default:
+                    this.trigger("error");
+                    this._restoreFromError();
+                    break;
+
             }
             this._file = null;
         },
@@ -288,7 +305,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
                 input.html5_upload({
                     fieldName:"Filedata",
-                    url:options.uri,
+                    url:app_config.uri.upload + options.uri,
                     extraFields:{
                         token:app_config.token,
                         session:app_config.session
@@ -346,7 +363,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                     },
                     onError:function (event, name, error) {
                         //alert('error while uploading file ' + name);
-                        self._onUploadError();
+                        self._onUploadError(null, SWFUpload.UPLOAD_ERROR.IO_ERROR);
                     }
                 });
                 this.attachElements();
@@ -377,14 +394,22 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             var self = this;
             var uploadView = this.uploadView;
             var mainView = this.mainView;
-            var swf = self.swf;
+            var uploadViewDefaultSWF = uploadView.swf;
+            var currentFile = !_.isEmpty(this.model.get("file")) ? {
+                name:this.model.get("fileName")
+            } : null;
 
-            function proxy(method) {
+
+            function proxy(method, name) {
                 return function () {
                     mainView._active = true;
                     uploadView.swf = self.swf;
+                    // replace first file if avail
+                    if (name == "_onDialogComplete" && !uploadView._currentFile) {
+                        uploadView._currentFile = currentFile;
+                    }
                     var results = method.apply(uploadView, arguments);
-                    uploadView.swf = swf;
+                    uploadView.swf = uploadViewDefaultSWF;
                     mainView._active = false;
                     return results;
                 }
@@ -395,7 +420,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             _(methods).each(function (value, key) {
 
 
-                self[value] = proxy(self[value])
+                self[value] = proxy(self[value], value)
             });
             uploadView.cancelUpload = proxy(uploadView.cancelUpload);
             // reapply events

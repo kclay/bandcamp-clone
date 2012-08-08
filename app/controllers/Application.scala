@@ -1,6 +1,6 @@
 package controllers
 
-import models._
+
 import actions.Actions._
 import play.api._
 
@@ -10,11 +10,12 @@ import models.Forms._
 import jp.t2v.lab.play20.auth._
 import models.SiteDB._
 import actions.SquerylTransaction
-import Play.current
+import play.api.Play.current
 
 
 import utils.{ZipCreator, Zip}
 import java.io.File
+import models.{Album, NormalUser, Artist, AuthConfigImpl}
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -33,19 +34,22 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
 
+  def withDownload(info: Option[(String, String, String)]) =
+    info.map {
+      case (uri, name, contentType) => Ok.withHeaders("X-Accel-Redirect" -> uri)
+        .withHeaders(CONTENT_DISPOSITION -> "attachment; filename=%s".format(name))
+        .withHeaders(CONTENT_TYPE -> contentType)
+    }.getOrElse(BadRequest)
+
+
   def download = TransAction {
     WithArtist {
       artist => implicit request =>
 
         downloadForm.bindFromRequest.fold(
           errors => NotFound(errors.errorsAsJson),
-          download => {
-            ZipCreator(artist, download, request).map {
-              case (zip, name) => Ok.withHeaders("X-Accel-Redirect" -> zip.uri)
-                .withHeaders(CONTENT_DISPOSITION -> "attachment; filename=%s".format(name))
-                .withHeaders(CONTENT_TYPE -> "application/zip")
-            }.getOrElse(NotFound).asInstanceOf[Result]
-          }
+          download => download.withDownload(artist, withDownload)
+
 
         )
 
@@ -170,7 +174,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
             val content = scala.io.Source.fromFile(url.getFile).mkString
             Ok(html.page(file, content))
-          }:Result
+          }: Result
         }.getOrElse(NotFound)
       }
 

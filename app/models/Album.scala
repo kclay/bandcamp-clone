@@ -21,6 +21,8 @@ trait SaleAbleItem {
   def itemTitle: String
 
   def signature: String
+
+  def artist = Artist.find(ownerID)
 }
 
 case class Album(var id: Long = 0, var artistID: Long, session: String, name: String, artistName: Option[String], var slug: String, var active: Boolean = false,
@@ -107,7 +109,7 @@ object AlbumTracks {
 
   def withAlbum(trackID: Long) =
     join(albumTracks, albums)((at, a) =>
-      where(at.trackID === trackID )
+      where(at.trackID === trackID)
         select (a)
 
         on (at.albumID === a.id)
@@ -145,6 +147,7 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def ownerID: Long = artistID
 
   def signature: String = file.get
+  lazy val artURL: String = art.map(Image(_).url).getOrElse("")
 
 
 }

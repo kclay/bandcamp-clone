@@ -178,7 +178,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
             this._watchOverView(this.albumOverviewView);
             this.uploadDefaults = {
-                uri:"/artist/upload/audio",
+                uri:"/upload/audio",
                 limit:"291MB",
                 types:"*.wav;*.aif;*.flac"
             }
@@ -421,9 +421,9 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
 
         _addReplaceUploader:function (view) {
-            if (!this._uploaders[view]) {
-                this._uploaders[view] = new Upload.ReplaceView($.extend({},
-                    this.uploadDefaults, {el:view.overviewView.el}),
+            if (!this._uploaders[view.cid]) {
+                this._uploaders[view.cid] = new Upload.ReplaceView($.extend({},
+                    this.uploadDefaults, {el:view.overviewView.el, model:view.model}),
                     this.trackUploadView, view.overviewView);
             }
 

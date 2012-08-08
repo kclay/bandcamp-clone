@@ -1,6 +1,7 @@
-#main-header{
-    height:100px;
+#main-header {
+    height: 100px;
 }
+
 #signup-button {
     background: url('/assets/images/signup_button.png') no-repeat;
     width: 185px;
@@ -254,7 +255,7 @@ body.inner {
 
 #inner-wrap {
     width: 935px;
-    height: 100%;
+    min-height: 100%;
 }
 
 #my-albums {
@@ -477,7 +478,7 @@ body.inner {
         display: block;
     }
 
-    &.uploaded, &.processed {
+    &.uploaded, &.processed, &.error {
 
         .cancel, .progress {
             display: none;
@@ -613,7 +614,7 @@ body.inner {
     tr {
         font-size: 85%;
         &.active {
-            .track-title-column a{
+            .track-title-column a {
                 font-weight: 700;
             }
         }
@@ -625,7 +626,6 @@ body.inner {
         }
     }
 }
-
 
 .track-play-column {
     width: 17px;

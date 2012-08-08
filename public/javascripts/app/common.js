@@ -203,13 +203,21 @@ define(["underscore", "backbone", "modal"], function (_) {
         this.$el = $el;
         this.model = model;
         this.artUploadView.on("uploaded", this._onArtUploaded, this);
+        this.model.on("refresh", this._onModelRefresh, this);
+
     }
     $.extend(ArtUploader.prototype, {
+        _onModelRefresh:function () {
+            var model = this.model;
+            if (!_.isEmpty(model.get("art")) && !_.isEmpty(model.get("artURL"))) {
+                this._onArtUploaded({url:model.get("artURL"), id:model.get("art")});
+            }
+        },
         _onArtUploaded:function (info) {
             if (info.error) {
                 new FeedbackView({title:"Upload Error", message:info.error, error:true});
             } else {
-                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
+                var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".art-upload"));
                 wrapper.find("img").attr("src", info.url);
                 if (!this._artID) {
                     this._artID = info.id;

@@ -304,7 +304,7 @@ class AudioDataStore extends DataStore {
 
 
       val b = new Array[Byte](1024)
-      val entry = new ZipEntry(setter(index+1, name))
+      val entry = new ZipEntry(setter(index + 1, name))
       val in = new BufferedInputStream(new FileInputStream(file))
       entry.setSize(file.length())
 
@@ -341,6 +341,8 @@ class AudioDataStore extends DataStore {
   def full(album: File, file: String) = new File(album, file + "_full.mp3")
 
   def full(album: String, file: String) = new File(toDir(album), file + "_full.mp3")
+
+  def fullName(file: String) = file + "_full.mp3"
 
 
 }

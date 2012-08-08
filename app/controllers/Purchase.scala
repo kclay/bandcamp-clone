@@ -2,6 +2,7 @@ package controllers
 
 import actions.SquerylTransaction
 import play.api._
+import libs.Crypto
 import play.api.mvc._
 import models._
 import services.PayPal
@@ -27,19 +28,22 @@ object Purchase extends Controller with SquerylTransaction {
         errors => BadRequest("error"),
         value => {
           val (artistId, price) = value
-          Album.bySlug(artistId, album).map {
-            a =>
-              withPaypal(a, price, "http://bulabown.com").map({
-                token =>
-                  Transaction(a, price, token)
-                  Ok(token)
-              }).getOrElse(BadRequest("error"))
-          }.getOrElse(BadRequest("error"))
+          (for {
+            item <- Album.bySlug(artistId, album)
+            sig <- withSig(artistId, price, item)
+            token <- withPaypal(sig, item, price, "http://bulabown.com")
+            _ <- Transaction(sig, item, price, token)
+          } yield Ok(token)) getOrElse (BadRequest("error"))
+
         }
       )
 
 
   }
+
+  private def withSig(artistId: Long, price: Double, item: SaleAbleItem)(implicit request: RequestHeader) =
+    Some(Crypto.sign("%s-%s-%s-%s-%d".format(request.remoteAddress,
+      String.valueOf(artistId), String.valueOf(price), item.signature, System.nanoTime())))
 
   def checkout(token: String) = TransAction {
     Action {
@@ -48,65 +52,74 @@ object Purchase extends Controller with SquerylTransaction {
     }
   }
 
-  private def withPaypal(item: SaleAbleItem, price: Double, cancelURL: String)(implicit request: RequestHeader) = {
+  private def withPaypal(sig: String, item: SaleAbleItem, price: Double, cancelURL: String)(implicit request: RequestHeader) = for {
+    a <- item.artist
+    token <- PayPal(a.email, item.itemTitle, price, routes.Purchase.callback(sig).absoluteURL(), cancelURL)
+  } yield token
 
-    PayPal(item.itemTitle, price, routes.Purchase.callback.absoluteURL(), cancelURL).map(
-      token => Some(token)
-    ).getOrElse(None)
+
+  def withCommit(details: Map[String, String]) = {
+    val commit = PayPal.commit(details)
+    for {
+      ok <- PayPal ok details
+
+    } yield commit
   }
 
-  def callback() = TransAction {
-    implicit request =>
-      paypalCallbackForm.bindFromRequest.fold(
-        errors => BadRequest("invalid_callback"),
-        token => {
-          val details = PayPal details (token)
-          Transaction.status(token, Transaction.STATUS_CALLBACK)
-          if (PayPal ok details) {
-            var email = details.get(PayPal.FIELD_EMAIL).get
-            if (email.contains("conceptual-ideas.com"))
-              email = "info@ihaveinternet.com";
-            val commit = PayPal.commit(details)
-            val commited = PayPal ok commit
-            if (commited) {
-              Transaction.commit(token,
-                commit get (PayPal.FIELD_CORRELATIONID),
-                commit get (PayPal.FIELD_TRANSACTIONID)
-              )
-              Transaction.withArtistAndItem(token).map {
-                case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
-                  import play.api.Play.current
-                  import com.typesafe.plugin._
-                  val download = new Download(token, item.signature, item.itemType)
-                  val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.signedURL).body
-                  val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
-                  val mail = use[MailerPlugin].email
-                  mail.setSubject("Your download from %s".format(artist.name))
-                  mail.addRecipient(email)
-                  mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
+  def withEmail(details: Map[String, String], commit: Map[String, String], token: String)(implicit request: RequestHeader) = {
 
-                  //sends both text and html
-                  try {
-                    mail.send(textContent, htmlContent)
-                  } catch {
-                    case _ =>
-                  }
+    Transaction.commit(token,
+      commit get (PayPal.FIELD_CORRELATIONID),
+      commit get (PayPal.FIELD_TRANSACTIONID)
+    )
+    var email = details.get(PayPal.FIELD_EMAIL).get
+    if (email.contains("conceptual-ideas.com"))
+      email = "info@ihaveinternet.com";
 
-                case _ =>
-              }
-              //Ok(html.paypalSuccess(item.itemType))
-              Ok("Details : %s\n\n Commit : %s\n".format(details.mkString("\n"), commit.mkString("\n")))
+    Transaction.withArtistAndItem(token).map {
+      case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
+        import play.api.Play.current
+        import com.typesafe.plugin._
+        val download = new Download(token, item.signature, item.itemType)
+        val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.signedURL).body
+        val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
+        val mail = use[MailerPlugin].email
+        mail.setSubject("Your download from %s".format(artist.name))
+        mail.addRecipient(email)
+        mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
 
-              // http :// meekmill.bandcamp.com / download ? enc = any & from = email & id = 1329670172 & payment_id = 559531198 & sig = 68d 2746055 ab8bca2df60e14d793c494 & type = album
-            } else {
-              BadRequest(html.paypalError("Unable to process your request"))
-            }
-          } else {
-            BadRequest(html.paypalError("Unable to process your request"))
-          }
+        //sends both text and html
+        try {
+          mail.send(textContent, htmlContent)
+        } catch {
+          case _ =>
         }
 
-      )
+      case _ =>
+    }
+  }
+
+  def callback(sig: String) = TransAction {
+    implicit request =>
+
+      Transaction.bySig(sig).map {
+        trans =>
+          val token = trans.token
+          val details = PayPal details (token)
+
+          Transaction.status(token, Transaction.STATUS_CALLBACK)
+
+          (for {
+            ok <- PayPal ok details
+            commit <- withCommit(details)
+            _ <- withEmail(details, commit, token)
+          } yield Ok("Details : %s\n\n Commit : %s\n".format(
+              details.mkString("\n"),
+              commit.mkString("\n")))
+            ).getOrElse(BadRequest("error"))
+
+
+      }.getOrElse(BadRequest("error"))
   }
 
 
@@ -116,14 +129,13 @@ object Purchase extends Controller with SquerylTransaction {
         errors => BadRequest("error"),
         value => {
           val (artistId, price) = value
-          Track.bySlug(artistId, track).map {
-            i =>
-              withPaypal(i, price, "http://bulabown.com").map({
-                token =>
-                  Transaction(i, price, token)
-                  Ok(token)
-              }).getOrElse(BadRequest("error"))
-          }.getOrElse(BadRequest("error"))
+          (for {
+            item <- Track.bySlug(artistId, track)
+            sig <- withSig(artistId, price, item)
+            token <- withPaypal(sig, item, price, "http://bulabown.com")
+            _ <- Transaction(sig, item, price, token)
+          } yield Ok(token)) getOrElse (BadRequest("error"))
+
         }
       )
   }

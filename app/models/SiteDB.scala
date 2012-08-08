@@ -1,15 +1,10 @@
 package models
 
-import utils.{AudioDataStore, Image}
+import utils.{AudioDataStore}
 import org.squeryl.PrimitiveTypeMode._
-import org.squeryl.{Query, Session, KeyedEntity, Schema}
+import org.squeryl.{KeyedEntity, Schema}
 import org.squeryl.annotations.Column
 
-
-import java.sql.Date
-
-import play.api.Logger
-import org.squeryl.dsl.CompositeKey2
 
 import scala.Some
 
@@ -174,6 +169,18 @@ object SiteDB extends Schema {
     t.payerID is (named("payer_id")),
     t.created is (named("created_at")),
     t.itemID is (named("item_id"))
+  ))
+
+  val stats = table[Stat]("stats")
+  on(stats)(s => declare(
+    s.artistID is (named("artist_id")),
+    s.objectID is (named("object_id")),
+    s.trackedAt is (named("tracked_at"))
+  ))
+  val sales = table[Sale]("sales")
+  on(sales)(s => declare(
+    s.transactionID is (named("transaction_id")),
+    s.createdAt is (named("created_at"))
   ))
 
 

@@ -37,11 +37,11 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
         },
         purchase:function (options) {
-           Routes.Purchase.album(this.get("slug")).ajax(options);
+            Routes.Purchase.album(this.get("slug")).ajax(options);
 
         },
         refresh:function () {
-
+            this.trigger("refresh");
         },
         validate:function (attrs, options) {
             if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {

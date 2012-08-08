@@ -1,8 +1,10 @@
 package models
 
-import play.api.mvc.RequestHeader
+import play.api.mvc.{Result, RequestHeader}
 
 import play.api.libs.Crypto
+import utils.ZipCreator
+import utils.Utils._
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,10 +31,44 @@ case class Download(token: String, item: String, kind: String, from: String = "e
     u + "&sig=" + Crypto.sign(query)
   }
 
+  val canZip = kind.equals("album")
 
   def valid(implicit request: RequestHeader) = {
     val u = url(request)
     val maybeSig = Crypto.sign(query)
     maybeSig.equals(sig)
+  }
+
+  def withZip(artist: Artist, request: RequestHeader) = {
+    ZipCreator(artist, this, request).map {
+      case (zip, name) => (zip.uri, name, "application/zip")
+    }
+  }
+
+  def withMp3 = {
+    import utils.Assets.audioStore
+    val track = withItem.asInstanceOf[Track]
+    Artist.find(track.artistID).map {
+      artist =>
+        val album = AlbumTracks.withAlbum(track.id).get
+        val normalizedArtist = normalize(artist.name, " ")
+        val normalizedAlbum = normalize(album.name, " ")
+        val file = audioStore.full(track.session, track.file.get)
+
+        val uri = "/audio" + file.getAbsolutePath.replace(audioStore.store.getAbsolutePath, "").replace("\\", "/")
+        val name = "%s - %s - %s.mp3".format(normalizedArtist, normalizedAlbum, track.name)
+        (uri, name, "application/octet-stream")
+
+    }
+
+
+  }
+
+  def withDownload(artist: Artist, f: (Option[(String, String, String)]) => Result)(implicit request: RequestHeader) = {
+
+
+    Either.cond(canZip, withZip(artist, request), withMp3).fold(f, f)
+
+
   }
 }

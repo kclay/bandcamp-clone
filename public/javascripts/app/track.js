@@ -2,7 +2,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         var _ = require("underscore");
         var Common = require("app/common");
         var V = Common.Validate
-        var Routes=require("app").Routes
+        var Routes = require("app").Routes
         var Track = Backbone.Model.extend({
             validation:{
                 name:{
@@ -37,7 +37,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
 
             },
-            purchase:function(options){
+            purchase:function (options) {
 
             },
             urlRoot:"/ajax/tracks",
@@ -136,7 +136,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             init:function () {
                 this.artUploadView = new Upload.View(
                     {   el:this.$(".track-art"),
-                        uri:"/artist/upload/art",
+                        uri:"/upload/art",
                         limit:"4MB",
                         types:"*.jpg;*.gif;*.png"
                     }
@@ -202,7 +202,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 if (this.options.createUploadView) {
                     this.trackUploadView = new Upload.View(
                         {el:"#track-upload",
-                            uri:"/artist/upload/audio",
+                            uri:"/upload/audio",
                             limit:"291MB",
                             types:"*.wav;*.aif;*.flac",
                             proxy:true
@@ -233,26 +233,45 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 }
             },
 
+            /**
+             *
+             * @param {Upload.View}
+                */
             attachUploadListeners:function (view) {
                 this.trackUploadView = view;
                 this._updatePostParams();
+                if (this._uploadCurrentFile)
+                    view._currentFile = this._uploadCurrentFile;
                 view
                     .on("uploaded", this._onTrackUploaded, this)
                     .on("canceled", this._onTrackCanceled, this)
                     .on("stopped", this._onTrackStopped, this)
                     .on("started", this._onTrackStarted, this)
+                    .on("error", this._onTrackError, this)
 
             },
+            /**
+             *
+             * @param {Upload.View}
+                */
             removeUploadListeners:function (view) {
                 this._updatePostParams(true);
                 this.trackUploadView = null;
+                if (this.trackUploadView == view) {
+                    this._uploadCurrentFile = view._currentFile;
+                }
                 view
                     .off("uploaded", this._onTrackUploaded, this)
                     .off("canceled", this._onTrackCanceled, this)
                     .off("stopped", this._onTrackStopped, this)
                     .off("started", this._onTrackStarted, this)
+                    .off("error", this._onTrackError, this)
 
 
+            },
+            _onTrackError:function () {
+                this._onUploadError(["upload error"])
+                this._onStatusChange(Status.ERROR);
             },
 
             _onTrackStarted:function () {
@@ -299,7 +318,10 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 }
             },
             encodingName:function () {
-                return this._encodingTrack.name;
+                var upload = this.trackUploadView || {};
+                return (this._encodingTrack || {}).name ||
+                    (upload._file || upload._currentFile || {}).name
+
             },
             _onAudioUploaded:function (res) {
 
@@ -311,22 +333,27 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     this.trackEncodingStatus(false);
                 } else if (res.error) {
 
-                    this._onEncodingError(res.error)
+                    this._onUploadError(res.error)
+                    // delete processing file name so the {encodingName} method can
+                    // retrive the correct file name
+                    delete this._encodingTrack['name'];
                 }
 
 
             },
-            _onEncodingError:function (error) {
+
+            _onUploadError:function (errors) {
                 if (!this.trackUploadErrorView) {
                     this.trackUploadErrorView = new TrackErrorView({
                         fileName:this.encodingName(),
-                        reasons:error
+                        reasons:errors
                     })
                     this.trackUploadView.$(".progress-wrapper").after(this.trackUploadErrorView.el);
                 } else {
-                    this.trackUploadErrorView.update(this.encodingName(), error)
+                    this.trackUploadErrorView.update(this.encodingName(), errors)
                 }
             },
+
             trackEncodingStatus:function (delay) {
                 var self = this;
                 setTimeout(function () {
@@ -376,7 +403,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             },
             _updatePostParams:function (remove) {
                 if (this.trackUploadView) {
-                    value = remove ? null : (this._encodingTrack ? this._encodingTrack.id : null);
+                    var value = remove ? null : (this._encodingTrack ? this._encodingTrack.id : null);
                     this.trackUploadView.setPostParam("id", value)
                 }
             },

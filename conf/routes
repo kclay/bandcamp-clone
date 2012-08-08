@@ -49,11 +49,11 @@ GET     /ajax/tracks/:id                  controllers.Ajax.fetchTrack(id:Long)
 
 
 
-POST    /artist/upload/art              controllers.Upload.art()
+POST    /upload/art              controllers.Upload.art()
 
-POST    /artist/upload/audio              controllers.Upload.audio()
-POST    /artist/upload/audio_uploaded     controllers.Upload.audioUploaded()
-POST    /artist/upload/status           controllers.Upload.status()
+POST    /upload/audio              controllers.Upload.audio()
+POST    /upload/audio_uploaded     controllers.Upload.audioUploaded()
+POST    /upload/status           controllers.Upload.status()
 
 
 
@@ -81,6 +81,5 @@ GET  /:page                         controllers.Application.page(path="/public/h
 POST /purchase/album/:album                controllers.Purchase.album(album:String)
 POST /purchase/track/:track         controllers.Purchase.track(track:String)
 GET /purchase/checkout/:token               controllers.Purchase.checkout(token:String)
-GET /purchase/callback                     controllers.Purchase.callback()
-GET /mocks/paypal                   controllers.Mocks.paypal
-GET /mocks/paypal/callback          controllers.Mocks.paypalCallback()
+GET /purchase/callback/:sig                     controllers.Purchase.callback(sig:String)
+

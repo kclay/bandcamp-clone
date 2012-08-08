@@ -16,13 +16,13 @@ import services.PayPal
  */
 
 
-case class Transaction(itemID: Long, amount: Double, kind: String, token: String, status: String = "pending", correlationID: Option[String] = Some(""), payerID: Option[String] = Some(""),
+case class Transaction(sig: String, itemID: Long, amount: Double, kind: String, token: String, status: String = "pending", correlationID: Option[String] = Some(""), payerID: Option[String] = Some(""),
                        transactionID: Option[String] = Some(""), ack: String = "",
                        created: Option[Timestamp] = None) extends KeyedEntity[Long] {
   var id: Long = 0
 
 
-  def this() = this(0, 0, "", "", "pending", Some(""), Some(""), Some(""), "", Some(new Timestamp(System.currentTimeMillis)))
+  def this() = this("", 0, 0, "", "", "pending", Some(""), Some(""), Some(""), "", Some(new Timestamp(System.currentTimeMillis)))
 }
 
 object Transaction {
@@ -42,17 +42,18 @@ object Transaction {
 
   def fromTimestamp(date: String) = timeFormatter format date
 
-  def withItem(token:String)={
+  def withItem(token: String) = {
     byToken(token).map {
       t =>
         val item = if (t.kind == PURCHASE_ALBUM)
           albums.where(a => a.id === t.itemID).head
         else tracks.where(t => t.id === t.itemID).head
 
-       Some(item)
+        Some(item)
 
     }.getOrElse(None)
   }
+
   def withArtistAndItem(token: String) = {
     byToken(token).map {
       t =>
@@ -68,6 +69,7 @@ object Transaction {
 
   def byToken(token: String) = transactions.where(t => t.token === token).headOption
 
+  def bySig(sig: String) = transactions.where(t => t.sig === sig).headOption
 
   def status(token: String, status: String) = {
     update(transactions)(t =>
@@ -85,8 +87,8 @@ object Transaction {
     )
   }
 
-  def apply(item: SaleAbleItem, amount: Double, token: String) = inTransaction {
-    transactions.insert(new Transaction(item.itemID, amount, item.itemType, token))
+  def apply(sig: String, item: SaleAbleItem, amount: Double, token: String) = inTransaction {
+    Some(transactions.insert(new Transaction(sig, item.itemID, amount, item.itemType, token)))
   }
 
 
