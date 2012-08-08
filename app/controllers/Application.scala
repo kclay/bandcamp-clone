@@ -116,6 +116,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
             }.getOrElse(BadRequest)
           }
         )
+
     }
   }
 
