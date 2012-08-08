@@ -11,6 +11,7 @@ import com.codahale.jerkson.Json._
 import models.Forms.domainForm
 import models.Artist
 import actions._
+import actions.Actions._
 import utils.AudioDataStore
 
 /**
@@ -24,17 +25,33 @@ import utils.AudioDataStore
 object Artists extends Controller with Auth with AuthConfigImpl with WithDB with SquerylTransaction {
 
 
-  def index = authorizedAction(NormalUser) {
-    implicit artist => implicit request =>
-      artist.activated match {
-        case true => {
-          if (withSubdomain) Ok(html.artist.index()) else Redirect(withDomain)
-
-        }
-        case false => Redirect(if (Artist.hasTag(artist.id)) routes.Artists.pickDomain() else routes.Artists.pickTags())
-      }
+  def index = optionalUserAction {
+    implicit a => implicit request =>
+      (for {
+        artist <- a
+        r <- withLogin(artist, request)
+      } yield r).getOrElse(withViewer)
 
 
+  }
+
+  private def withViewer(implicit request: RequestHeader) = {
+    import utils.Utils.withArtist
+    (for {
+      artist <- withArtist(request)
+    } yield Ok(html.artist.items(artist, Artist.withAlbums(artist.id))))
+      .getOrElse(BadRequest)
+
+  }
+
+  private def withLogin(implicit artist: Artist, request: RequestHeader) = {
+    if (artist.activated) {
+
+      Some(if (withSubdomain) Ok(html.artist.index()) else Redirect(withDomain))
+
+    } else {
+      Some(Redirect(if (Artist.hasTag(artist.id)) routes.Artists.pickDomain() else routes.Artists.pickTags()))
+    }
   }
 
   private def withDomain(implicit artist: Artist, request: RequestHeader): String = {
@@ -79,15 +96,12 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   }
 
 
-
-
-
   /*private def insertTrack(track: Track) =
  {
-   db withSession {
-     implicit s =>
-       Tracks insert (Track)
-   }
+  db withSession {
+    implicit s =>
+      Tracks insert (Track)
+  }
  } */
 
   def list(page: Int, amount: Int, query: String = "") = Action {

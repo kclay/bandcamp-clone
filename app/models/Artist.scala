@@ -22,6 +22,7 @@ object Artist {
 
   def domainAvail(domain: String): Boolean = artists.where(a => a.domain === domain).Count == 1
 
+  def withAlbums(id: Long) = inTransaction(albums.where(a => a.artistID === id).toList)
 
   def findByDomain(domain: String): Option[Artist] = inTransaction(artists.where(a => a.domain === domain).headOption)
 

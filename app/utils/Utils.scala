@@ -1,7 +1,7 @@
 package utils
 
 import models.{SaleAbleItem, Artist}
-import play.api.mvc.RequestHeader
+import play.api.mvc.{Results, RequestHeader}
 import play.api.libs.Crypto
 import play.api.Logger
 
@@ -85,4 +85,14 @@ object Utils {
     import play.api.Play
     Play.configuration.getString("server.upload").get
   }
+
+  def withArtist(request: RequestHeader) = {
+    for {
+      domain <- request.host.split("\\.").headOption
+      artist <- models.Artist.findByDomain(domain)
+    } yield artist
+
+  }
+
+  def mod(a: Int, b: Int) = a % b == 0
 }

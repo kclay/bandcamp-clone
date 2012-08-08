@@ -6,13 +6,15 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         el:".display",
         events:{
             "click .track-title-column a":"play",
-            "click .track-download-column a":"download",
+            "click .download":"download",
+
             "click tr.active .track-play-column a":"pause",
             "click tr:not(.active) .track-play-column a":"play"
         },
 
         initialize:function () {
 
+            this.model = window.app_config.model;
             this.items = window.app_config.playlist;
             var player = this.player = new Player({
                 files:window.app_config.playlist
@@ -76,9 +78,9 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             return this.items[this.index(event)];
         },
         download:function (event) {
-            var model = this.item(event)
-            new DownloadView({model:model, type:"track", data:{
-                price:model.price
+            // var model = this.item(event)
+            new DownloadView({model:this.model, type:"track", data:{
+                price:this.model.price
 
             }});
             return false;

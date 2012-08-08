@@ -110,7 +110,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
             this.artUploadView = new Upload.View(
                 {   el:this.$(".art-upload"),
-                    uri:"/artist/upload/art",
+                    uri:"/upload/art",
                     limit:"4MB",
                     types:"*.jpg;*.gif;*.png"
                 }

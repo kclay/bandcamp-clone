@@ -3,6 +3,7 @@
 # ~~~~
 
 GET     /stylesheets/*file               controllers.Assets.at(path="/public/stylesheets/", file)
+
 # Home page
 GET     /                           controllers.Application.index
 POST    /forgot_password            controllers.Application.sendForgottenPassword

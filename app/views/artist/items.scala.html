@@ -1,0 +1,34 @@
+@(artist:Artist,albums:List[Album])(implicit request: play.api.mvc.RequestHeader)
+@import utils.Utils.mod
+
+@pageContent(artist.name){
+<h1>@artist.name Album's</h1>
+<table>
+
+    @if(!albums.isEmpty){
+    @for((album,index) <-albums.view.zipWithIndex){
+    @if(mod(index,6)){
+    <tr>}
+
+
+        <td>
+            <div>
+                <a href="/album/@album.slug"><img src="@album.smallArtURL"></a>
+
+                <h4><a href="/album/@album.slug">@album.name</a></h4>
+
+                <h4><a href="/album/@album.slug">@album.artistName.getOrElse(artist.name)</a></h4>
+            </div>
+        </td>
+        @if(mod(index+1,6)){
+        </tr>
+        }
+     @if(mod(index,6)){</tr>}
+    }
+
+
+    }
+
+</table>
+
+}

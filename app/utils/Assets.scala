@@ -58,7 +58,7 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
   def url: String = {
     validate()
     Some(exists).map {
-      case true => "/assets" + uri
+      case true => Utils.mediaURL + uri
       case _ => ""
 
     }.getOrElse("")

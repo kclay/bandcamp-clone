@@ -51,7 +51,7 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
         </div>
     </div>
     <h3>
-        <a href="#">Digital Album</a>
+        <a href="#" class="download">Digital Album</a>
     </h3>
 
     <p>Digital Album
@@ -60,13 +60,13 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
         you could possibly desire.</p>
 
     <p>
-        <a href="/album/@(album.slug)/download">Buy Now</a>  @price(album.price) USD  or more
+        <a href="/album/@(album.slug)/download" class="download">Buy Now</a>  @price(album.price) USD  or more
     </p>
 
     <table id="track-list">
 
         @for((t,i) <-tracks.view.zipWithIndex){
-        @display.track(i,t)
+        @display.trackRow(i,t)
         }
     </table>
 </div>
@@ -87,6 +87,7 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
 
     @addTracks(domain)
     window.app_config.playlist = pl;
+    window.app_config.model="{'slug':'@album.slug','artist_id':@album.artistID,'price':@album.price,'title':'@escapeJavaScript(album.name)'}";
 </script>
 
 }

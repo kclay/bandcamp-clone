@@ -65,10 +65,16 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   def index = optionalUserAction {
     artist => implicit request =>
 
-      Ok(views.html.index())
+      if(hasSubdomain) Redirect(routes.Artists.index()) else Ok(html.index())
 
 
   }
+  private def hasSubdomain(implicit request: RequestHeader): Boolean = {
+    val parts = request.host.split("\\.")
+
+    if (request.host.contains("localhost")) parts.size >= 2 else parts.size >= 3
+  }
+
 
 
   def sendForgottenPassword = TransAction {
@@ -233,9 +239,16 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   }
 
-  def track(name: String) = Action {
-    implicit request =>
-      Ok("Track")
+  def track(name: String) = TransAction {
+    WithArtist {
+      artist => implicit request =>
+
+        Track.bySlug(artist.id, name).map(track =>
+
+          Ok(html.display.track(artist,  AlbumTracks.withAlbum(track.id),track))
+        ) getOrElse (NotFound)
+
+    }
   }
 
 }

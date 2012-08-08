@@ -10,7 +10,7 @@ define(["backbone", "app/upload"], function (Backbone, Upload)
         el:"#track-upload",
         initialize:function ()
         {
-            this.constructor.__super__.initialize.call(this, "/artist/upload/audio", {
+            this.constructor.__super__.initialize.call(this, "/upload/audio", {
                 limit:"291MB",
                 types:"*.wav;*.aif;*.flac"
 
