@@ -68,6 +68,11 @@ object Utils {
 
   }
 
+  def devMode = {
+    import play.api.Play.current
+    play.api.Play.isDev
+  }
+
   def mediaURL = {
     import play.api.Play.current
     import play.api.Play

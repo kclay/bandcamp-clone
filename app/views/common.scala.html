@@ -1,5 +1,6 @@
 @(title: String, nav: Html = Html(""),bodyClass:String="")(content: Html)(implicit request: play.api.mvc.RequestHeader)
 @import utils.Utils.mediaURL
+@import utils.Utils.devMode
 
 <!DOCTYPE html>
 
@@ -24,8 +25,10 @@
 
         };
     </script>
-    <link rel="stylesheet" media="screen" href="http://localhost:9001/assets/stylesheets/bootstrap/bootstrap.min.css"/>
-    <!--<link rel="stylesheet" media="screen" href="@(mediaURL)/stylesheets/bootstrap/bootstrap.min.css"/> -->
+    @if(devMode){
+        <link rel="stylesheet" media="screen" href="http://localhost:9001/assets/stylesheets/bootstrap/bootstrap.min.css"/>
+    }
+    <link rel="stylesheet" media="screen" href="@(mediaURL)/stylesheets/bootstrap/bootstrap.min.css"/>
 
     <link rel="shortcut icon" type="image/png" href="@(mediaURL)/images/favicon.png">
 

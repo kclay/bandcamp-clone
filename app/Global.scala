@@ -3,9 +3,8 @@ import org.squeryl.adapters.{H2Adapter, MySQLAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import play.api.db.DB
-import play.api.GlobalSettings
+import play.api.{Play, GlobalSettings, Application}
 
-import play.api.Application
 import play.api.mvc._
 import play.mvc.Http
 import utils.Context
@@ -34,8 +33,20 @@ object Global extends GlobalSettings {
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = inTransaction {
 
-
     super.onRouteRequest(request)
+   /* Play.maybeApplication.map {
+      case app =>
+        app.configuration.getString("server.ips").map {
+          value =>
+            val ips = value.split(",")
+            if (ips.contains(request.remoteAddress)) {
+              super.onRouteRequest(request)
+            } else {
+              onBadRequest(request, "Restricted")
+            }
+        }
+
+    }.getOrElse(onBadRequest(request, "Restricted"))    */
 
 
   }
@@ -46,7 +57,7 @@ object Global extends GlobalSettings {
     SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
       case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
       case Some("com.mysql.jdbc.Driver") => Some(() => getSession(new MySQLAdapter, app))
-      case _ => sys.error("Database driver must be either org.h2.Driver or com.mysql.jdbc.Driver yours is" + app.configuration.getString("db.default.driver") )
+      case _ => sys.error("Database driver must be either org.h2.Driver or com.mysql.jdbc.Driver yours is" + app.configuration.getString("db.default.driver"))
     }
     import org.squeryl.PrimitiveTypeMode._
     import models.SiteDB;
