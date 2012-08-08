@@ -1,0 +1,48 @@
+@(sig:String)(implicit request: play.api.mvc.RequestHeader)
+@pageContent("Processing"){
+<script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
+<div class="row span6 center">
+    <h2>Please wait while we finishing processing your purchase</h2>
+
+    <div class="progress progress-striped active" style="width:100%">
+        <div class="bar"
+             style="width: 100%;height:20px;"></div>
+    </div>
+    <div class="span4 center">
+        <div class="alert alert-error hide">
+            <strong>Sorry</strong>, but we were unable to finalize your purchase. You will not be charged.
+        </div>
+        <div class="alert alert-success hide">
+            <strong>Congratulations</strong>, Your purchase was completed. Please check the email tied
+            to your paypal account to for your download link
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    app_config.after.push(function () {
+        var Purchase = require("app").Routes.Purchase
+        Purchase.ajaxCommit("@sig").ajax({
+            timeout:30 * 1000,
+            error:function (jqXHR, textStatus, errorThrown) {
+                $(".progress").slideUp(function () {
+                    $(".alert-error").fadeIn();
+                })
+            },
+            success:function (data, textStatus, jqXHR) {
+                $(".progress").slideUp(function () {
+                    if ($.trim(data) == "ok") {
+                        $(".alert-success").fadeIn();
+                    } else {
+                        $(".alert-error").fadeIn();
+                    }
+                })
+
+            }
+        })
+    });
+
+
+</script>
+
+}

@@ -196,6 +196,7 @@ case class PaypalAdaptive() extends PayPalClient {
       .put("receiverList.receiver(0).email", email)
       .put("receiverList.receiver(0).amount", decimalFormat.format(amount))
       .put("receiverList.receiver(0).primary", "true")
+      .put("memo", title)
       // .put("receiverList.receiver(0).paymentType", "DIGITALGOODS")
 
       .put("feesPayer", "PRIMARYRECEIVER")
@@ -209,10 +210,20 @@ case class PaypalAdaptive() extends PayPalClient {
     // .put("receiverList.receiver(1).paymentType", "DIGITALGOODS")
 
 
-    val results = call("Pay", params)
+    val payKey = call("Pay", params).get("payKey")
+    payKey.map {
+      key =>
+      val r = call("SetPaymentOptions",
+        defaultParams.put("payKey", key)
+          .put("reciverOptions.description", title)
+          .put("reciverOptions.invoiceData.item(0).name", title)
+      )
 
 
-    results.get("payKey")
+    }
+    payKey
+
+
   }
 
   override def amount(token: String) = {

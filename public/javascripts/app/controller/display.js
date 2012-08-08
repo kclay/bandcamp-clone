@@ -79,7 +79,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         },
         download:function (event) {
             // var model = this.item(event)
-            new DownloadView({model:this.model, type:"track", data:{
+            new DownloadView({model:this.model, type:this.model.type, data:{
                 price:this.model.price
 
             }});

@@ -2,6 +2,8 @@ html, body, .container, #content {
     height: 100%;
 }
 
+
+
 #main-header {
     height: 100px;
 }
@@ -102,12 +104,16 @@ html, body, .container, #content {
 
 }
 
+h3.inline {
+    display: inline-block;
+}
+
 /*
 .inline(){
-    display: inline-block;
-    padding-top: 5px;
-    margin-bottom: 0;
-    vertical-align: middle;
+   display: inline-block;
+   padding-top: 5px;
+   margin-bottom: 0;
+   vertical-align: middle;
 } */
 
 #album_name {
@@ -484,6 +490,11 @@ body.inner {
         display: block;
     }
 
+    .progress {
+        height: 5px;
+        margin-bottom: 5px;
+    }
+
     &.uploaded, &.processed, &.error {
 
         .cancel, .progress {
@@ -513,10 +524,6 @@ body.inner {
 
 }
 
-.progress {
-    height: 5px;
-    margin-bottom: 5px;
-}
 
 #published {
     .hide;
@@ -586,20 +593,22 @@ body.inner {
     }
     .ui-slider {
         z-index: 1;
+        top: 2px;
         position: relative;
-        height: 12px;
+        height: 9px !important;
         width: 100%;
         border: 1px solid @purple;
         margin-top: 10px;
     }
     .ui-slider-handle {
         position: absolute;
-        top: -2px;
-        width: 12px;
-        background: @purple;
+        top: -3px;
+        width: 29px;
+        background:@purple;
+
 
         border: 1px @grayCustom solid;
-        height: 14px;
+        height: 13px;
     }
 }
 

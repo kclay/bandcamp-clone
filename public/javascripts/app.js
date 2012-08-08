@@ -28,12 +28,16 @@ define(["dropdown"], function () {
                     window.view = new ctr.View();
                 });
             }
+            $.each(app_config.after, function (index,callback) {
+                callback();
+            })
+
         }
 
     }
 
     return {
         initialize:initialize,
-        Routes:(jsRoutes||{}).controllers
+        Routes:(jsRoutes || {}).controllers
     };
 });

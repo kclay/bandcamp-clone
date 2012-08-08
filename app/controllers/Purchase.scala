@@ -61,7 +61,7 @@ object Purchase extends Controller with SquerylTransaction {
   def withCommit(details: Map[String, String]) = {
     val commit = PayPal.commit(details)
     for {
-      ok <- PayPal ok details
+      ok <- PayPal ok commit
 
     } yield commit
   }
@@ -101,7 +101,16 @@ object Purchase extends Controller with SquerylTransaction {
 
   def callback(sig: String) = TransAction {
     implicit request =>
+      Transaction.bySig(sig).map {
 
+        trans => Ok(html.purchase(sig))
+
+
+      }.getOrElse(BadRequest("error"))
+  }
+
+  def ajaxCommit(sig: String) = TransAction {
+    implicit request =>
       Transaction.bySig(sig).map {
         trans =>
           val token = trans.token
@@ -113,13 +122,9 @@ object Purchase extends Controller with SquerylTransaction {
             ok <- PayPal ok details
             commit <- withCommit(details)
             _ <- withEmail(details, commit, token)
-          } yield Ok("Details : %s\n\n Commit : %s\n".format(
-              details.mkString("\n"),
-              commit.mkString("\n")))
-            ).getOrElse(BadRequest("error"))
-
-
-      }.getOrElse(BadRequest("error"))
+          } yield Ok("ok")
+            ).getOrElse(Ok("error"))
+      }.getOrElse(Ok("error"))
   }
 
 

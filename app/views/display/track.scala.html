@@ -3,7 +3,7 @@
 @import utils.Utils.price
 @addTracks(domain:String)={
 
-pl.push({'slug':'@track.slug','artist_id':@track.artistID,'price':@track.price,'title':'@escapeJavaScript(track.name)', 'file':'@(track.previewURL(domain))', 'duration':'@track.duration'});
+pl.push({'type':"track",'slug':'@track.slug','artist_id':@track.artistID,'price':@track.price,'title':'@escapeJavaScript(track.name)', 'file':'@(track.previewURL(domain))', 'duration':'@track.duration'});
 
 }
 @display.templateBuy()
@@ -57,16 +57,16 @@ pl.push({'slug':'@track.slug','artist_id':@track.artistID,'price':@track.price,'
     <p>Immediate download of Do It All in your choice of MP3 320.</p>
 
     <p>
-        <a href="/album/@(track.slug)/download" class="download">Buy Now</a> @price(track.price) USD or more
+        <a href="/track/@(track.slug)/?action=download" class="download"><h3 class="inline">Buy Now</h3></a> @price(track.price) USD or more
     </p>
 
 
 
 
     @album.map{a=>
-    <p>
-        <a href="@a.slug">Buy the Full Digital Album</a>
-    </p>
+        <h3>
+            <a href="/album/@a.slug">Buy the Full Digital Album</a>
+        </h3>
     }
 
     <table id="track-list">
@@ -80,7 +80,10 @@ pl.push({'slug':'@track.slug','artist_id':@track.artistID,'price':@track.price,'
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
         @if(!track.artURL.isEmpty){
-        <img src="@track.artURL"/>
+         <img src="@track.artURL"/>
+        }else{
+            @album.map{a=><img src="@a.artURL"/>}
+
         }
     </div>
 

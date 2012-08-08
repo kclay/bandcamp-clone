@@ -87,7 +87,7 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
 
     @addTracks(domain)
     window.app_config.playlist = pl;
-    window.app_config.model="{'slug':'@album.slug','artist_id':@album.artistID,'price':@album.price,'title':'@escapeJavaScript(album.name)'}";
+    window.app_config.model={'type':'album','slug':'@album.slug','artist_id':@album.artistID,'price':@album.price,'title':'@escapeJavaScript(album.name)'};
 </script>
 
 }
