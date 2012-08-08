@@ -34,6 +34,6 @@ define(["dropdown"], function () {
 
     return {
         initialize:initialize,
-        Routes:jsRoutes.controllers
+        Routes:(jsRoutes||{}).controllers
     };
 });

@@ -1,4 +1,5 @@
 @()(implicit request: play.api.mvc.RequestHeader)
+@import utils.Utils.mediaURL
 @nav={
     @header()
 }
@@ -6,7 +7,7 @@
 
 <div class="span4">
     <div id="signup">
-        <img src="/assets/images/logo.png"/>
+        <img src="@(mediaURL)/images/logo.png"/>
         <a id="signup-button" href="@routes.Application.signup()">Singup</a>
     </div>
 
@@ -23,7 +24,7 @@
 
 <div class="span4">
     <a href="#" id="overlay">
-        <img src="/assets/images/video_overlay.jpg"/>
+        <img src="@(mediaURL)/images/video_overlay.jpg"/>
     </a>
 </div>
 
