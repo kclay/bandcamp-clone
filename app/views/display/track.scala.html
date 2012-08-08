@@ -1,0 +1,103 @@
+@(artist:Artist,album:Option[Album],track:Track)(implicit request: play.api.mvc.RequestHeader)
+@import utils.session._
+@import utils.Utils.price
+@addTracks(domain:String)={
+
+pl.push({'slug':'@track.slug','artist_id':@track.artistID,'price':@track.price,'title':'@escapeJavaScript(track.name)', 'file':'@(track.previewURL(domain))', 'duration':'@track.duration'});
+
+}
+@display.templateBuy()
+@main(track.name,"display-track display"){
+<script type="text/javascript">
+    window.app_config.update({
+        includes:["jwplayer"],
+        config:{
+            paths:{
+                "jwplayer":"libs/jwplayer/jwplayer"
+            }
+        }
+    })
+</script>
+<div id="details-left" class="span5">
+    <h2 class="trackTime">@track.name</h2>
+
+    <h3>by @track.artistName.getOrElse(artist.name)</h3>
+
+    <div id="player-proxy">
+        <div id="player-proxy-inner"></div>
+    </div>
+    <div id="player">
+        <a href="#" class="play action">
+
+
+        </a>
+
+        <div id="player-control-bar">
+            <div class="bottom">
+                <span class="title"></span>
+                <span class="time"></span>
+
+                <div class="slider">
+                    <div class="bar"></div>
+                    <div class="fill"></div>
+                </div>
+
+
+            </div>
+            <div class="nav">
+                <a href="#" class="prev"><i class="icon-fast-backward"></i></a>
+                <a href="#" class="next"><i class="icon-fast-forward"></i></a>
+            </div>
+        </div>
+    </div>
+    <h3>
+        <a href="#" class="download">Digital Track</a>
+    </h3>
+
+    <p>Immediate download of Do It All in your choice of MP3 320.</p>
+
+    <p>
+        <a href="/album/@(track.slug)/download" class="download">Buy Now</a> @price(track.price) USD or more
+    </p>
+
+
+
+
+    @album.map{a=>
+    <p>
+        <a href="@a.slug">Buy the Full Digital Album</a>
+    </p>
+    }
+
+    <table id="track-list">
+
+
+        @display.trackRow(0,track)
+
+    </table>
+</div>
+
+<div id="details-right" class="span5 pull-left">
+    <div class="album-art">
+        @if(!track.artURL.isEmpty){
+        <img src="@track.artURL"/>
+        }
+    </div>
+
+</div>
+
+@defining(request.host.split("\\.").drop(1).mkString(".")){domain=>
+
+<script type="text/javascript">
+    var pl = [];
+
+    @addTracks(domain)
+    window.app_config.playlist = pl;
+    window.app_config.model=pl[0];
+</script>
+
+}
+
+
+}
+
