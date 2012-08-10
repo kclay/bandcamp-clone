@@ -4,6 +4,13 @@
 @nav={
    @artist.header()
 }
+@common(title,nav,"inner"){
+<div id="inner-wrap" class="row content-wrap @id">
+
+        @content
+
+
+</div>
 <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 
 <script type="text/template" id="tpl-feedback">
@@ -40,11 +47,4 @@
     </div>
 
 </script>
-@common(title,nav,"inner"){
-<div id="inner-wrap" class="row content-wrap @id">
-
-        @content
-
-
-</div>
 }
