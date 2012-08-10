@@ -330,7 +330,10 @@ class AudioDataStore extends DataStore {
 
   override def toDir(session: String) = album(session)
 
-  def toURL(host: String, file: File) = ("http://" + host + "/" + httpPath + file.getAbsolutePath.replace(store.getAbsolutePath, "")).replace("\\", "/")
+  def toURL(host: String, file: File) = Option(host)
+    .map(h => if (h.startsWith("http://")) h else ("http://" + h))
+    .get + "/" + httpPath + file.getAbsolutePath.replace(store.getAbsolutePath, "")
+    .replace("\\", "/")
 
   def previewURL(host: String, session: String, file: String) = toURL(host, preview(album(session), file))
 
