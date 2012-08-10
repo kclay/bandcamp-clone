@@ -6,8 +6,9 @@ import utils.session.SessionHelper
 import annotation.tailrec
 import util.Random
 import java.security.SecureRandom
-import play.api.mvc.{Session, Controller, PlainResult, Request}
+import play.api.mvc._
 import models.Artist
+import play.api.Play
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,8 +30,16 @@ trait MyLoginLogout extends LoginLogout {
     }
 
 
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
+    val cookie = Session.encode(Session.serialize(session))
 
-    loginSucceeded(request).withSession(session)
+    val local = request.host.contains("localhost:")
+
+    val domain = request.host.split(":").take(1).mkString
+
+    loginSucceeded(request).withCookies(
+      Cookie(COOKIE_NAME, cookie, Session.maxAge, "/", Some(domain), Session.secure, Session.httpOnly)
+    )
   }
 
 

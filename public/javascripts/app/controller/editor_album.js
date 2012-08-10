@@ -377,7 +377,12 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         _onAttributeChanged:function (model) {
 
 
-            this.stateManager.update(model, STATES.DATA_CHANGED, true);
+            if (!this.is("reloading")) {
+                this.stateManager.update(model, STATES.DATA_CHANGED, true);
+
+
+                this.enable(!_.isEmpty(model.get("name")));
+            }
 
 
         },
@@ -442,19 +447,25 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this.album.set({art:id, artURL:url});
             //this.albumOverviewView.setArtURL(id, url);
         },
+        enable:function (yes) {
+
+
+            this._canSave = yes;
+            if (yes) {
+                this.$saveButton.removeClass("disabled");
+            } else {
+                this.$saveButton.addClass("disabled")
+
+            }
+        },
         _onAlbumChanged:function (album) {
 
             if (!this.is("reloading")) {
                 if ("name" in album.changed) {
 
                     var name = album.get("name");
-                    if (_.isEmpty(name)) {
-                        this.$saveButton.addClass("disabled")
-                        this._canSave = false;
-                    } else {
-                        this.$saveButton.removeClass("disabled");
-                        this._canSave = true;
-                    }
+                    this.enable(!_.isEmpty(name));
+
                 }
             }
             if ("art" in album.changed) {
