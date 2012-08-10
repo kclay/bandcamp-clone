@@ -1,6 +1,7 @@
 @(artist:Artist,album:Album,tracks:List[Track])(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
 @import utils.Utils.price
+@import utils.Utils.mediaURL
 @addTracks(domain:String)={
 @tracks.map{t=>
 pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@escapeJavaScript(t.name)', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
@@ -80,17 +81,17 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
 
 </div>
 
-@defining(request.host.split("\\.").drop(1).mkString(".")){domain=>
+
 
 <script type="text/javascript">
     var pl = [];
 
-    @addTracks(domain)
+    @addTracks(mediaURL)
     window.app_config.playlist = pl;
     window.app_config.model={'type':'album','slug':'@album.slug','artist_id':@album.artistID,'price':@album.price,'title':'@escapeJavaScript(album.name)'};
 </script>
 
-}
+
 
 
 }
