@@ -55,7 +55,7 @@ object Formats {
     def bind(key: String, data: Map[String, String]) = {
       import utils.Utils.slugify
 
-      val nameKey = key.split("\\.").head + ".name"
+      val nameKey = if (key.contains(".")) key.split("\\.").head + ".name" else key
       Right(data.get(nameKey)).right.flatMap {
         case Some(name) => Right(slugify(name))
 
