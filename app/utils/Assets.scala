@@ -79,9 +79,9 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
     toFile().exists()
   }
 
-  def getOrResize(size: ImageSize): Image = {
+  def getOrResize(size: ImageSize, recreate: Boolean = false): Image = {
     val image = BaseImage(id, size)
-    if (image.exists) image else resizeTo(size)
+    if (!recreate && image.exists) image else resizeTo(size)
   }
 
   def resizeTo(size: ImageSize): Image = {
@@ -119,7 +119,7 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
       val source = ImageIO.read(originalImage);
       val owidth = source.getWidth();
       val oheight = source.getHeight();
-      val ratio: Double = owidth / oheight;
+      val ratio: Float = owidth / oheight;
       var w = width;
       var h = height;
       val maxWidth = w;
@@ -137,7 +137,7 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
         h = (w / ratio).toInt
       }
 
-      if (keepRatio) {
+      if (keepRatio && ratio != 0) {
         h = (w / ratio).toInt
         if (h > maxHeight) {
           h = maxHeight;
@@ -175,7 +175,10 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
       toFs.close();
       true
     } catch {
-      case e: Exception => false
+      case e: Exception => {
+        Logger.error("Can't resize image", e)
+        false
+      }
 
     }
 

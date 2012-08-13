@@ -318,7 +318,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                             token:app_config.token,
                             session:app_config.session()
 
-                        });
+                        }, self._extraFields);
                     },
                     onStartOne:function (event, file, name, number, total) {
                         _file = self._file = {

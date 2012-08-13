@@ -91,6 +91,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         commitImagesForSession(track.session, Some(commitFileFilter))
         commitAudioForSession(track.session, Some(commitFileFilter))
 
+        track.rebuild
         Ok(generate(Map("track" -> track)))
       }
     )
@@ -303,7 +304,8 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
 
 
-
+        album.rebuild
+        allTracks.map(_.rebuild)
         Ok(generate(Map("album" -> album, "tracks" -> allTracks)))
 
       }

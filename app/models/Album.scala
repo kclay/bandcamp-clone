@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Date
-import utils.{Small, Image, Default}
+import utils.{Small, Image, Default, Medium}
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import scala.math
@@ -53,6 +53,15 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
   def ownerID: Long = artistID
 
   def signature: String = session
+
+  def rebuild() = {
+    artImage.map {
+      a =>
+        a.getOrResize(Default(), true)
+        a.getOrResize(Small(), true)
+        a.getOrResize(Medium(), true)
+    }
+  }
 
 }
 
@@ -141,6 +150,14 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   def withTime = "%02d:%02d".format(math.floor(duration / 60).toInt, math.floor(duration % 60).toInt)
 
+  def rebuild = {
+    artImage.map {
+      a =>
+        a.getOrResize(Default(), true)
+        a.getOrResize(Small(), true)
+        a.getOrResize(Medium(), true)
+    }
+  }
 
   def toFile = file.map(audioStore.full(session, _)).getOrElse(None)
 
