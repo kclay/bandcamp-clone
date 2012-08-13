@@ -89,7 +89,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       implicit artist => implicit request =>
         Album.bySlug(artist.id, name).map {
           a =>
-            Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
+            Ok(html.artist.albumView(albumForm.fill(a, Seq.empty[Track])))
         }.getOrElse(BadRequest)
     }
   }
