@@ -12,6 +12,10 @@ import java.io.{File, FileFilter}
 import scala.Some
 import models.AlbumTracks
 import services.PayPal
+import utils.TempImage._
+import scala.Some
+import utils.TempAudioDataStore._
+import scala.Some
 
 
 /**
@@ -25,10 +29,6 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   import models.SiteDB._
   import PrimitiveTypeMode._
-
-
-
-
 
 
   def tags(query: String) = TransAction {
@@ -45,23 +45,63 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
   }
 
 
-  def saveTrack() = authorizedAction(NormalUser) {
-    implicit artist => implicit request =>
-      singleTrackForm.bindFromRequest.fold(
-        errors => BadRequest(""),
-        track => {
-
-          Ok("") //generate(track.save()))
-        }
-      )
+  def saveTrack() = TransAction {
+    authorizedAction(NormalUser) {
+      implicit artist => implicit request =>
+        commitTrack(artist)
+    }
   }
 
-  def fetchTrack(id: Long) = TransAction {
+  def updateTrack(slug: String) = TransAction {
+    authorizedAction(NormalUser) {
+      implicit artist => implicit request =>
+        commitTrack(artist)
+    }
+  }
+
+  def commitTrack(artist: Artist)(implicit request: play.api.mvc.Request[_]): play.api.mvc.Result = {
+    singleTrackForm.bindFromRequest.fold(
+      errors => BadRequest(errors.errorsAsJson),
+      track => {
+
+        // select all slugs
+        val slugs = from(tracks)(t =>
+          where(t.artistID === artist.id)
+            select (t.slug)
+        ).toList
+
+        var counter = 1
+        val slug = track.slug
+
+        while (slugs.contains(track.slug)) {
+          track.slug = slug + "-" + counter
+          counter += 1
+        }
+
+        val activeHashes = List(track.art.getOrElse(""), track.file.getOrElse(""))
+
+        // update or delete album
+        track.single = true
+        if (track.id == 0) track.save else track.update
+
+        // compose our filter that checks for active file hashes(art and mp3) for the giving session
+        val commitFileFilter = new FileFilter() {
+          def accept(file: File) = file.getName.split("_").headOption.map(f => activeHashes.contains(f)).getOrElse(false)
+        }
+        commitImagesForSession(track.session, Some(commitFileFilter))
+        commitAudioForSession(track.session, Some(commitFileFilter))
+        Ok(generate(Map("track" -> track)))
+      }
+    )
+
+  }
+
+  def fetchTrack(slug: String) = TransAction {
     authorizedAction(NormalUser) {
       artist => implicit request =>
 
-        Ok(Track.find(id).map {
-          case t => if (t.artistID == artist.id) generate(t) else ""
+        Ok(Track.bySlug(artist.id, slug).map {
+          case t => generate(Map("track" -> t))
         }.getOrElse(""))
 
 
@@ -88,7 +128,11 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
 
           }
-          case "track" =>
+          case "track" => Track.bySlug(artist.id, slug).map {
+            track => update(tracks)(t =>
+              where(t.id === track.id)
+                set (t.active := true))
+          }
         }
         Ok("")
 

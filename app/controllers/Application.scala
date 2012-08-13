@@ -29,11 +29,12 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
-          Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish,
-          Purchase.album, Purchase.track, Purchase.checkout,Purchase.ajaxCommit
+          Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish, Ajax.fetchTrack,
 
-        )
-      ).as("text/javascript")
+            Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
+
+      )
+    ).as("text/javascript")
   }
 
 
@@ -66,16 +67,16 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   def index = optionalUserAction {
     artist => implicit request =>
 
-      if(hasSubdomain) Redirect(routes.Artists.index()) else Ok(html.index())
+      if (hasSubdomain) Redirect(routes.Artists.index()) else Ok(html.index())
 
 
   }
+
   private def hasSubdomain(implicit request: RequestHeader): Boolean = {
     val parts = request.host.split("\\.")
 
     if (request.host.contains("localhost")) parts.size >= 2 else parts.size >= 3
   }
-
 
 
   def sendForgottenPassword = TransAction {
@@ -246,7 +247,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
         Track.bySlug(artist.id, name).map(track =>
 
-          Ok(html.display.track(artist,  AlbumTracks.withAlbum(track.id),track))
+          Ok(html.display.track(artist, AlbumTracks.withAlbum(track.id), track))
         ) getOrElse (NotFound)
 
     }

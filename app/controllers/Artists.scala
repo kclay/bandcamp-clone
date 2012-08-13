@@ -67,9 +67,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   }
 
 
-  def editTrack(name: String) = authorizedAction(NormalUser) {
-    artist => implicit request =>
-      Ok("edit track")
+  def editTrack(name: String) = TransAction {
+    authorizedAction(NormalUser) {
+      implicit artist => implicit request =>
+        Track.bySlug(artist.id, name).map {
+          track => Ok(html.artist.addTrack(singleTrackForm.fill(track)))
+        }.getOrElse(BadRequest)
+
+    }
   }
 
 
@@ -85,14 +90,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
         Album.bySlug(artist.id, name).map {
           a =>
             Ok(html.artist.albumView(albumForm.fill(Album(), Seq.empty[Track])))
-        }.getOrElse(NotFound)
+        }.getOrElse(BadRequest)
     }
   }
 
 
-  def addTrack = authorizedAction(NormalUser) {
+  def newTrack = authorizedAction(NormalUser) {
     implicit artist => implicit request =>
-      Ok(html.artist.addTrack(singleTrackForm))
+      Ok(html.artist.addTrack(singleTrackForm.fill(Track())))
   }
 
 
@@ -112,6 +117,13 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
     authorizedAction(NormalUser) {
       artist => implicit request =>
         Ok(html.artist.albums(Album.forArtist(artist.id, page, amount)))
+    }
+  }
+
+  def tracks(page: Int, amount: Int) = TransAction {
+    authorizedAction(NormalUser) {
+      artist => implicit request =>
+        Ok(html.artist.tracks(Track.withSingle(artist.id, page, amount)))
     }
   }
 

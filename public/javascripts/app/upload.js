@@ -48,11 +48,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
             this.swf = new SWFUpload({
                 upload_url:app_config.uri.upload + options.uri,
-                post_params:{
-                    token:app_config.token,
-                    session:app_config.session
 
-                },
                 flash_url:"/assets/swfupload.swf",
                 file_size_limit:options.limit || "4 MB",
                 file_types:options.types || "*",
@@ -72,7 +68,7 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 button_text:"",
                 debug:true,
                 debug_handler:function () {
-                    console.log(arguments);
+                    self.debug(arguments);
                 },
                 button_placeholder:hit[0]
 
@@ -112,6 +108,11 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
         _onDialogComplete:function (numFilesSelected) {
 
             if (numFilesSelected == 1) {
+                this.swf.setPostParams({
+                    token:app_config.token,
+                    session:app_config.session()
+
+                });
                 this.trigger("beforeStarted", []);
                 this._file = null;
                 this.render();
@@ -284,6 +285,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 }
                 SWFUpload.prototype.startUpload = function () {
                 };
+                SWFUpload.prototype.setPostParams = function (params) {
+                    self._extraFields = $.extend({}, params, self._extraFields)
+                }
                 var swf = this.swf = new SWFUpload();
                 var input = this.$input = $("<input type='file'/>").appendTo(this.el).css({position:"absolute", "left":"-999999px"})
                 swf.fileSpeedStats = {};
@@ -306,15 +310,15 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 input.html5_upload({
                     fieldName:"Filedata",
                     url:app_config.uri.upload + options.uri,
-                    extraFields:{
-                        token:app_config.token,
-                        session:app_config.session
 
-                    },
 
                     sendBoundary:window.FormData || $.browser.mozilla,
                     beforeFormData:function (params) {
-                        return $.extend(params, self._extraFields);
+                        return $.extend(params, {
+                            token:app_config.token,
+                            session:app_config.session()
+
+                        });
                     },
                     onStartOne:function (event, file, name, number, total) {
                         _file = self._file = {

@@ -127,8 +127,9 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
                  license: String, artistName: Option[String],
                  art: Option[String], lyrics: Option[String], /*about: Option[String], */ credits: Option[String], releaseDate: Option[Date], active: Boolean = false, var duration: Int = 0)
   extends KeyedEntity[Long] with SaleAbleItem {
-  def this() = this(0, 0, "", Some(""), Some(""), "", "", true, true, 1.00, "", Some(""), Some(""), /*Some(""), */ Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
+  def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, true, 1.00, "", Some(""), Some(""), /*Some(""), */ Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
+  var single = false
 
   def previewURL(host: String) = {
     file.map(audioStore.previewURL(host, session, _)).getOrElse("")
@@ -153,12 +154,18 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   lazy val artURL: String = art.map(Image(_).url).getOrElse("")
 
+  def artImage = art.map(a => Some(Image(a))).getOrElse(None)
+
+  def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
+
 
 }
 
 object Track {
 
   import SiteDB._
+
+  def apply() = new Track()
 
   def find(id: Long): Option[Track] = tracks.where(t => t.id === id).headOption
 
@@ -168,6 +175,11 @@ object Track {
     where(t.id === id)
       set (t.active := true)
   )
+
+  def withSingle(artistID: Long, page: Int = 1, amount: Int = 20) = from(tracks)(t =>
+    where(t.artistID === artistID and t.single === true)
+      select (t)
+  ).take(amount).drop(page - 1 * amount).toList
 
   def byFile(artistID: Long, file: String): Option[Track] = inTransaction(tracks.where(t => t.artistID === artistID and t.file === Some(file)).headOption)
 }

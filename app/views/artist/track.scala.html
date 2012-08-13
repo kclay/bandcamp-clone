@@ -141,7 +141,9 @@
 
             </div>
         </div>
-
+        @input(track("session"),'_style->"hidden"){(id,name,value,args)=>
+            <input type="hidden" name="session" value="@value"/>
+        }
     </fieldset>
 
 

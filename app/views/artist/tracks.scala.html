@@ -1,0 +1,54 @@
+@(tracks:Seq[Track])(implicit request: play.api.mvc.RequestHeader)
+@import utils.session._
+
+
+@main("My Tracks","tracks"){
+
+@if(tracks.isEmpty){
+<h2>No Tracks go create some</h2>
+<div class="row span4 center">
+    <a href="@routes.Artists.newTrack()" class="btn btn-primary btn-xlarge">Add a Track</a>
+</div>
+}else{
+
+<h2>My Tracks</h2>
+<ul id="my-tracks">
+    @tracks.map{t=>
+
+    <li data-slug="@t.slug">
+
+        <a href="@routes.Artists.editTrack(t.slug)">
+            @t.smallArtImage.map{i=>
+                <img src="@i.url"/>
+            }
+
+
+        </a>
+
+        <div class="info">
+            <div class="name">@t.name</div>
+            <div class="artist">@t.artistName.getOrElse(SessionHelper.artist.name)</div>
+        </div>
+        <div class="actions">
+            <div>
+                <a href="@routes.Artists.editTrack(t.slug)">Edit</a>
+            </div>
+            <div>
+                <a href="/track/@t.slug" class="view">View</a>
+            </div>
+            <div>
+                <a href="#" class="delete">Delete</a>
+            </div>
+        </div>
+
+
+    </li>
+
+    }
+</ul>
+
+
+}
+
+
+}

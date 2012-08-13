@@ -37,8 +37,10 @@ GET     /artists                     controllers.Artists.list(page:Int ?=1,amoun
 GET     /new_album                  controllers.Artists.newAlbum()
 GET     /edit_album/:name                 controllers.Artists.editAlbum(name)
 GET     /my_albums                  controllers.Artists.albums(page:Int ?=1,amount:Int ?= 30)
+GET     /my_tracks                  controllers.Artists.tracks(page:Int ?=1,amount:Int ?= 30)
 
-GET     /edit_track                 controllers.Artists.addTrack()
+GET     /new_track                 controllers.Artists.newTrack()
+GET     /edit_track/:slug                 controllers.Artists.editTrack(slug:String)
 
 POST    /ajax/albums                    controllers.Ajax.saveAlbum()
 POST    /ajax/publish                    controllers.Ajax.publish(kind:String,slug:String)
@@ -48,7 +50,8 @@ DELETE     /ajax/albums/:slug                controllers.Ajax.deleteAlbum(slug:S
 
 
 POST    /ajax/tracks                    controllers.Ajax.saveTrack()
-GET     /ajax/tracks/:id                  controllers.Ajax.fetchTrack(id:Long)
+GET     /ajax/tracks/:slug            controllers.Ajax.fetchTrack(slug:String)
+PUT    /ajax/tracks/:slug                    controllers.Ajax.updateTrack(slug:String)
 
 
 

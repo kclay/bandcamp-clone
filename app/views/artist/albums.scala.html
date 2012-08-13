@@ -25,11 +25,11 @@
 
         </a>
 
-        <div class="album-info">
-            <div class="album-name">@a.name</div>
-            <div class="album-artist">@a.artistName.getOrElse(SessionHelper.artist.name)</div>
+        <div class="info">
+            <div class="name">@a.name</div>
+            <div class="artist">@a.artistName.getOrElse(SessionHelper.artist.name)</div>
         </div>
-        <div class="album-actions">
+        <div class="actions">
             <div>
                 <a href="@routes.Artists.editAlbum(a.slug)">Edit</a>
             </div>

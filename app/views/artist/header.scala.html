@@ -7,12 +7,16 @@
         <a class="dropdown-toggle" href="#add-music" data-toggle="dropdown">add music<b class="caret"></b></a>
         <ul class="dropdown-menu">
             <li><a href="@routes.Artists.newAlbum()">add album</a></li>
-            <li><a href="@routes.Artists.addTrack()">add track</a></li>
+            <li><a href="@routes.Artists.newTrack()">add track</a></li>
 
         </ul>
     </li>
     <li>
-        <a class="dropdown-toggle" href="@routes.Artists.albums()" data-toggle="dropdown">my albums</a>
+        <a  href="@routes.Artists.albums()" >my albums</a>
+
+    </li>
+    <li>
+        <a  href="@routes.Artists.tracks()">my tracks</a>
 
     </li>
 </ul>

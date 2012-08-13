@@ -18,28 +18,27 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 msg:'Please enter a track name'
             }
         },
-        defaults:{
-            id:null,
-            artist_id:0,
-            name:"",
-            download:true,
-            price:"1.00",
-            donateMore:true,
-            about:"",
+        defaults:function () {
+            return {
+                id:null,
+                artist_id:0,
+                name:"",
+                download:true,
+                price:"1.00",
+                donateMore:true,
+                about:"",
 
-            credits:"",
-            artist:"",
-            art:"",
-            artURL:"",
-            releaseDate:"",
-            session:app_config.session
+                credits:"",
+                artist:"",
+                art:"",
+                artURL:"",
+                releaseDate:"",
+                session:app_config.session()
 
 
+            }
         },
-        purchase:function (options) {
-            Routes.Purchase.album(this.get("slug")).ajax(options);
 
-        },
         refresh:function () {
             this.trigger("refresh");
         },

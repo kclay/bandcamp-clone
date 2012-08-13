@@ -10,26 +10,29 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     msg:'Please enter a track name'
                 }
             },
-            defaults:{
-                id:null,
-                artist_id:0,
-                name:"",
-                download:true,
-                price:"1.00",
-                donateMore:true,
-                about:"",
-                lyrics:"",
-                credits:"",
-                artist:"",
-                art:"",
-                artURL:"",
-                license:"all_rights",
-                status:"",
-                order:0,
-                session:app_config.session
+            defaults:function () {
+                return {
+                    id:null,
+                    artist_id:0,
+                    name:"",
+                    download:true,
+                    price:"1.00",
+                    donateMore:true,
+                    about:"",
+                    lyrics:"",
+                    credits:"",
+                    artist:"",
+                    art:"",
+                    artURL:"",
+                    license:"all_rights",
+                    status:"",
+                    order:0,
+                    session:app_config.session()
 
 
+                }
             },
+
             validate:function (attrs, options) {
                 if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {
                     return "releaseDate"
@@ -37,17 +40,30 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
 
             },
-            purchase:function (options) {
 
-            },
+
             urlRoot:"/ajax/tracks",
             toJSON:function () {
                 var t = _.clone(this.attributes);
                 if (this.isNew())t.id = 0
                 return t;
+            },
+
+            refresh:function () {
+                this.trigger("refresh");
+                return this;
             }
 
         });
+        var SingleTrack = Track.extend({
+            toJSON:function () {
+                var track = this._super("toJSON")
+                return {track:track}
+            },
+            parse:function (resp, xhr) {
+                return resp.track;
+            }
+        })
 
         var Status = {
             EVENT_CHANGED:"statusChanged",
@@ -311,7 +327,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     Routes.audioUploaded().ajax({
                         data:{
                             id:info.id,
-                            session:app_config.session
+                            session:app_config.session()
                         }
                     }).done(this._onAudioUploaded).error(this._onAudioUploaded)
 
@@ -442,6 +458,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             EditView:TrackEditView,
             OverviewView:TrackOverviewView,
             Model:Track,
+            SingleTrack:SingleTrack,
             Collection:Tracks,
             Bindings:EditBindings,
             Status:Status

@@ -156,7 +156,7 @@ define(["underscore", "backbone", "modal"], function (_) {
         this.reset();
 
     }
-    $.extend(StatesManager.prototype, {
+    $.extend(StatesManager.prototype, Backbone.Events, {
         reset:function () {
             this._states = {};
             this._states[STATES.PROCESSING] = {
@@ -185,6 +185,7 @@ define(["underscore", "backbone", "modal"], function (_) {
 
 
             if (activeState)return _.template(activeState.msg, {models:activeState.models.length});
+            this.trigger("beforeUnload");
 
 
         },

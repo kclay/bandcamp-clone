@@ -2,12 +2,9 @@ html, body, .container, #content {
     height: 100%;
 }
 
-
-
 #main-header {
     height: 100px;
 }
-
 
 #signup-button {
     background: url('/images/signup_button.png') no-repeat;
@@ -24,13 +21,14 @@ html, body, .container, #content {
 }
 
 #navbar {
-    li:first-child {
+    li {
         float: left;
         margin-right: 30px;
     }
 
     li  li {
         float: none;
+        margin-right:0px;
     }
 }
 
@@ -137,12 +135,11 @@ input[type="text"], input[type="password"] {
     height: 28px;
 }
 
-
 .input-block {
 
     margin-right: 10px;
     background: @white;
-    &.track-block{
+    &.track-block {
         background: none;
     }
     textarea, input[type="text"],
@@ -275,7 +272,7 @@ body.inner {
     padding: 10px;
 }
 
-#my-albums {
+#my-albums,#my-tracks {
     list-style: none;
     position: relative;
     li {
@@ -291,11 +288,11 @@ body.inner {
     a {
         display: inline-block;
     }
-    .album-info {
+    .info {
         display: inline-block;
         width: 60%;
     }
-    .album-actions {
+    .actions {
         display: inline-block;
         width: 30%;
         div {
@@ -308,7 +305,7 @@ body.inner {
 
 .editor {
     background: url('/images/editor-background.png') repeat-y;
-    height:auto !important;
+    height: auto !important;
     .right-panel {
         width: 430px;
         float: right;
@@ -530,11 +527,10 @@ body.inner {
 
 }
 
-
 #published {
     .hide;
 
-    margin-top: 20px;
+    margin-top: 60px;
 }
 
 #publish-alert {
@@ -610,8 +606,7 @@ body.inner {
         position: absolute;
         top: -3px;
         width: 29px;
-        background:@purple;
-
+        background: @purple;
 
         border: 1px @grayCustom solid;
         height: 13px;
