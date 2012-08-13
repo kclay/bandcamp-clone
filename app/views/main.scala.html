@@ -2,18 +2,35 @@
 
 @import utils.session._
 @nav={
-   @artist.header()
+@artist.header()
 }
 @common(title,nav,"inner"){
 
 <div id="inner-wrap" class="row content-wrap @id">
 
-        @content
+    @content
 
 
 </div>
 
 
+<script type="text/template" id="tpl-loading">
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>Loading</h3>
+    </div>
+    <div class="modal-body">
+        <p>Loading please wait</p>
+
+        <div class="progress progress-striped  active">
+            <div class="bar"
+                 style="width: 100%;"></div>
+        </div>
+    </div>
+
+
+</script>
 <script type="text/template" id="tpl-feedback">
 
     <div class="modal-header">
@@ -42,7 +59,7 @@
         <p><%= message %></p>
     </div>
     <div class="modal-footer">
-        <a href="#"  class="btn btn-accept btn-primary">Ok</a>
+        <a href="#" class="btn btn-accept btn-primary">Ok</a>
         <a href="#" class="btn btn-cancel" data-dismiss="modal">Cancel</a>
 
     </div>

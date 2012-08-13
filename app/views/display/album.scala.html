@@ -70,6 +70,16 @@ pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@esc
         @display.trackRow(i,t)
         }
     </table>
+    @album.about.map{l=>
+    <h3>About</h3>
+    <p>@l</p>
+
+    }
+    @album.credits.map{l=>
+    <h3>Credits</h3>
+    <p>@l</p>
+
+    }
 </div>
 
 <div id="details-right" class="span5 pull-left">

@@ -67,13 +67,14 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         // select all slugs
         val slugs = from(tracks)(t =>
           where(t.artistID === artist.id)
-            select (t.slug)
-        ).toList
+            select(t.slug, t.id)
+        ).toMap
 
         var counter = 1
         val slug = track.slug
 
-        while (slugs.contains(track.slug)) {
+
+        while (slugs.contains(track.slug) && slugs.getOrElse(track.slug, -1) != track.id) {
           track.slug = slug + "-" + counter
           counter += 1
         }
@@ -215,8 +216,8 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
         val albumSlugs = from(albums)(a =>
           where(a.artistID === artist.id)
-            select (a.slug)
-        ).toList
+            select(a.slug, a.id)
+        ).toMap
 
 
 
@@ -225,7 +226,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
         val albumSlug = album.slug
         var counter = 2
-        while (albumSlugs.contains(album.slug)) {
+        while (albumSlugs.contains(album.slug) && albumSlugs.getOrElse(album.slug, -1) != album.id) {
           album.slug = albumSlug + "-" + counter
           counter += 1
         }
@@ -236,15 +237,15 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         // select all slugs
         var slugs = from(tracks)(t =>
           where(t.artistID === artist.id)
-            select (t.slug)
-        ).toList
+            select(t.slug, t.id)
+        ).toMap
 
         allTracks.foreach {
           t =>
-            var counter = 2
+            var counter = 1
             val slug = t.slug
 
-            while (slugs.contains(t.slug)) {
+            while (slugs.contains(t.slug) && slugs.getOrElse(t.slug, -1) != t.id) {
               t.slug = slug + "-" + counter
               counter += 1
             }
@@ -252,7 +253,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
             // update active slug list just in case a user inputs the same title twice in
             // the same update session
 
-            if (slug != t.slug) slugs ++= List(t.slug)
+            if (slug != t.slug) slugs ++= Map(t.slug -> t.id)
         }
 
 

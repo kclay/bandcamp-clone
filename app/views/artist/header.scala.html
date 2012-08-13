@@ -1,5 +1,6 @@
 @()(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
+@import utils.Utils.domain
 
 @if(SessionHelper.authenticated){
 <ul id="navbar" class="nav clearfix">
@@ -18,6 +19,13 @@
     <li>
         <a  href="@routes.Artists.tracks()">my tracks</a>
 
+    </li>
+    <li>
+        <a  href="@routes.Application.logout()">logout</a>
+
+    </li>
+    <li>
+        <a href="http://@(domain)">Back to bulabowl.com</a>
     </li>
 </ul>
 }

@@ -58,33 +58,42 @@ pl.push({'kind':"track",'slug':'@track.slug','artist_id':@track.artistID,'price'
     <p>Immediate download of Do It All in your choice of MP3 320.</p>
 
     <p>
-        <a href="/track/@(track.slug)/?action=download" class="download"><h3 class="inline">Buy Now</h3></a> @price(track.price) USD or more
+        <a href="/track/@(track.slug)/?action=download" class="download"><h3 class="inline">Buy Now</h3></a>
+        @price(track.price) USD or more
     </p>
 
 
-
-
     @album.map{a=>
-        <h3>
-            <a href="/album/@a.slug">Buy the Full Digital Album</a>
-        </h3>
+    <h3>
+        <a href="/album/@a.slug">Buy the Full Digital Album</a>
+    </h3>
+    }
+    @track.lyrics.map{l=>
+      <h3>Lyrics</h3>
+        <p>@l</p>
+
+    }
+    @track.credits.map{l=>
+    <h3>Credits</h3>
+    <p>@l</p>
+
     }
 
-    <table id="track-list">
+    <!-- <table id="track-list">
 
 
         @display.trackRow(0,track)
 
-    </table>
+    </table>-->
 </div>
 
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
 
         @if(!track.artURL.isEmpty){
-             <img src="@track.artURL"/>
+        <img src="@track.artURL"/>
         }else{
-            @album.map{a=><img src="@a.artURL"/>}
+        @album.map{a=><img src="@a.artURL"/>}
 
         }
     </div>
@@ -92,16 +101,13 @@ pl.push({'kind':"track",'slug':'@track.slug','artist_id':@track.artistID,'price'
 </div>
 
 
-
 <script type="text/javascript">
     var pl = [];
 
     @addTracks(mediaURL)
     window.app_config.playlist = pl;
-    window.app_config.model=pl[0];
+    window.app_config.model = pl[0];
 </script>
-
-
 
 
 }

@@ -5,8 +5,10 @@ define(["underscore", "backbone", "modal"], function (_) {
         tagName:"div",
         className:"modal hide",
         template:"#tpl-feedback",
+        module_options:{},
 
         initialize:function (options) {
+            options = options || {};
             this.template = _.template($(this.template).html());
             if (options.error) {
                 this.$el.addClass("error").find(".btn-cancel").addClass("btn-danger");
@@ -26,12 +28,29 @@ define(["underscore", "backbone", "modal"], function (_) {
             this.$el.on("hide", function () {
                 $(this).remove();
             })
-            this.$el.modal();
+            this.$el.modal(this.module_options);
             return this;
         }
     })
 
 
+    var LoadingView = FeedbackView.extend({
+        module_options:{
+            keyboard:false
+        },
+        template:"#tpl-loading",
+        destroy:function (callback) {
+            var self = this;
+            setTimeout(function () {
+                self.$el.modal("hide")
+                if (callback)callback();
+            }, 1 * 1000)
+
+
+            return;
+        }
+
+    })
     var ConfirmView = FeedbackView.extend({
         events:{
             "click .btn-accept":"accept",
@@ -238,6 +257,7 @@ define(["underscore", "backbone", "modal"], function (_) {
         ArtUploader:ArtUploader,
         Validate:Validators,
         STATES:STATES,
+        LoadingView:LoadingView,
         StateManager:StatesManager
     }
 })

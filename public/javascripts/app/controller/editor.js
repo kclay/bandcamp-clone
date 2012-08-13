@@ -203,6 +203,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 this.is("reloading", true);
                 var album = this.options.album;
                 var model = album ? this.album : this.track;
+                var loading = new Common.LoadingView();
                 model.fetch({
                     url:(album ? Ajax.fetchAlbum(slug) : Ajax.fetchTrack(slug)).url,
                     success:function () {
@@ -212,7 +213,23 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                         }
                         self.stateManager.reset();
                         self.is("reloading", false)
-                    }});
+                        loading.destroy();
+                    },
+                    error:function () {
+                        loading.destroy(function () {
+                            new Common.FeedbackView(
+                                {
+                                    error:true,
+                                    data:{
+                                        title:"Error Restoring",
+                                        message:"Unable to restore your " + ((album) ? "Album" : "Track")
+                                    }
+                                })
+                        })
+                    }
+                });
+
+
             }
 
 
@@ -550,7 +567,8 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         },
 
         view:function () {
-            window.location.href = "/album/" + this.album.get("slug")
+            var uri = this.album ? "/album/" + this.album.get("slug") : "/track/" + this.track.get("slug")
+            window.location.href = uri;
         },
         publish:function () {
             $("#saving").slideDown()
@@ -567,7 +585,8 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
                     $("#published").slideDown(function () {
                         $(this).css({display:"inline-block"})
-                    }).find("#congrats").html(
+                    })
+                    $("#congrats").html(
                         self.publishTemplate({title:model.get("name"), view:album ? "Album" : "Track"})
                     )
 

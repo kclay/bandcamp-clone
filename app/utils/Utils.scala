@@ -80,6 +80,13 @@ object Utils {
     Play.configuration.getString("server.media").get
   }
 
+  def domain = {
+    import play.api.Play.current
+    import play.api.Play
+
+    Play.configuration.getString("server.domain").get
+  }
+
   def uploadURL = {
     import play.api.Play.current
     import play.api.Play
