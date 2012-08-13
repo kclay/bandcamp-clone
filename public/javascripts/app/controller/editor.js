@@ -364,6 +364,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             if (this.options.album) {
                 this._updateHeight(!this.tracks.length);
             }
+            this.enable(true);
 
 
         },
