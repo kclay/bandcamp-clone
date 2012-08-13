@@ -90,6 +90,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         }
         commitImagesForSession(track.session, Some(commitFileFilter))
         commitAudioForSession(track.session, Some(commitFileFilter))
+
         Ok(generate(Map("track" -> track)))
       }
     )

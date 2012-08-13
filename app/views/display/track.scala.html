@@ -80,8 +80,9 @@ pl.push({'kind':"track",'slug':'@track.slug','artist_id':@track.artistID,'price'
 
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
+
         @if(!track.artURL.isEmpty){
-         <img src="@track.artURL"/>
+             <img src="@track.artURL"/>
         }else{
             @album.map{a=><img src="@a.artURL"/>}
 

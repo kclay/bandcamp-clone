@@ -20,7 +20,11 @@ import play.api.libs.Files
 
 sealed abstract class ImageSize(val width: Int, val height: Int, val suffix: String)
 
+
 case class Normal() extends ImageSize(350, 350, "normal")
+
+case class Default() extends ImageSize(350, 350, "default")
+
 
 case class Medium() extends ImageSize(210, 210, "medium")
 

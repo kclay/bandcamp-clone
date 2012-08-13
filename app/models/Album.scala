@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Date
-import utils.{Small, Image}
+import utils.{Small, Image, Default}
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import scala.math
@@ -34,11 +34,14 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
 
   def artImage = art.map(a => Some(Image(a))).getOrElse(None)
 
+
   def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
 
   def smallArtURL = smallArtImage.map(_.url).getOrElse("")
 
-  lazy val artURL: String = art.map(Image(_).url).getOrElse("")
+  def defaultArtImage = artImage.map(a => Some(a.getOrResize(Default()))).getOrElse(None)
+
+  lazy val artURL: String = art.map(Image(_).getOrResize(Default()).url).getOrElse("")
 
 
   def itemType = "album"
@@ -152,9 +155,12 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   def signature: String = file.get
 
-  lazy val artURL: String = art.map(Image(_).url).getOrElse("")
+  lazy val artURL: String = art.map(Image(_).getOrResize(Default()).url).getOrElse("")
+
 
   def artImage = art.map(a => Some(Image(a))).getOrElse(None)
+
+  def defaultArtImage = artImage.map(a => Some(a.getOrResize(Default()))).getOrElse(None)
 
   def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
 
