@@ -23,9 +23,8 @@ object SessionHelper {
   }
 
   def authenticated(implicit request: RequestHeader) = {
-    request.session.get(sessionKey).exists(_ => true)
+    request.session.get(sessionKey).exists(_ => true) && !request.path.contains("login")
   }
-
 
 
   def artist = {

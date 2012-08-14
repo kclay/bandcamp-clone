@@ -24,9 +24,10 @@ import com.typesafe.plugin._
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
 
 
-  def Error(implicit request:RequestHeader)={
+  def Error(implicit request: RequestHeader) = {
     NotFound(html.notFound(request))
   }
+
   def javascriptRoutes = Action {
     implicit request =>
       import routes.javascript._
@@ -35,10 +36,10 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
           Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish, Ajax.fetchTrack,
 
-            Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
+          Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
 
-      )
-    ).as("text/javascript")
+        )
+      ).as("text/javascript")
   }
 
 
@@ -167,20 +168,26 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   def login = Action {
     implicit request =>
-      request.method match {
-        case "POST" => db {
-          loginForm.bindFromRequest.fold(
-            formWithErrors => BadRequest(html.login(formWithErrors)),
-            user => gotoLoginSucceeded(user.get.id)
-          )
-        }
-        case "GET" => {
-          /* val data = Map("username" -> "cideas", "password" -> "cideas")
-          loginForm.bind(data).fold(
-            formWithErrors => BadRequest(html.login(formWithErrors)),
-            user => gotoLoginSucceeded(user.get.id)
-          )*/
-          Ok(html.login(loginForm))
+      if (hasSubdomain) {
+        import utils.Utils.domain
+
+        Redirect("http://" + domain + "/login").withNewSession
+      } else {
+        request.method match {
+          case "POST" => db {
+            loginForm.bindFromRequest.fold(
+              formWithErrors => BadRequest(html.login(formWithErrors)),
+              user => gotoLoginSucceeded(user.get.id)
+            )
+          }
+          case "GET" => {
+            /* val data = Map("username" -> "cideas", "password" -> "cideas")
+            loginForm.bind(data).fold(
+              formWithErrors => BadRequest(html.login(formWithErrors)),
+              user => gotoLoginSucceeded(user.get.id)
+            )*/
+            Ok(html.login(loginForm))
+          }
         }
       }
 
@@ -189,9 +196,15 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
   def logout = Action {
     implicit request =>
+    /* if (hasSubdomain ) {
+import utils.Utils.domain
+gotoLogoutSucceeded
+Redirect(domain + "/login").withNewSession
+} else {    */
       gotoLogoutSucceeded.flashing(
         "success" -> "You've been logged out"
       )
+
   }
 
   def dashboard = authorizedAction(NormalUser) {
