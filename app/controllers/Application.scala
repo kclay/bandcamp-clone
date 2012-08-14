@@ -23,6 +23,10 @@ import com.typesafe.plugin._
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
 
+
+  def Error(implicit request:RequestHeader)={
+    NotFound(html.notFound(request))
+  }
   def javascriptRoutes = Action {
     implicit request =>
       import routes.javascript._
@@ -207,7 +211,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
 
         Album.bySlug(artist.id, name).map(album =>
           Ok(html.display.album(artist, album, Album.withTracks(album.id).toList))
-        ) getOrElse (NotFound)
+        ) getOrElse (BadRequest)
 
     }
   }
@@ -248,7 +252,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
         Track.bySlug(artist.id, name).map(track =>
 
           Ok(html.display.track(artist, AlbumTracks.withAlbum(track.id), track))
-        ) getOrElse (NotFound)
+        ) getOrElse (BadRequest)
 
     }
   }

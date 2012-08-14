@@ -1,0 +1,6 @@
+@(title:String,content:Option[String])
+
+@content.map{c=>
+<h3>@title</h3>
+<p class="section">@c.replace("\\n","<br/>")</p>
+}

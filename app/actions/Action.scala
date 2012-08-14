@@ -11,9 +11,11 @@ import models._
 import play.api._
 
 import play.api.http._
-import play.api.mvc._
+import mvc._
 import play.api.http.Status._
 import org.squeryl.PrimitiveTypeMode.inTransaction
+import jp.t2v.lab.play20.auth.{AuthConfig, Auth}
+import controllers.routes
 
 
 trait SquerylTransaction {
@@ -24,6 +26,24 @@ trait SquerylTransaction {
           f(request)
         }
     }
+  }
+}
+
+trait Authorizer {
+  self: Controller with Auth with AuthConfig =>
+  def Authorize(f: Artist => Request[AnyContent] => Result) = Action {
+    implicit request =>
+
+      val parts = request.host.split("\\.")
+      val subdomain = parts.head
+      val domain = parts.drop(1).mkString(".")
+
+
+
+      authorized(NormalUser.asInstanceOf[this.Authority])(request).right.map(
+        u => if (u.asInstanceOf[Artist].domain.equals(subdomain)) f(u.asInstanceOf[Artist])(request) else Redirect("http://" + domain + routes.Artists.index().url)
+      ).merge
+
   }
 }
 
