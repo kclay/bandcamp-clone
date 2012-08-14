@@ -115,8 +115,11 @@
 
         <input type="hidden" name="@name" id="@id" @toHtmlArgs(args)/>
         }
-
+        @input(track("session"),'_style->"hidden"){(id,name,value,args)=>
+        <input type="hidden" name="session" value="@value"/>
+        }
     </fieldset>
+
 
     <fieldset>
 
@@ -126,7 +129,7 @@
             <div class="input">
 
                 @license("All rights reserved","all_rights")
-                <h4>Creative Commons:</h4>
+                @**<h4>Creative Commons:</h4>
                 <ul class="license-selector">
                     @license("Attribution Non-commercial No Derivatives","non_commercial_no_derivatives")
 
@@ -137,14 +140,13 @@
                     @license("Attribution Share Alike","share")
 
                     @license("Attribution","attribution")
-                </ul>
+                </ul>**@
 
             </div>
         </div>
-        @input(track("session"),'_style->"hidden"){(id,name,value,args)=>
-            <input type="hidden" name="session" value="@value"/>
-        }
+
     </fieldset>
+
 
 
 
