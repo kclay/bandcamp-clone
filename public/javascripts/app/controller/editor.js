@@ -150,7 +150,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
     var STATES = Common.STATES;
     var View = Backbone.View.extend({
         el:".content-wrap",
-        publishTemplate:_.template($("#congrats").html()),
+
         events:{
             "click #save-button":"save",
             "click #cancel":"cancel",
@@ -161,7 +161,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
         initialize:function (options) {
             // _.bindAll(this);
-
+            this.publishTemplate = _.template($("#tpl-published").html());
             this.stateManager = new Common.StateManager();
 
             this._uploaders = {};
@@ -583,12 +583,11 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
                 success:function () {
 
+                    $("#published").html(self.publishTemplate({title:model.get("name"), view:album ? "Album" : "Track"}))
                     $("#published").slideDown(function () {
                         $(this).css({display:"inline-block"})
                     })
-                    $("#congrats").html(
-                        self.publishTemplate({title:model.get("name"), view:album ? "Album" : "Track"})
-                    )
+
 
                     finish();
                 },
