@@ -19,7 +19,9 @@ GET     /signup                     controllers.Application.signup
 
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 
-GET     /ajax/stats/:metric/:objectID/:remove    controllers.Ajax.stats(metric:Metric,objectID:Long,remove:Boolean)
+
+GET     /ajax/stats/:metric/:range                      controllers.Ajax.fetchStats(metric:Metric,range:Range)
+GET     /ajax/stats/:metric/:objectID/:remove    controllers.Ajax.track(metric:Metric,objectID:Long,remove:Boolean)
 
 
 

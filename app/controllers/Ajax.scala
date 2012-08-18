@@ -32,7 +32,16 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
   import models.SiteDB._
   import PrimitiveTypeMode._
 
-  def stats(metric: Metric, objectID: Long, remove: Boolean = false) = TransAction {
+  def fetchStats(metric: Metric, range: Range) = TransAction {
+    Action {
+
+      Ok(g(range.compute(metric)))
+    }
+  }
+
+
+
+  def track(metric: Metric, objectID: Long, remove: Boolean) = TransAction {
     WithArtist {
       artist => implicit request =>
         if (remove) {

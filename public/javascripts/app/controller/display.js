@@ -3,55 +3,9 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
     var Common = require("app/common");
     var App = require("app")
     var Routes = App.Routes;
-    var Stats = {}
+    var Stats = App.Stats
 
-    var Events = "Play,Skip,Partial,Complete".split(",");
-    _.each(Events, function (name) {
-        var Event = name;
-        var Metric = Event.toLowerCase()
 
-        Stats[Event] = function (object, deletePrevious) {
-            var index = Events.indexOf(Event);
-            var tracked = Stats[Event].tracked;
-            if (deletePrevious && !tracked.previous[object]) {
-
-                for (var i = index; i > 0; i--) {
-                    var PreviousEvent = Events[i];
-                    if (Stats[PreviousEvent].tracked.now[object]) {
-                        tracked.previous[object] = true
-                        Routes.Ajax.stats(Events[i], object, 1).ajax({
-
-                            error:function () {
-                                delete tracked.previous[object];
-                            }
-                        });
-                    }
-                }
-
-            }
-            if (!tracked.now[object]) {
-                tracked.now[object] = true;
-                var canTrack = _.filter(Events, function (event) {
-                    if (event == "Play")return true;
-                    if (Events.indexOf(event) > index) {
-                        if (Stats[Event].tracked.now[object])return false;
-                        return true;
-                    } else {
-                        return true;
-                    }
-                })
-                if (canTrack.length == 1) {
-                    Routes.Ajax.stats(Metric, object, 0).ajax({
-                        error:function () {
-                            delete tracked.now[object];
-                        }
-                    });
-                }
-            }
-
-        }
-        Stats[Event].tracked = {previous:{}, now:{}};
-    })
     var View = Backbone.View.extend({
         el:".display",
         events:{
@@ -304,7 +258,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
 
             this._state(State.BUSY);
             this.trigger("play", index)
-            Stats.Play(this.currentItem().id);
+            Stats.track.Play(this.currentItem().id);
             this.render();
         },
         play:function () {
@@ -312,7 +266,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             this.player.play(true);
             this.trigger("play", this._currentIndex);
             this.trigger("change", this._currentIndex);
-            Stats.Play(this.currentItem().id);
+            Stats.track.Play(this.currentItem().id);
         },
         pause:function () {
             this.player.pause(true);
@@ -353,11 +307,11 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             var item = this.currentItem();
             var percent = (this._position * 100) / Duration;
             if (stopped && percent < 10) {
-                Stats.Skip(item.id);
+                Stats.track.Skip(item.id);
             } else if (percent >= 90) {
-                Stats.Complete(item.id, true);
+                Stats.track.Complete(item.id, true);
             } else if (percent > 10) {
-                Stats.Partial(item.id, true);
+                Stats.track.Partial(item.id, true);
             }
         },
         render:function (position) {

@@ -46,6 +46,8 @@ case class Download(token: String, item: String, kind: String, from: String = "e
     }
   }
 
+  def metric = if (kind.equals("album")) AlbumDownload else TrackDownload
+
   def withMp3 = {
     import utils.Assets.audioStore
     val track = withItem.asInstanceOf[Track]
@@ -68,7 +70,7 @@ case class Download(token: String, item: String, kind: String, from: String = "e
   def withDownload(artist: Artist, creator: (Option[(String, String, String)]) => Result)(implicit request: RequestHeader) = {
 
     def proxy(info: Option[(String, String, String)]) = {
-      Stat(Downloads, artist.id, withItem.itemID)
+      Stat(metric, artist.id, withItem.itemID)
       creator(info)
     }
     Either.cond(canZip, withZip(artist, request), withMp3).fold(proxy, proxy)

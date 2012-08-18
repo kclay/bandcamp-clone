@@ -5,9 +5,10 @@ import models.SiteDB._
 
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
-import java.sql.Timestamp
+import java.sql.{Date, Timestamp}
 import org.squeryl.KeyedEntity
 import services.PaypalAdaptive
+import org.joda.time.{DateTimeZone, DateTime}
 
 
 /**
@@ -22,7 +23,7 @@ case class Transaction(sig: String, itemID: Long, amount: Double, kind: String, 
   var id: Long = 0
 
 
-  def this() = this("", 0, 0, "", "", "pending", Some(""), Some(""), Some(""), "", Some(new Timestamp(System.currentTimeMillis)))
+  def this() = this("", 0, 0, "", "", "pending", Some(""), Some(""), Some(""), "", Some(new Timestamp(DateTime.now(DateTimeZone.UTC).getMillis)))
 
   import models.Transaction.PURCHASE_TRACK
 
@@ -102,10 +103,10 @@ object Transaction {
 
 }
 
-case class Sale(transactionID: Long, downloads: Int, amount: Double, createdAt: Timestamp) extends KeyedEntity[Long] {
+case class Sale(transactionID: Long, downloads: Int, amount: Double, percentage: Double, createdAt: Timestamp) extends KeyedEntity[Long] {
   val id: Long = 0
 
-  def this() = this(0, 0, 0, new Timestamp(System.currentTimeMillis()))
+  def this() = this(0, 0, 0, 0, new Timestamp(DateTime.now(DateTimeZone.UTC).getMillis))
 }
 
 object Sale {
@@ -113,8 +114,8 @@ object Sale {
   import Transaction.withArtist
 
   lazy val paypal = new PaypalAdaptive()
+  lazy val percentage = paypal.percentage
 
-  def amount(amount: Double) = amount - (amount * paypal.percentage)
 
   def apply(transaction: Transaction) = {
     try {
@@ -122,8 +123,8 @@ object Sale {
 
       Stat(transaction.metric, artist.id, transaction.itemID)
       Some(new Sale(transaction.id, 0,
-        amount(transaction.amount),
-        new Timestamp(System.currentTimeMillis())).save)
+        transaction.amount, percentage,
+        new Timestamp(DateTime.now(DateTimeZone.UTC).getMillis)).save)
 
 
     } catch {

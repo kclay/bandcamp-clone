@@ -39,6 +39,13 @@ define(["underscore", "backbone", "modal"], function (_) {
             keyboard:false
         },
         template:"#tpl-loading",
+        initialize:function (options) {
+            options = options || {};
+            options.data = options.data || {
+                title:"Please Wait",
+                message:"Page Loading"
+            }
+        },
         destroy:function (callback) {
             var self = this;
             setTimeout(function () {
