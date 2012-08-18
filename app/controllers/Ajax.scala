@@ -16,6 +16,8 @@ import utils.TempImage._
 import scala.Some
 import utils.TempAudioDataStore._
 import scala.Some
+import actions.Actions._
+import scala.Some
 
 
 /**
@@ -30,6 +32,17 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
   import models.SiteDB._
   import PrimitiveTypeMode._
 
+  def stats(metric: Metric, objectID: Long, remove: Boolean = false) = TransAction {
+    WithArtist {
+      artist => implicit request =>
+        if (remove) {
+          Stat.remove(metric, artist.id, objectID)
+        } else {
+          Stat(metric, artist.id, objectID)
+        }
+        Ok
+    }
+  }
 
   def tags(query: String) = TransAction {
     Action {

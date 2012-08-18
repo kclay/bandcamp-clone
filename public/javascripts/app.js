@@ -66,10 +66,16 @@ define(["dropdown"], function () {
         }
 
     }
+    var Routes = (jsRoutes || {}).controllers
+
+
+
 
     return {
         initialize:initialize,
-        Routes:(jsRoutes || {}).controllers
+        Routes:Routes
+
+
 
     };
 });

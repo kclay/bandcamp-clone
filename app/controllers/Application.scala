@@ -35,8 +35,9 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
           Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish, Ajax.fetchTrack,
-
+          Ajax.stats,
           Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
+
 
         )
       ).as("text/javascript")
@@ -89,9 +90,9 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       implicit request =>
         forgotForm.bindFromRequest.fold(
           errors => Ok(html.forgotPassword(errors)),
-          value => {
+          artist => {
 
-            val artist = value.asInstanceOf[Artist]
+
             val reset = PasswordReset(artist)
 
             val sent = Notification("BulaBowl reset password request", artist.email,

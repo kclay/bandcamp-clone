@@ -1,12 +1,14 @@
 package models
 
 import java.text.SimpleDateFormat
+import models.SiteDB._
 
+import org.squeryl.PrimitiveTypeMode._
+import scala.Some
 import java.sql.Timestamp
 import org.squeryl.KeyedEntity
-import org.apache.commons.codec.digest.DigestUtils._
-import scala.Some
-import services.PayPal
+import services.PaypalAdaptive
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,8 +16,6 @@ import services.PayPal
  * Date: 7/26/12
  * Time: 12:22 AM
  */
-
-
 case class Transaction(sig: String, itemID: Long, amount: Double, kind: String, token: String, status: String = "pending", correlationID: Option[String] = Some(""), payerID: Option[String] = Some(""),
                        transactionID: Option[String] = Some(""), ack: String = "",
                        created: Option[Timestamp] = None) extends KeyedEntity[Long] {
@@ -23,6 +23,10 @@ case class Transaction(sig: String, itemID: Long, amount: Double, kind: String, 
 
 
   def this() = this("", 0, 0, "", "", "pending", Some(""), Some(""), Some(""), "", Some(new Timestamp(System.currentTimeMillis)))
+
+  import models.Transaction.PURCHASE_TRACK
+
+  def metric = if (kind == PURCHASE_TRACK) PurchaseTrack else PurchaseAlbum
 }
 
 object Transaction {
@@ -37,8 +41,6 @@ object Transaction {
 
   lazy val timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
-  import models.SiteDB._
-  import org.squeryl.PrimitiveTypeMode._
 
   def fromTimestamp(date: String) = timeFormatter format date
 
@@ -67,6 +69,12 @@ object Transaction {
 
   }
 
+  def withArtist(token: String): Option[Artist] =
+    withArtistAndItem(token).map {
+      case (_, artist, _) => artist
+    }
+
+
   def byToken(token: String) = transactions.where(t => t.token === token).headOption
 
   def bySig(sig: String) = transactions.where(t => t.sig === sig).headOption
@@ -93,3 +101,35 @@ object Transaction {
 
 
 }
+
+case class Sale(transactionID: Long, downloads: Int, amount: Double, createdAt: Timestamp) extends KeyedEntity[Long] {
+  val id: Long = 0
+
+  def this() = this(0, 0, 0, new Timestamp(System.currentTimeMillis()))
+}
+
+object Sale {
+
+  import Transaction.withArtist
+
+  lazy val paypal = new PaypalAdaptive()
+
+  def amount(amount: Double) = amount - (amount * paypal.percentage)
+
+  def apply(transaction: Transaction) = {
+    try {
+      val artist = withArtist(transaction.token).get
+
+      Stat(transaction.metric, artist.id, transaction.itemID)
+      Some(new Sale(transaction.id, 0,
+        amount(transaction.amount),
+        new Timestamp(System.currentTimeMillis())).save)
+
+
+    } catch {
+      case e: Exception => None
+    }
+
+  }
+}
+

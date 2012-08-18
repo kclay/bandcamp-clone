@@ -6,6 +6,7 @@ import play.api.libs.Crypto
 import utils.ZipCreator
 import utils.Utils._
 
+
 /**
  * Created by IntelliJ IDEA.
  * User: Keyston
@@ -64,10 +65,13 @@ case class Download(token: String, item: String, kind: String, from: String = "e
 
   }
 
-  def withDownload(artist: Artist, f: (Option[(String, String, String)]) => Result)(implicit request: RequestHeader) = {
+  def withDownload(artist: Artist, creator: (Option[(String, String, String)]) => Result)(implicit request: RequestHeader) = {
 
-
-    Either.cond(canZip, withZip(artist, request), withMp3).fold(f, f)
+    def proxy(info: Option[(String, String, String)]) = {
+      Stat(Downloads, artist.id, withItem.itemID)
+      creator(info)
+    }
+    Either.cond(canZip, withZip(artist, request), withMp3).fold(proxy, proxy)
 
 
   }

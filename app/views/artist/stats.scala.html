@@ -1,0 +1,74 @@
+@()
+
+
+@main("Stats","stats"){
+<script type="text/template" id="tpl-plays">
+
+    <tr>
+        <td class="rank"><span><%=rank%>.</span></td>
+        <td class="title">
+            <%=title=>
+        </td>
+        <td class="bar">
+            <table>
+                <tbody>
+                <tr>
+                    <td class="complete_width" style="width:<%=complete_ratio%>"><span class="complete_text"><%
+                        =complete%></span></td>
+                    <td class="partial_width" style="width:<%=partial_ratio%>"><span class="partial_text"><%=partial%
+                        ></span></td>
+                    <td class="skip_width" style="width:<%=skip_ratio%>"><span class="skip_text"><%=skip></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</script>
+<div class="row">
+    <ul>
+        <li><a href="#" id="stats-play">Plays</a></li>
+        <li><a href="#" id="stats-sales">Sales/Downloads</a></li>
+    </ul>
+
+
+</div>
+<div id="chart">
+
+</div>
+
+<table id="plays-stats">
+    <thead>
+    <th>
+        track
+    </th>
+    <th>
+        plays
+    </th>
+    <th>
+        <span>complete</span>
+        <span>partial</span>
+        <span>skip</span>
+    </th>
+    </thead>
+    <tbody class="stats-body">
+    <tr>
+        <td class="rank"><span>1.</span></td>
+        <td class="title">
+
+        </td>
+        <td class="bar">
+            <table>
+                <tbody>
+                <tr>
+                    <td class="complete_width"><span class="complete_text"></span></td>
+                    <td class="partial_width"><span class="partial_text"></span></td>
+                    <td class="skip_width"><span class="skip_text"></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+}

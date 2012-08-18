@@ -1,7 +1,57 @@
 define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbone) {
 
     var Common = require("app/common");
-    var Routes = require("app").Routes
+    var App = require("app")
+    var Routes = App.Routes;
+    var Stats = {}
+
+    var Events = "Play,Skip,Partial,Complete".split(",");
+    _.each(Events, function (name) {
+        var Event = name;
+        var Metric = Event.toLowerCase()
+
+        Stats[Event] = function (object, deletePrevious) {
+            var index = Events.indexOf(Event);
+            var tracked = Stats[Event].tracked;
+            if (deletePrevious && !tracked.previous[object]) {
+
+                for (var i = index; i > 0; i--) {
+                    var PreviousEvent = Events[i];
+                    if (Stats[PreviousEvent].tracked.now[object]) {
+                        tracked.previous[object] = true
+                        Routes.Ajax.stats(Events[i], object, 1).ajax({
+
+                            error:function () {
+                                delete tracked.previous[object];
+                            }
+                        });
+                    }
+                }
+
+            }
+            if (!tracked.now[object]) {
+                tracked.now[object] = true;
+                var canTrack = _.filter(Events, function (event) {
+                    if (event == "Play")return true;
+                    if (Events.indexOf(event) > index) {
+                        if (Stats[Event].tracked.now[object])return false;
+                        return true;
+                    } else {
+                        return true;
+                    }
+                })
+                if (canTrack.length == 1) {
+                    Routes.Ajax.stats(Metric, object, 0).ajax({
+                        error:function () {
+                            delete tracked.now[object];
+                        }
+                    });
+                }
+            }
+
+        }
+        Stats[Event].tracked = {previous:{}, now:{}};
+    })
     var View = Backbone.View.extend({
         el:".display",
         events:{
@@ -139,6 +189,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
 
 
     })
+    var Duration = 90;
 
     var State = {
         BUSY:"busy",
@@ -192,6 +243,9 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
 
 
         },
+        currentItem:function () {
+            return this.items[this._currentIndex];
+        },
         _onPlaylistItem:function (event) {
             this._currentIndex = event.index;
             this.trigger("change", this._currentIndex);
@@ -227,6 +281,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
                 //   this._state(State.PLAYING)
             }
 
+
         },
         _onBufferChange:function (event) {
             this.$fill.animate({width:event.bufferPercent + "%"});
@@ -249,6 +304,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
 
             this._state(State.BUSY);
             this.trigger("play", index)
+            Stats.Play(this.currentItem().id);
             this.render();
         },
         play:function () {
@@ -256,6 +312,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             this.player.play(true);
             this.trigger("play", this._currentIndex);
             this.trigger("change", this._currentIndex);
+            Stats.Play(this.currentItem().id);
         },
         pause:function () {
             this.player.pause(true);
@@ -291,16 +348,29 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         paused:function () {
             return this.player.getState() == "PAUSED";
         },
+        _track:function (stopped) {
+
+            var item = this.currentItem();
+            var percent = (this._position * 100) / Duration;
+            if (stopped && percent < 10) {
+                Stats.Skip(item.id);
+            } else if (percent >= 90) {
+                Stats.Complete(item.id, true);
+            } else if (percent > 10) {
+                Stats.Partial(item.id, true);
+            }
+        },
         render:function (position) {
-            position = typeof position == "undefined" ? this.$slider.slider("value") : position;
-            var item = this.items[this._currentIndex];
+            position = this._position = typeof position == "undefined" ? this.$slider.slider("value") : position;
+            var item = this.currentItem();
             this.$title.text(item.title)
-            this.$time.text(this._format(position) + "/" + this._format(item.duration));
+            this.$time.text(this._format(position) + "/" + this._format(Duration));
 
             var length = this.items.length;
             this.$next[length > 1 && this._currentIndex <= length - 1 ? "show" : "hide"]();
 
             this.$prev[this._currentIndex > 0 ? "show" : "hide"]();
+            this._track();
         }
 
     })

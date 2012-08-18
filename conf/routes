@@ -19,6 +19,8 @@ GET     /signup                     controllers.Application.signup
 
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 
+GET     /ajax/stats/:metric/:objectID/:remove    controllers.Ajax.stats(metric:Metric,objectID:Long,remove:Boolean)
+
 
 
 GET /download                       controllers.Application.download

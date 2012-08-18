@@ -5,7 +5,7 @@ import play.api._
 import libs.Crypto
 import play.api.mvc._
 import models._
-import services.PayPal
+import services._
 import models.Forms.{purchaseForm, paypalCallbackForm}
 import scala.Some
 import views._
@@ -31,7 +31,7 @@ object Purchase extends Controller with SquerylTransaction {
           (for {
             item <- Album.bySlug(artistId, album)
             sig <- withSig(artistId, price, item)
-            token <- withPaypal(sig, item, price, "http://bulabown.com")
+            token <- withPaypal(sig, item, price, "http://bulabowl.com")
             _ <- Transaction(sig, item, price, token)
           } yield Ok(token)) getOrElse (BadRequest("error"))
 
@@ -63,6 +63,7 @@ object Purchase extends Controller with SquerylTransaction {
     for {
       ok <- PayPal ok commit
 
+
     } yield commit
   }
 
@@ -72,6 +73,7 @@ object Purchase extends Controller with SquerylTransaction {
       commit get (PayPal.FIELD_CORRELATIONID),
       commit get (PayPal.FIELD_TRANSACTIONID)
     )
+
     var email = details.get(PayPal.FIELD_EMAIL).get
     if (email.contains("conceptual-ideas.com"))
       email = "info@ihaveinternet.com";
@@ -86,7 +88,7 @@ object Purchase extends Controller with SquerylTransaction {
         val mail = use[MailerPlugin].email
         mail.setSubject("Your download from %s".format(artist.name))
         mail.addRecipient(email)
-        mail.addFrom("%s <noreply@%s>".format(artist.name, request.host.split(":")(0)))
+        mail.addFrom("%s <noreply@%s>".format(artist.name, request.host))
 
         //sends both text and html
         try {
@@ -121,6 +123,7 @@ object Purchase extends Controller with SquerylTransaction {
           (for {
             ok <- PayPal ok details
             commit <- withCommit(details)
+            s<-Sale(trans)
             _ <- withEmail(details, commit, token)
           } yield Ok("ok")
             ).getOrElse(Ok("error"))

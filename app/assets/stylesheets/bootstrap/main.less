@@ -6,9 +6,10 @@ html, body, .container, #content {
     height: 100px;
 }
 
-#save{
-    margin:0 !important;
+#save {
+    margin: 0 !important;
 }
+
 #signup-button {
     background: url('/images/signup_button.png') no-repeat;
     width: 185px;
@@ -541,11 +542,12 @@ body.inner {
     margin-top: 20px;
 }
 
-p.section{
+p.section {
     word-break: break-all;
     word-wrap: break-word;
     white-space: pre-wrap;
 }
+
 #player {
     position: relative;
     color: @purple;
@@ -677,4 +679,36 @@ p.section{
     visibility: hidden;
 }
 
+#plays-stats {
+    .title {
+        width: 15em;
+        white-space: normal;
+    }
+    .rank {
+        width: 3em;
+        text-align: right;
+        font-size: 90%;
+        color: gray;
+    }
+    .total {
+        width: 7em;
+        text-align: right;
+    }
+    .bar {
+        width: 22em;
+        table {
+            width: 100%;
+            table-layout: auto;
+            td {
+                font-size: 90%;
+                text-align: center;
+                border: none;
+                height: 0.1%;
+                color: gray;
+            }
+        }
+
+    }
+
+}
 

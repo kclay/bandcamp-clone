@@ -34,7 +34,8 @@ object ApplicationBuild extends Build {
     resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/",
     resolvers += "Scala-Tools Maven2 Repository" at "http://scala-tools.org/repo-releases",
     lessEntryPoints <<= baseDirectory(customLessEntryPoints),
-    routesImport += "binders.Binders",
+    routesImport += "binders._",
+    routesImport += "models._",
     templatesImport += "org.apache.commons.lang.StringEscapeUtils.escapeJavaScript"
 
   )

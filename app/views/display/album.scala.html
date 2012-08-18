@@ -4,7 +4,7 @@
 @import utils.Utils.mediaURL
 @addTracks(domain:String)={
 @tracks.map{t=>
-pl.push({'slug':'@t.slug','artist_id':@t.artistID,'price':@t.price,'title':'@escapeJavaScript(t.name)', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
+pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'title':'@escapeJavaScript(t.name)', 'file':'@(t.previewURL(domain))', 'duration':'@t.duration'});
 }
 }
 @display.templateBuy()

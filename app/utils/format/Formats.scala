@@ -78,12 +78,12 @@ object Formats {
     }
   }
 
-  implicit def artistEmailFormat: Formatter[Any] = new Formatter[Any] {
+  implicit def artistEmailFormat: Formatter[Artist] = new Formatter[Artist] {
 
 
-    def unbind(key: String, value: Any) = {
-      val v = if (value.isInstanceOf[Artist]) value.asInstanceOf[Artist].email else value.toString
-      Map(key -> v)
+    def unbind(key: String, value: Artist) = {
+
+      Map(key -> value.email)
     }
 
 
@@ -103,7 +103,7 @@ object Formats {
     }
   }
 
-  val artistEmail: Mapping[Any] = of[Any] as artistEmailFormat
+  val artistEmail: Mapping[Artist] = of[Artist]
 
   /*
 def mapping[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18,A19](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18]),a19: (String, Mapping[A19]))(apply: Function19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18,A19, R])(unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18,A19)]]): Mapping[R] = {

@@ -22,7 +22,7 @@ object Forms {
 
 
   val forgotForm = Form(
-    single("email" -> email)
+    single("email" -> artistEmail)
   )
   val resetForm = Form(
     tuple(
