@@ -1,4 +1,4 @@
-define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbone) {
+define(["underscore", "backbone", "use!jwplayer", "app/common"], function (_, Backbone) {
 
     var Common = require("app/common");
     var App = require("app")

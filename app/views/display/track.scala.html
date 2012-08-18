@@ -10,16 +10,7 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
 }
 @display.templateBuy()
 @main(track.name,"display-track display"){
-<script type="text/javascript">
-    window.app_config.update({
-        includes:["jwplayer"],
-        config:{
-            paths:{
-                "jwplayer":"libs/jwplayer/jwplayer"
-            }
-        }
-    })
-</script>
+
 <div id="details-left" class="span6">
     <h2 class="trackTime">@track.name</h2>
 

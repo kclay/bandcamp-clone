@@ -1,4 +1,4 @@
-define(["dropdown"], function () {
+define(["underscore", "dropdown"], function () {
     var initialize = function () {
         // Pass in our Router module and call it's initialize function
 
@@ -43,6 +43,9 @@ define(["dropdown"], function () {
             },
             "my_albums":{
                 ctr:"app/controller/albums"
+            },
+            "stats":{
+                ctr:"app/controller/stats"
             }
 
         },
@@ -67,27 +70,48 @@ define(["dropdown"], function () {
 
     }
     var Routes = (jsRoutes || {}).controllers
+    var fetch = function (object, deletePrevious) {
+    }
     var Stats = {
-        fetch:{},
-        track:{}
+        fetch:{
+            Play:fetch,
+            Skip:fetch,
+            Partial:fetch,
+            Complete:fetch
+        },
+        track:{},
+        Metrics:{
+            Play:function (range, sucess, error) {
+            },
+            Sales:function (range, sucess, error) {
+            }
+        },
+        Ranges:{
+            Today:"today",
+            Week:"week",
+            Month:"month",
+            TwoMonths:"twomonths",
+            AllTime:"alltime"
+        }
     };
     var Events = "Play,Skip,Partial,Complete".split(",");
     _.each("Play,Sales".split(","), function (name) {
 
         var Event = name;
         var Metric = Event.toLowerCase();
-        Stats.fetch[Event] = function (success, error) {
-            Routes.Ajax.fetchStats(Metric).ajax({
-                sucess:success,
+        Stats.fetch[Event] = function (Range, success, error) {
+            Routes.Ajax.fetchStats(Metric, Range).ajax({
+                success:success,
                 error:error
             })
 
         }
     })
+
     _.each(Events, function (name) {
         var Event = name;
         var Metric = Event.toLowerCase()
-        Stats[Event] = Metric;
+        Stats.Metrics[Event] = Metric;
         Stats.track[Event] = function (object, deletePrevious) {
             var index = Events.indexOf(Event);
             var tracked = Stats[Event].tracked;

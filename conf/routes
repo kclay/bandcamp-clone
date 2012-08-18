@@ -42,6 +42,7 @@ GET     /new_album                  controllers.Artists.newAlbum()
 GET     /edit_album/:name                 controllers.Artists.editAlbum(name)
 GET     /my_albums                  controllers.Artists.albums(page:Int ?=1,amount:Int ?= 30)
 GET     /my_tracks                  controllers.Artists.tracks(page:Int ?=1,amount:Int ?= 30)
+GET     /stats                      controllers.Artists.stats
 
 GET     /new_track                 controllers.Artists.newTrack()
 GET     /edit_track/:slug                 controllers.Artists.editTrack(slug:String)

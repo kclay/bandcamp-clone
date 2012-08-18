@@ -45,6 +45,7 @@ define(["underscore", "backbone", "modal"], function (_) {
                 title:"Please Wait",
                 message:"Page Loading"
             }
+            this._super("initialize", options);
         },
         destroy:function (callback) {
             var self = this;

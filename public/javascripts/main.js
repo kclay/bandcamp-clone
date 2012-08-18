@@ -3,21 +3,25 @@
     var config = {
         baseUrl:"/assets/javascripts",
         paths:{
-            "backbone":"libs/backbone/backbone",
-            "underscore":"libs/underscore/underscore",
 
+            "backbone":"libs/backbone/backbone",
+            "underscore":"libs/underscore/underscore.min",
+            "jwplayer":"libs/jwplayer/jwplayer.min",
             'jquery-ui':"libs/jquery/jquery-ui",
             "swfupload":"libs/swfupload/main",
             "binder":"libs/backbone/Backbone.ModelBinder",
             "dropdown":"libs/bootstrap-dropdown",
             "typeahead":"libs/bootstrap-typeahead",
             "modal":"libs/bootstrap-modal",
-            "html5":"libs/jquery/jquery.html5_upload"
+            "html5":"libs/jquery/jquery.html5_upload",
+            highcharts:'libs/highcharts/highcharts'
         },
 
 
         shim:{
-
+            'underscore':{
+                exports:"_"
+            },
             'backbone':{
                 //These script dependencies should be loaded before loading
                 //backbone.js
@@ -29,6 +33,12 @@
             "binder":{
                 deps:["backbone"],
                 exports:"Backbone.ModelBinder"
+            },
+            "jwplayer":{
+                exports:"jwplayer"
+            },
+            "highcharts":{
+                exports:'Highcharts'
             },
 
             "swfupload":{

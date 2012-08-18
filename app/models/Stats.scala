@@ -23,17 +23,17 @@ trait Range {
   def unapply(value: String) = if (value.equals(name)) Some(this) else None
 
   def toMap(query: Query[(Stat, Track)]) = {
+    // TODO : Optomize the query
+    Map("items" -> query.map {
+      r => r._2.id -> Map("name" -> r._2.name, "slug" -> r._2.slug)
+    }.toMap,
+      "stats" -> query.groupBy {
+        r => r._1.trackedAt
+      }.mapValues(v => v.map {
+        case (r) => r._1
+      })
 
-      Map("items" -> query.map {
-        r => r._2.id -> Map("name" -> r._2.name, "slug" -> r._2.slug)
-      }.toMap,
-        "stats" -> query.groupBy {
-          r => r._1.trackedAt
-        }.mapValues(v => v.map {
-          case (r) => r._1
-        })
-
-      )
+    )
   }
 
 
