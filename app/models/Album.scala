@@ -22,6 +22,8 @@ trait SaleAbleItem {
 
   def signature: String
 
+  def itemSlug: String
+
   def artist = Artist.find(ownerID)
 }
 
@@ -53,6 +55,8 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
   def ownerID: Long = artistID
 
   def signature: String = session
+
+  def itemSlug: String = slug
 
   def rebuild() = {
     artImage.map {
@@ -168,6 +172,8 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def itemTitle = name
 
   def ownerID: Long = artistID
+
+  def itemSlug: String=slug
 
 
   def signature: String = file.get

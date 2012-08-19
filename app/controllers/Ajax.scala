@@ -7,7 +7,7 @@ import models.Forms._
 import com.codahale.jerkson.Json._
 import jp.t2v.lab.play20.auth.Auth
 import org.squeryl.PrimitiveTypeMode
-import actions.SquerylTransaction
+import actions.{Authorizer, SquerylTransaction}
 import java.io.{File, FileFilter}
 import scala.Some
 import models.AlbumTracks
@@ -27,31 +27,11 @@ import scala.Some
  * Time: 11:18 AM
  */
 
-object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with SquerylTransaction {
+object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with SquerylTransaction with Authorizer {
 
   import models.SiteDB._
   import PrimitiveTypeMode._
 
-  def fetchStats(metric: Metric, range: Range) = TransAction {
-    Action {
-
-      Ok(g(range.compute(metric)))
-    }
-  }
-
-
-
-  def track(metric: Metric, objectID: Long, remove: Boolean) = TransAction {
-    WithArtist {
-      artist => implicit request =>
-        if (remove) {
-          Stat.remove(metric, artist.id, objectID)
-        } else {
-          Stat(metric, artist.id, objectID)
-        }
-        Ok
-    }
-  }
 
   def tags(query: String) = TransAction {
     Action {

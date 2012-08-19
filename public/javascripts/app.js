@@ -81,7 +81,7 @@ define(["underscore", "dropdown"], function () {
         },
         track:{},
         Metrics:{
-            Play:function (range, sucess, error) {
+            Plays:function (range, sucess, error) {
             },
             Sales:function (range, sucess, error) {
             }
@@ -95,12 +95,13 @@ define(["underscore", "dropdown"], function () {
         }
     };
     var Events = "Play,Skip,Partial,Complete".split(",");
-    _.each("Play,Sales".split(","), function (name) {
+    _.each("Plays,Sales".split(","), function (name) {
 
-        var Event = name;
-        var Metric = Event.toLowerCase();
-        Stats.fetch[Event] = function (Range, success, error) {
-            Routes.Ajax.fetchStats(Metric, Range).ajax({
+        var Type = name;
+        var method = Type.toLowerCase();
+        Stats.fetch[Type] = function (Metric, Range, success, error) {
+
+            Routes.Stats[method](Metric, Range).ajax({
                 success:success,
                 error:error
             })
@@ -112,16 +113,16 @@ define(["underscore", "dropdown"], function () {
         var Event = name;
         var Metric = Event.toLowerCase()
         Stats.Metrics[Event] = Metric;
-        Stats.track[Event] = function (object, deletePrevious) {
+        var self = Stats.track[Event] = function (object, deletePrevious) {
             var index = Events.indexOf(Event);
-            var tracked = Stats[Event].tracked;
+            var tracked = self.tracked;
             if (deletePrevious && !tracked.previous[object]) {
 
                 for (var i = index; i > 0; i--) {
                     var PreviousEvent = Events[i];
                     if (Stats[PreviousEvent].tracked.now[object]) {
                         tracked.previous[object] = true
-                        Routes.Ajax.track(Events[i], object, 1).ajax({
+                        Routes.Stats.track(Events[i], object, 1).ajax({
 
                             error:function () {
                                 delete tracked.previous[object];
@@ -136,14 +137,14 @@ define(["underscore", "dropdown"], function () {
                 var canTrack = _.filter(Events, function (event) {
                     if (event == "Play")return true;
                     if (Events.indexOf(event) > index) {
-                        if (Stats[Event].tracked.now[object])return false;
+                        if (tracked.now[object])return false;
                         return true;
                     } else {
                         return true;
                     }
                 })
                 if (canTrack.length == 1) {
-                    Routes.Ajax.track(Metric, object, 0).ajax({
+                    Routes.Stats.track(Metric, object, 0).ajax({
                         error:function () {
                             delete tracked.now[object];
                         }

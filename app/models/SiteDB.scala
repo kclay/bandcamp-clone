@@ -179,8 +179,10 @@ object SiteDB extends Schema {
   ))
   val sales = table[Sale]("sales")
   on(sales)(s => declare(
+    s.artistID is (named("artist_id")),
     s.transactionID is (named("transaction_id")),
-    s.createdAt is (named("created_at"))
+    s.createdAt is (named("created_at")),
+    s.itemID is (named("item_id"))
   ))
   val resets = table[PasswordReset]("password_resets")
   on(resets)(r => declare(

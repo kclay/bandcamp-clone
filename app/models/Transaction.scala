@@ -8,6 +8,7 @@ import scala.Some
 import java.sql.{Date, Timestamp}
 import org.squeryl.KeyedEntity
 import services.PaypalAdaptive
+import play.api.Logger
 import org.joda.time.{DateTimeZone, DateTime}
 
 
@@ -28,6 +29,11 @@ case class Transaction(sig: String, itemID: Long, amount: Double, kind: String, 
   import models.Transaction.PURCHASE_TRACK
 
   def metric = if (kind == PURCHASE_TRACK) PurchaseTrack else PurchaseAlbum
+
+  private lazy val table = if (kind == PURCHASE_TRACK) tracks else albums
+
+  def item = table.where(t => t.itemID === itemID)
+
 }
 
 object Transaction {
@@ -103,10 +109,18 @@ object Transaction {
 
 }
 
-case class Sale(transactionID: Long, downloads: Int, amount: Double, percentage: Double, createdAt: Timestamp) extends KeyedEntity[Long] {
-  val id: Long = 0
+case class Sale(transactionID: Long, artistID: Long, itemID: Long, amount: Double, percentage: Double, createdAt: Date) extends KeyedEntity[Long] {
+  var id: Long = 0
 
-  def this() = this(0, 0, 0, 0, new Timestamp(DateTime.now(DateTimeZone.UTC).getMillis))
+  def this() = this(0, 0, 0, 0, 0, new Date(DateTime.now(DateTimeZone.UTC).getMillis))
+
+  /*
+  def withItem = from(transactions)(t =>
+    where(t.id === transactionID)
+
+      select (t.item)
+  )  */
+
 }
 
 object Sale {
@@ -121,14 +135,21 @@ object Sale {
     try {
       val artist = withArtist(transaction.token).get
 
-      Stat(transaction.metric, artist.id, transaction.itemID)
-      Some(new Sale(transaction.id, 0,
+      //Stat(transaction.metric, artist.id, transaction.itemID)
+
+      val sale = new Sale(transaction.id, artist.id, transaction.itemID,
         transaction.amount, percentage,
-        new Timestamp(DateTime.now(DateTimeZone.UTC).getMillis)).save)
+        new Date(DateTime.now(DateTimeZone.UTC).getMillis))
+      sale.save
+      Stat(transaction.metric, artist.id, sale.id)
+      Stat(Sales, artist.id, sale.id)
+      Some(sale)
 
 
     } catch {
-      case e: Exception => None
+      case e: Exception =>
+        Logger.error("Sale Tracking", e)
+        None
     }
 
   }

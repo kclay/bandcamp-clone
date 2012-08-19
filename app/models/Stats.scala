@@ -1,11 +1,11 @@
 package models
 
-import org.squeryl.{Query, KeyedEntity}
+import org.squeryl.{Table, Query, KeyedEntity}
 import java.sql.{Timestamp, Date}
 import play.api.Logger
 import org.joda.time.{DateTimeZone, DateTime, LocalDate}
+import models.SiteDB._
 import org.squeryl.PrimitiveTypeMode._
-import scala.Some
 
 
 /**
@@ -22,23 +22,45 @@ trait Range {
 
   def unapply(value: String) = if (value.equals(name)) Some(this) else None
 
-  def toMap(query: Query[(Stat, Track)]) = {
+  def mapTracks(query: Query[(Stat, Long, String, String)]) = {
     // TODO : Optomize the query
     Map("items" -> query.map {
-      r => r._2.id -> Map("name" -> r._2.name, "slug" -> r._2.slug)
+      case (s, id, name, slug) => id -> Map("name" -> name, "slug" -> slug)
+
     }.toMap,
       "stats" -> query.groupBy {
-        r => r._1.trackedAt
+        case (s, _, _, _) => s.trackedAt
+
       }.mapValues(v => v.map {
-        case (r) => r._1
+        case (s, _, _, _) => s
+      })
+
+    )
+  }
+
+  def mapSales(query: Query[(Stat, Option[DoubleType], Long, String, String)]) = {
+    // TODO : Optomize the query
+    Map("items" -> query.map {
+      case (s, usd, id, name, slug) => id -> Map("name" -> name, "slug" -> slug, "usd" -> usd)
+
+    }.toMap,
+      "stats" -> query.groupBy {
+        case (s, _, _, _, _) => s.trackedAt
+
+      }.mapValues(v => v.map {
+        case (s, _, _, _, _) => s
       })
 
     )
   }
 
 
-  def compute(metric: Metric) = {
-    toMap(metric.query)
+  def ~(metric: TrackMetric)(implicit artist: Artist) = {
+    mapTracks(metric.query)
+  }
+
+  def ~(metric: PurchaseMetric)(implicit artist: Artist) = {
+    mapSales(metric.query)
   }
 }
 
@@ -46,13 +68,21 @@ trait Range {
 trait Restricted extends Range {
   val range = DateTime.now(DateTimeZone.UTC)
 
-  def prep(query: Query[(Stat, Track)]) = from(query)(s =>
-    where(s._1.trackedAt gte new Date(range.getMillis))
-      select (s)
+  def withTracks(query: Query[(Stat, Long, String, String)]) = query.where(
+    s => s._1.trackedAt gte new Date(range.getMillis)
   )
 
-  override def compute(metric: Metric) = {
-    toMap(prep(metric.query))
+  def withSales(query: Query[(Stat, Option[DoubleType], Long, String, String)]) = query.where(
+
+    s => s._1.trackedAt gte new Date(range.getMillis)
+  )
+
+  override def ~(metric: TrackMetric)(implicit artist: Artist) = {
+    mapTracks(withTracks(metric.query))
+  }
+
+  override def ~(metric: PurchaseMetric)(implicit artist: Artist) = {
+    mapSales(withSales(metric.query))
   }
 }
 
@@ -91,40 +121,49 @@ case object InvalidRange extends Range {
 sealed abstract class Metric {
 
 
-  import models.SiteDB._
-
   val name = ""
+
+  val computeSales = false
 
 
   def unapply(value: String) = if (value.equals(name)) Some(this) else None
 
-  def query = join(stats, tracks)((s, t) =>
-    select(s, t).
-      orderBy(s.trackedAt asc)
+
+}
+
+trait TrackMetric extends Metric {
+  def query(implicit artist: Artist) = join(stats, tracks)((s, t) =>
+    where(s.artistID === artist.id and s.metric === name)
+      select(s, t.id, t.name, t.slug)
+      orderBy (s.trackedAt asc)
       on (s.objectID === t.id)
 
   )
 
+   def ~(range: Range)(implicit artist: Artist): Any = {
+    range ~ this
+  }
+
 
 }
 
-case object Play extends Metric {
+case object Play extends TrackMetric {
   override val name = "play"
 }
 
-case object InvalidMetric extends Metric {
+case object InvalidMetric extends TrackMetric {
   override val name = "null"
 }
 
-case object Complete extends Metric {
+case object Complete extends TrackMetric {
   override val name = "complete"
 }
 
-case object Partial extends Metric {
+case object Partial extends TrackMetric {
   override val name = "partial"
 }
 
-case object Skip extends Metric {
+case object Skip extends TrackMetric {
   override val name = "skip"
 }
 
@@ -136,12 +175,52 @@ case object AlbumDownload extends Metric {
   override val name = "album_downloads"
 }
 
-case object PurchaseTrack extends Metric {
-  override val name = "purchase_track"
+
+trait PurchaseMetric extends Metric {
+  val table: Table[SaleAbleItem]
+  override val computeSales = true
+
+  def cut(implicit artist: Artist) = from(SiteDB.sales)(s =>
+    where(s.artistID === artist.id)
+      groupBy(s.itemID, s.createdAt)
+      compute (sum(s.amount))
+
+  )
+
+  def sales(implicit artist: Artist) = join(stats, SiteDB.sales)((st, s) =>
+    where(st.artistID === artist.id and st.metric === name)
+      select(st, s)
+      on (st.objectID === s.id)
+  )
+
+  def query(implicit artist: Artist) = from(sales, cut, table)((s, sums, i) =>
+    where(sums.key._1 === s._1.objectID and s._2.itemID === i.itemID)
+      // select stats
+      select(s._1, sums.measures, i.itemID, i.itemTitle, i.itemSlug)
+
+  )
+
+  def ~(range: Range)(implicit artist: Artist): Any = {
+    range ~ this
+  }
+
+
 }
 
-case object PurchaseAlbum extends Metric {
+case object PurchaseTrack extends PurchaseMetric {
+  override val name = "purchase_track"
+
+  override val table = tracks.asInstanceOf[Table[SaleAbleItem]]
+
+
+}
+
+case object PurchaseAlbum extends PurchaseMetric {
   override val name = "purchase_album"
+
+  override val table = albums.asInstanceOf[Table[SaleAbleItem]]
+
+
 }
 
 case object Sales extends Metric {
@@ -157,8 +236,6 @@ case class Stat(artistID: Long, metric: String, trackedAt: Date, objectID: Long,
 
 object Stat {
 
-  import models.SiteDB._
-  import org.squeryl.PrimitiveTypeMode._
 
   type MetricType = Metric
 

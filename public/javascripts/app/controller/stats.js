@@ -26,11 +26,13 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             type:'datetime',
             tickInterval:24 * 3600 * 1000, // one day
             tickWidth:0,
-            gridLineWidth:1,
+
+
             labels:{
                 align:'left',
                 x:3,
-                y:-3
+                y:-3,
+                step:15
             }
         },
 
@@ -39,6 +41,7 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
                 title:{
                     text:null
                 },
+                gridLineWidth:0,
                 labels:{
                     align:'left',
                     x:3,
@@ -87,6 +90,7 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
                 point:{
                     events:{
                         click:function () {
+                            console.log(this);
                             /* hs.htmlExpand(null, {
                              pageOrigin:{
                              x:this.pageX,
@@ -108,25 +112,20 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
         series:[
             {
-                name:'All visits',
-                lineWidth:4,
-                marker:{
-                    radius:4
-                }
-            },
-            {
-                name:'New visitors'
+
             }
         ]
     };
     var Stats = require("app").Stats;
 
+
     var View = Backbone.View.extend({
 
         initialize:function () {
 
-            _.bind(this._onSuccess, this)
-            _.bind(this._onError, this);
+            this._onSuccess = _.bind(this._onSuccess, this)
+            this._onError = _.bind(this._onError, this);
+
             this.load(Stats.Metrics.Play, Stats.Ranges.AllTime)
         },
         load:function (stats, range) {
@@ -135,13 +134,16 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
         },
         play:function (range) {
-            this.fetch(Stats.fetch.Play, range)
+            this.fetch("Plays", Stats.fetch.Plays, Stats.Metrics.Play, range)
         },
-        sales:function (range) {
-            this.fetch(Stats.fetch.Sales, range);
+
+        sales:function (range, metric) {
+            this.fetch("Sales/Downloads", Stats.fetch.Sales, metric, range);
         },
-        fetch:function (method, range) {
-            method(range, _.bind(this._onSuccess, this), _.bind(this._onError, this))
+        fetch:function (title, method, metric, range) {
+            this.currentTitle = title;
+            method(metric, range, this._onSuccess, this._onError)
+
         },
         _onSuccess:function (json) {
             this.loadingView.destroy();
@@ -160,22 +162,36 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
                 date = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
                 return  _.map(records, function (record) {
-                    return [date, record.total]
+                    return {
+                        x:date,
+                        y:record.total,
+                        item:data.items[record.objectID]
+
+                    }
                 })
 
 
             })
             stats = _.flatten(stats, true);
-            var dates = _.pluck(stats, "0")
-
-            var minDate = new Date()
-            minDate.setUTCMilliseconds(_.min(dates))
-
-            minDate.setMonth(minDate.getMonth() - 1)
+            var dates = _.pluck(stats, "x")
+            var lastDate = _.min(dates)
+            var date = new Date(lastDate)
 
 
+            date.setMonth(date.getMonth() - 1)
+
+            stats.unshift([Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()), 0]);
+            chartOptions.title.text = this.currentTitle;
             chartOptions.series[0].data = stats;
-            chartOptions.plotOptions.series.pointStart = minDate;
+            chartOptions.series[0] = {
+                name:this.currentTitle,
+                lineWidth:4,
+                marker:{
+                    radius:4
+                },
+                data:stats
+            }
+            //chartOptions.plotOptions.series.pointStart = minDate.getUTCMilliseconds();
             this.chat = new Highcharts.Chart(chartOptions);
 
 
