@@ -147,40 +147,45 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             var t = this.t || (this.t = _.template($("#tpl-plays").html()))
             return t(item);
         },
+        group:function (items) {
+            return items;
+        },
         compute:function (item) {
             return item.metric == "play" ? item.total : 0
         },
         prep:function (items) {
 
-            var tracks = _.sortBy(_.map(_.groupBy(items, "slug"), function (stats, key) {
-                    var defaults = _.clone(PlayMetricDefaults);
-                    var sum = _.reduce(stats, function (memo, stat) {
-                        return memo + stat.total
-                    }, 0);
+            var tracks = _.sortBy(
+                _.map(
+                    _.groupBy(items, "slug"), function (stats, key) {
+                        var defaults = _.clone(PlayMetricDefaults);
+                        var sum = _.reduce(stats, function (memo, stat) {
+                            return memo + stat.total
+                        }, 0);
 
-                    var metrics = _.reduce(stats, function (memo, stat) {
-                        memo[stat.metric] += stat.total
+                        var metrics = _.reduce(stats, function (memo, stat) {
+                            memo[stat.metric] += stat.total
 
-                        return memo;
-                    }, defaults);
+                            return memo;
+                        }, defaults);
 
-                    _.each(MetricsLower, function (metric) {
-                        var total = metrics[metric]
-                        metrics[metric + "_ratio"] = (total * 100) / sum;
-                    })
+                        _.each(MetricsLower, function (metric) {
+                            var total = metrics[metric]
+                            metrics[metric + "_ratio"] = (total * 100) / sum;
+                        })
 
 
-                    return {
-                        title:stats[0].title,
-                        slug:stats[0].slug,
-                        metrics:metrics,
-                        total:sum
+                        return {
+                            title:stats[0].title,
+                            slug:stats[0].slug,
+                            metrics:metrics,
+                            total:sum
+                        }
+
                     }
-
-                }
-            ), function (track) {
-                return track.total;
-            })
+                ), function (track) {
+                    return track.total;
+                })
             var rank = 0;
             return _.map(tracks, function (track, key) {
                 track.rank = ++rank;
@@ -193,8 +198,55 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
     var SalesRules = {
         method:Stats.fetch.Sales,
         title:"Sales/Downloads",
+        template:function (item) {
+            return " ";
+        },
         compute:function (item) {
             return item.total;
+        },
+        group:function (items) {
+
+            return  _.reduce(items, function (memo, values) {
+                _.each(values, function (i, date) {
+                    if (!memo[date]) {
+                        memo[date] = []
+                    }
+                    memo[date] = memo[date].concat(i)
+
+                })
+                return memo;
+            }, {})
+
+        },
+        prep:function (items) {
+
+            var rank = 0;
+            items = _.sortBy(
+                _.map(
+                    _.groupBy(items, "slug"), function (stats, key) {
+
+                        var sum = _.reduce(stats, function (memo, stat) {
+                            return memo + stat.total
+                        }, 0);
+
+                        return {
+                            title:stats[0].title,
+                            slug:stats[0].slug,
+
+                            total:sum
+                        }
+                    }
+                ), function (item) {
+                    return item.total;
+                })
+            return _.map(items, function (item, key) {
+                item.rank = ++rank;
+                return item;
+            })
+
+        },
+        compute:function (item) {
+            return item.total
         }
     }
     var View = Backbone.View.extend({
@@ -205,7 +257,8 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             this._onError = _.bind(this._onError, this);
 
 
-            this.load(Stats.Metrics.Play, Stats.Ranges.AllTime)
+            // this.load(Stats.Metrics.Play, Stats.Ranges.AllTime)
+            this.load(Stats.Reports.Sales, Stats.Ranges.AllTime)
             this.changeView("#plays-stats");
         },
         changeView:function (id) {
@@ -219,21 +272,21 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
         },
         range:function (range) {
-            this.fetch(this._rules, this._metric, range);
+            this.fetch(this._rules, range);
         },
         play:function (range) {
-            this.fetch(PlayRules, Stats.Metrics.Play, range)
+            this.fetch(PlayRules, range)
         },
 
-        sales:function (range, metric) {
-            this.fetch(SalesRules, metric, range);
+        sales:function (range) {
+            this.fetch(SalesRules, range);
         },
-        fetch:function (rules, metric, range) {
+        fetch:function (rules, range) {
 
             this._rules = rules;
-            this._metric = metric;
 
-            rules.method(metric, range, this._onSuccess, this._onError)
+
+            rules.method(range, this._onSuccess, this._onError)
 
         },
         _onSuccess:function (json) {
@@ -248,22 +301,23 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             this.currentData = data;
 
             var rules = this._rules;
-            var stats = _.map(data, function (items, date) {
-                date = new Date(date);
+            var stats = _.map(
+                rules.group(data), function (items, date) {
+                    date = new Date(date);
 
-                date = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-                var total = _.reduce(items, function (memo, item) {
-                    return memo + rules.compute(item)
-                }, 0)
-                return {
-                    x:date,
-                    y:total,
-                    items:items
+                    date = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+                    var total = _.reduce(items, function (memo, item) {
+                        return memo + rules.compute(item)
+                    }, 0)
+                    return {
+                        x:date,
+                        y:total,
+                        items:items
 
-                }
+                    }
 
 
-            })
+                })
             stats = _.flatten(stats, true);
             var dates = _.pluck(stats, "x")
             var lastDate = _.min(dates)

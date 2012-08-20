@@ -20,8 +20,8 @@ GET     /signup                     controllers.Application.signup
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 
 
-GET     /ajax/stats/tracks/:metric/:range                      controllers.Stats.plays(metric:Metric,range:Range)
-GET     /ajax/stats/sales/:metric/:range                      controllers.Stats.sales(metric:Metric,range:Range)
+GET     /ajax/stats/tracks/:range                      controllers.Stats.plays(range:Range)
+GET     /ajax/stats/sales/:range                      controllers.Stats.sales(range:Range)
 GET     /ajax/stats/:metric/:objectID/:remove    controllers.Stats.track(metric:Metric,objectID:Long,remove:Boolean)
 
 

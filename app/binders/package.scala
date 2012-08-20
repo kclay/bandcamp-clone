@@ -33,7 +33,7 @@ object `package` {
       case Complete(_) => Complete
       case PurchaseAlbum(_) => PurchaseAlbum
       case PurchaseTrack(_) => PurchaseTrack
-      case Sales(_) => Sales
+
       case _ => InvalidMetric
 
     }

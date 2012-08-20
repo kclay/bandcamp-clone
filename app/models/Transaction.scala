@@ -109,10 +109,10 @@ object Transaction {
 
 }
 
-case class Sale(transactionID: Long, artistID: Long, itemID: Long, amount: Double, percentage: Double, createdAt: Date) extends KeyedEntity[Long] {
+case class Sale(transactionID: Long, artistID: Long, itemID: Long, amount: Double, percentage: Double, createdAt: Date, itemType: String) extends KeyedEntity[Long] {
   var id: Long = 0
 
-  def this() = this(0, 0, 0, 0, 0, new Date(DateTime.now(DateTimeZone.UTC).getMillis))
+  def this() = this(0, 0, 0, 0, 0, new Date(DateTime.now(DateTimeZone.UTC).getMillis),"")
 
   /*
   def withItem = from(transactions)(t =>
@@ -139,7 +139,7 @@ object Sale {
 
       val sale = new Sale(transaction.id, artist.id, transaction.itemID,
         transaction.amount, percentage,
-        new Date(DateTime.now(DateTimeZone.UTC).getMillis))
+        new Date(DateTime.now(DateTimeZone.UTC).getMillis), transaction.kind)
       sale.save
       Stat(transaction.metric, artist.id, sale.id)
       Stat(Sales, artist.id, sale.id)

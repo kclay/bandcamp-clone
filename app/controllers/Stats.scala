@@ -16,19 +16,23 @@ import com.codahale.jerkson.Json._
  */
 object Stats extends Controller with Auth with AuthConfigImpl with WithDB with SquerylTransaction with Authorizer {
 
-  def plays(metric: Metric, range: Range) = TransAction {
+  def plays(range: Range) = TransAction {
     Authorize {
       implicit artist => implicit request =>
-        Ok(g(metric.asInstanceOf[TrackMetric] ~ range))
+        Ok(g(Play ~ range))
     }
   }
 
   private def g(obj: Any) = generate(obj)
 
-  def sales(metric: Metric, range: Range) = TransAction {
+  def sales(range: Range) = TransAction {
     Authorize {
       implicit artist => implicit request =>
-        Ok(g(metric.asInstanceOf[PurchaseMetric] ~ range))
+        val tracks = range ~ PurchaseTrack
+        val albums = range ~ PurchaseAlbum
+        //val all = (tracks.toList ++ albums.toList).groupBy(_._1).mapValues(_.map(_._2.flatten))
+
+        Ok(g(Map("tracks" -> tracks, "albums" -> albums)))
     }
   }
 

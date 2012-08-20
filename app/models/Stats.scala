@@ -220,14 +220,17 @@ case object AlbumDownload extends Metric {
 trait PurchaseMetric extends Metric {
   val table: Table[SaleAbleItem]
   override val computeSales = true
+  val itemType = ""
 
+  // Sales has itemID as SaleAbleItem
   def cut(implicit artist: Artist) = from(SiteDB.sales)(s =>
-    where(s.artistID === artist.id)
-      groupBy(s.itemID, s.createdAt)
+    where(s.artistID === artist.id and s.itemType === itemType)
+      groupBy(s.createdAt, s.id, s.itemID)
       compute (sum(s.amount))
 
   )
 
+  // Stats has objectID as Sale.id
   def sales(implicit artist: Artist) = join(stats, SiteDB.sales)((st, s) =>
     where(st.artistID === artist.id and st.metric === name)
       select(st, s)
@@ -235,7 +238,7 @@ trait PurchaseMetric extends Metric {
   )
 
   def query(implicit artist: Artist) = from(sales, cut, table)((s, sums, i) =>
-    where(sums.key._1 === s._1.objectID and s._2.itemID === i.itemID)
+    where(s._1.objectID === sums.key._2 and s._2.itemID === i.itemID)
       // select stats
       /* select(s._1.trackedAt, sums.measures, i.itemTitle, i.itemSlug)*/
       select(s._1, sums, i)
@@ -251,7 +254,7 @@ trait PurchaseMetric extends Metric {
 
 case object PurchaseTrack extends PurchaseMetric {
   override val name = "purchase_track"
-
+  override val itemType = "track"
   override val table = tracks.asInstanceOf[Table[SaleAbleItem]]
 
 
@@ -259,14 +262,16 @@ case object PurchaseTrack extends PurchaseMetric {
 
 case object PurchaseAlbum extends PurchaseMetric {
   override val name = "purchase_album"
-
+  override val itemType = "album"
   override val table = albums.asInstanceOf[Table[SaleAbleItem]]
 
 
 }
 
 case object Sales extends Metric {
-  override val name = "sales"
+  override val name = "sale"
+
+
 }
 
 

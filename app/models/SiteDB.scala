@@ -182,7 +182,8 @@ object SiteDB extends Schema {
     s.artistID is (named("artist_id")),
     s.transactionID is (named("transaction_id")),
     s.createdAt is (named("created_at")),
-    s.itemID is (named("item_id"))
+    s.itemID is (named("item_id")),
+    s.itemType is (named("item_type"))
   ))
   val resets = table[PasswordReset]("password_resets")
   on(resets)(r => declare(

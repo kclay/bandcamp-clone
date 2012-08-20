@@ -70,18 +70,23 @@ define(["underscore", "dropdown"], function () {
 
     }
     var Routes = (jsRoutes || {}).controllers
-    var fetch = function (object, deletePrevious) {
+    var fetch = function (Metric, Range, success, error) {
     }
     var Stats = {
         Events:"Play,Skip,Partial,Complete".split(","),
         fetch:{
-            Play:fetch,
-            Skip:fetch,
-            Partial:fetch,
-            Complete:fetch
+            Plays:fetch,
+            Sales:fetch
+
         },
         track:{},
+        Reports:{
+            Plays:"plays",
+            Sales:"sales"
+
+        },
         Metrics:{
+
             Plays:function (range, sucess, error) {
             },
             Sales:function (range, sucess, error) {
@@ -111,9 +116,10 @@ define(["underscore", "dropdown"], function () {
 
         var Type = name;
         var method = Type.toLowerCase();
-        Stats.fetch[Type] = function (Metric, Range, success, error) {
 
-            Routes.Stats[method](Metric, Range).ajax({
+        Stats.fetch[Type] = function (Range, success, error) {
+
+            Routes.Stats[method](Range).ajax({
                 success:success,
                 error:error
             })
@@ -123,21 +129,25 @@ define(["underscore", "dropdown"], function () {
 
     _.each(Stats.Events, function (name) {
         var Event = name;
+        // metric to send to server always in lowercase
         var Metric = Event.toLowerCase()
-        Stats.Metrics[Event] = Metric;
+        //Stats.Metrics[Event] = Metric;
         var self = Stats.track[Event] = function (object, deletePrevious) {
             var index = Stats.Events.indexOf(Event);
             var tracked = self.tracked;
             if (deletePrevious && !tracked.previous[object]) {
 
+                // fix the stats for previous stats
                 for (var i = index - 1; i > 0; i--) {
                     var PreviousEvent = Stats.Events[i];
                     if (Stats.track[PreviousEvent].tracked.now[object]) {
                         tracked.previous[object] = true
+                        // all metrics are in lowercase
                         var PreviousMetric = PreviousEvent.toLowerCase();
                         Routes.Stats.track(PreviousMetric, object, 1).ajax({
 
                             error:function () {
+                                // if an error happens delete tracker
                                 delete tracked.previous[object];
                             }
                         });
@@ -146,6 +156,7 @@ define(["underscore", "dropdown"], function () {
 
             }
             if (!tracked.now[object]) {
+                // flag that current session has ben tracked
                 tracked.now[object] = true;
 
 
