@@ -73,6 +73,7 @@ define(["underscore", "dropdown"], function () {
     var fetch = function (object, deletePrevious) {
     }
     var Stats = {
+        Events:"Play,Skip,Partial,Complete".split(","),
         fetch:{
             Play:fetch,
             Skip:fetch,
@@ -87,14 +88,25 @@ define(["underscore", "dropdown"], function () {
             }
         },
         Ranges:{
-            Today:"today",
-            Week:"week",
-            Month:"month",
+            AllTime:"alltime",
             TwoMonths:"twomonths",
-            AllTime:"alltime"
+            Month:"month",
+            Week:"week",
+            Today:"today"
+
+
+
+
+        },
+        RangeText:{
+            Today:"today",
+            Week:"7 Days",
+            Month:"30 days",
+            TwoMonths:"60 days",
+            AllTime:"all-time"
         }
     };
-    var Events = "Play,Skip,Partial,Complete".split(",");
+
     _.each("Plays,Sales".split(","), function (name) {
 
         var Type = name;
@@ -109,20 +121,21 @@ define(["underscore", "dropdown"], function () {
         }
     })
 
-    _.each(Events, function (name) {
+    _.each(Stats.Events, function (name) {
         var Event = name;
         var Metric = Event.toLowerCase()
         Stats.Metrics[Event] = Metric;
         var self = Stats.track[Event] = function (object, deletePrevious) {
-            var index = Events.indexOf(Event);
+            var index = Stats.Events.indexOf(Event);
             var tracked = self.tracked;
             if (deletePrevious && !tracked.previous[object]) {
 
-                for (var i = index; i > 0; i--) {
-                    var PreviousEvent = Events[i];
-                    if (Stats[PreviousEvent].tracked.now[object]) {
+                for (var i = index - 1; i > 0; i--) {
+                    var PreviousEvent = Stats.Events[i];
+                    if (Stats.track[PreviousEvent].tracked.now[object]) {
                         tracked.previous[object] = true
-                        Routes.Stats.track(Events[i], object, 1).ajax({
+                        var PreviousMetric = PreviousEvent.toLowerCase();
+                        Routes.Stats.track(PreviousMetric, object, 1).ajax({
 
                             error:function () {
                                 delete tracked.previous[object];
@@ -134,22 +147,14 @@ define(["underscore", "dropdown"], function () {
             }
             if (!tracked.now[object]) {
                 tracked.now[object] = true;
-                var canTrack = _.filter(Events, function (event) {
-                    if (event == "Play")return true;
-                    if (Events.indexOf(event) > index) {
-                        if (tracked.now[object])return false;
-                        return true;
-                    } else {
-                        return true;
+
+
+                Routes.Stats.track(Metric, object, 0).ajax({
+                    error:function () {
+                        delete tracked.now[object];
                     }
-                })
-                if (canTrack.length == 1) {
-                    Routes.Stats.track(Metric, object, 0).ajax({
-                        error:function () {
-                            delete tracked.now[object];
-                        }
-                    });
-                }
+                });
+
             }
 
         }

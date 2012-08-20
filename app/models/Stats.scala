@@ -22,45 +22,63 @@ trait Range {
 
   def unapply(value: String) = if (value.equals(name)) Some(this) else None
 
-  def mapTracks(query: Query[(Stat, Long, String, String)]) = {
+  def mapTracks(query: Query[(Date, String, Option[IntType], String, String)]) = {
     // TODO : Optomize the query
-    Map("items" -> query.map {
-      case (s, id, name, slug) => id -> Map("name" -> name, "slug" -> slug)
 
-    }.toMap,
-      "stats" -> query.groupBy {
-        case (s, _, _, _) => s.trackedAt
+    query.groupBy {
+      case (d, _, _, _, _) => d
+    }.mapValues(v => v.flatMap {
+      case (date, metric, total, name, slug) => List(Map("title" -> name, "metric" -> metric, "slug" -> slug, "total" -> total))
+    })
+    /* Map("items" -> query.map {
+     case (date, total, id, name, slug) => id -> Map("name" -> name, "slug" -> slug)
 
-      }.mapValues(v => v.map {
-        case (s, _, _, _) => s
-      })
+   }.toMap,
+     "stats" -> query.groupBy {
+       case (s, _, _, _) => s.trackedAt
 
-    )
+     }.mapValues(v => v.map {
+       case (s, _, _, _) => s
+     })
+
+   ) */
   }
 
-  def mapSales(query: Query[(Stat, Option[DoubleType], Long, String, String)]) = {
-    // TODO : Optomize the query
-    Map("items" -> query.map {
-      case (s, usd, id, name, slug) => id -> Map("name" -> name, "slug" -> slug, "usd" -> usd)
+  /* def mapTracks(query: Query[(Stat, Long, String, String)]) = {
+  // TODO : Optomize the query
+  Map("items" -> query.map {
+    case (s, id, name, slug) => id -> Map("name" -> name, "slug" -> slug)
 
-    }.toMap,
-      "stats" -> query.groupBy {
-        case (s, _, _, _, _) => s.trackedAt
+  }.toMap,
+    "stats" -> query.groupBy {
+      case (s, _, _, _) => s.trackedAt
 
-      }.mapValues(v => v.map {
-        case (s, _, _, _, _) => s
-      })
+    }.mapValues(v => v.map {
+      case (s, _, _, _) => s
+    })
 
-    )
+  )
+}  */
+
+  def mapSales(query: Query[(Date, Option[DoubleType], String, String)]) = {
+    query.groupBy {
+      case (d, _, _, _) => d
+    }.mapValues(v => v.flatMap {
+      case (date, total, name, slug) => List(Map("title" -> name, "slug" -> slug, "total" -> total))
+    })
   }
 
 
   def ~(metric: TrackMetric)(implicit artist: Artist) = {
-    mapTracks(metric.query)
+    mapTracks(from(metric.query)(t =>
+      select(t._1.trackedAt, t._1.metric, t._3.measures, t._2.name, t._2.slug)
+    ))
   }
 
   def ~(metric: PurchaseMetric)(implicit artist: Artist) = {
-    mapSales(metric.query)
+    mapSales(from(metric.query)(t =>
+      select(t._1.trackedAt, t._2.measures, t._3.itemTitle, t._3.itemSlug)
+    ))
   }
 }
 
@@ -68,21 +86,30 @@ trait Range {
 trait Restricted extends Range {
   val range = DateTime.now(DateTimeZone.UTC)
 
-  def withTracks(query: Query[(Stat, Long, String, String)]) = query.where(
-    s => s._1.trackedAt gte new Date(range.getMillis)
-  )
+  /* def withTracks(query: Query[(Date,String, Option[IntType], String, String)]) = query.where(
+    s => s._1 gte new Date(range.getMillis)
+  )*/
 
-  def withSales(query: Query[(Stat, Option[DoubleType], Long, String, String)]) = query.where(
+  def withSales(query: Query[(Date, Option[DoubleType], String, String)]) = query.where(
 
-    s => s._1.trackedAt gte new Date(range.getMillis)
+    s => s._1 gte new Date(range.getMillis)
   )
 
   override def ~(metric: TrackMetric)(implicit artist: Artist) = {
-    mapTracks(withTracks(metric.query))
+
+    val withRange = from(metric.query)(t =>
+      where(t._1.trackedAt gte new Date(range.getMillis))
+        select(t._1.trackedAt, t._1.metric, t._3.measures, t._2.name, t._2.slug)
+    )
+    mapTracks(withRange)
   }
 
   override def ~(metric: PurchaseMetric)(implicit artist: Artist) = {
-    mapSales(withSales(metric.query))
+    val withRange = from(metric.query)(t =>
+      where(t._1.trackedAt gte new Date(range.getMillis))
+        select(t._1.trackedAt, t._2.measures, t._3.itemTitle, t._3.itemSlug)
+    )
+    mapSales(withRange)
   }
 }
 
@@ -132,15 +159,29 @@ sealed abstract class Metric {
 }
 
 trait TrackMetric extends Metric {
-  def query(implicit artist: Artist) = join(stats, tracks)((s, t) =>
-    where(s.artistID === artist.id and s.metric === name)
-      select(s, t.id, t.name, t.slug)
+
+  def sums(implicit artist: Artist) = from(stats)(s =>
+    where(s.artistID === artist.id)
+      groupBy(s.trackedAt, s.objectID, s.metric)
+      compute (sum(s.total))
+  )
+
+  def tracks(implicit artist: Artist) = join(stats, SiteDB.tracks)((s, t) =>
+    where(s.metric notIn (List(Sales.name, PurchaseAlbum.name, PurchaseTrack.name)) and s.artistID === artist.id)
+      select(s, t)
       orderBy (s.trackedAt asc)
       on (s.objectID === t.id)
 
   )
 
-   def ~(range: Range)(implicit artist: Artist): Any = {
+  def query(implicit artist: Artist) = from(sums, tracks)((s, t) =>
+    where(s.key._1 === t._1.trackedAt and s.key._2 === t._1.objectID and s.key._3 === t._1.metric)
+      /*select(t._1.trackedAt, t._1.metric, s.measures, t._2.name, t._2.slug)*/
+      select(t._1, t._2, s)
+
+  )
+
+  def ~(range: Range)(implicit artist: Artist): Any = {
     range ~ this
   }
 
@@ -196,7 +237,8 @@ trait PurchaseMetric extends Metric {
   def query(implicit artist: Artist) = from(sales, cut, table)((s, sums, i) =>
     where(sums.key._1 === s._1.objectID and s._2.itemID === i.itemID)
       // select stats
-      select(s._1, sums.measures, i.itemID, i.itemTitle, i.itemSlug)
+      /* select(s._1.trackedAt, sums.measures, i.itemTitle, i.itemSlug)*/
+      select(s._1, sums, i)
 
   )
 

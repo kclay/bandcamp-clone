@@ -680,9 +680,19 @@ p.section {
 }
 
 #plays-stats {
+    .complete .bar {
+        background: green;
+    }
+    .partial .bar {
+        background: yellow;
+    }
+    .skip .bar {
+        background: red;
+    }
     .title {
         width: 15em;
         white-space: normal;
+        text-align: left;
     }
     .rank {
         width: 3em;
@@ -694,8 +704,8 @@ p.section {
         width: 7em;
         text-align: right;
     }
-    .bar {
-        width: 22em;
+    .bars {
+        width: 50em;
         table {
             width: 100%;
             table-layout: auto;
@@ -706,8 +716,31 @@ p.section {
                 height: 0.1%;
                 color: gray;
             }
+
+            .text {
+                text-align: center;
+            }
+            .bar {
+                width: 100%;
+                height: 10px;
+            }
+
         }
 
+    }
+    th.bars {
+        span {
+            display: inline-table;
+            margin-left: 20px;
+        }
+        .bar {
+
+            width: 6px;
+            height: 8px;
+            display: inline-block;
+            margin-right: 5px;
+
+        }
     }
 
 }

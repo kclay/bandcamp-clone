@@ -193,6 +193,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
             this.$fill = this.$(".fill");
             this.$next = this.$(".next");
             this.$prev = this.$(".prev")
+            this._position = 0;
             this.render(0)
 
 
@@ -258,16 +259,24 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
 
             this._state(State.BUSY);
             this.trigger("play", index)
-            Stats.track.Play(this.currentItem().id);
-            this.render();
+
+            this._onTrackChange();
+
+        },
+        _onTrackChange:function () {
+            this._track(true);
+            this.render(0);
         },
         play:function () {
             this._state(State.BUSY);
             this.player.play(true);
             this.trigger("play", this._currentIndex);
             this.trigger("change", this._currentIndex);
-            Stats.track.Play(this.currentItem().id);
+
+            this._onTrackChange();
+
         },
+
         pause:function () {
             this.player.pause(true);
         },
@@ -302,12 +311,14 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         paused:function () {
             return this.player.getState() == "PAUSED";
         },
-        _track:function (stopped) {
+
+        _track:function (play) {
 
             var item = this.currentItem();
             var percent = (this._position * 100) / Duration;
-            if (stopped && percent < 10) {
-                Stats.track.Skip(item.id);
+            if (play && percent < 10) {
+                Stats.track.Play(item.id, false);
+                Stats.track.Skip(item.id, false);
             } else if (percent >= 90) {
                 Stats.track.Complete(item.id, true);
             } else if (percent > 10) {

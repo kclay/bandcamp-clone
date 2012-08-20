@@ -2,25 +2,69 @@
 
 
 @main("Stats","stats"){
-<script type="text/template" id="tpl-plays">
+<script type="text/template" id="tpl-sales">
 
     <tr>
         <td class="rank"><span><%=rank%>.</span></td>
         <td class="title">
-            <%=title=>
+            <a href="/<%=kind%>/<%=slug%>"><%=name=></a>
         </td>
         <td class="bar">
             <table>
                 <tbody>
                 <tr>
-                    <td class="complete_width" style="width:<%=complete_ratio%>"><span class="complete_text"><%
-                        =complete%></span></td>
-                    <td class="partial_width" style="width:<%=partial_ratio%>"><span class="partial_text"><%=partial%
-                        ></span></td>
-                    <td class="skip_width" style="width:<%=skip_ratio%>"><span class="skip_text"><%=skip></span></td>
+                    <td class="purchases">
+                        <span class="complete_text"><%=total%></span></td>
+                    <td class="revenue">
+                        <span class="partial_text"><%=partial%></span></td>
+                    <td class="skip_width" style="width:<%=skip_ratio%>">
+                        <span class="skip_text"><%=skip></span></td>
                 </tr>
                 </tbody>
             </table>
+        </td>
+    </tr>
+</script>
+<script type="text/template" id="tpl-plays">
+
+    <tr>
+        <td class="rank"><span><%=rank%>.</span></td>
+        <td class="title">
+            <%=title%>
+        </td>
+        <td class="total">
+            <%= metrics.play %>
+        </td>
+        <td class="span1"></td>
+        <td class="bars">
+            <table>
+
+                <tr>
+
+
+                    <% if(metrics.complete_ratio) {%>
+                    <td class="complete" style="width:<%= metrics.complete_ratio %>%">
+                        <div class="text"><%= metrics.complete %></div>
+                        <div class="bar"></div>
+                    </td>
+                    <% }%>
+                    <% if(metrics.partial_ratio) {%>
+                    <td class="partial" style="width:<%= metrics.partial_ratio %>%">
+                        <div class="text"><%= metrics.partial %></div>
+                        <div class="bar"></div>
+                    </td>
+                    <% }%>
+                    <% if(metrics.skip_ratio) {%>
+                    <td class="skip" style="width:<%= metrics.skip_ratio %>%">
+                        <div class="text"><%=metrics.skip%></div>
+                        <div class="bar"></div>
+                    </td>
+                    <% }%>
+
+                </tr>
+
+            </table>
+
         </td>
     </tr>
 </script>
@@ -38,16 +82,18 @@
 
 <table id="plays-stats">
     <thead>
-    <th>
+    <th class="rank"></th>
+    <th class="title">
         track
     </th>
-    <th>
+    <th class="total">
         plays
     </th>
-    <th>
-        <span>complete</span>
-        <span>partial</span>
-        <span>skip</span>
+    <td class="span1"></td>
+    <th class="bars">
+        <span class="complete"><span class="bar"></span>complete</span>
+        <span class="partial"><span class="bar"></span>partial</span>
+        <span class="skip"><span class="bar"></span>skip</span>
     </th>
     </thead>
     <tbody class="stats-body">
