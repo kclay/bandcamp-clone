@@ -9,8 +9,19 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
     var Stats = require("app").Stats;
     var ActiveView;
-    window.changeRange = function (range) {
+    var breakdown = function (active) {
+        return _.map(Stats.Ranges,function (rel, range) {
+
+            var classes = active == rel ? " range active" : "range";
+            var tpl = '<a href="javascript:changeRange(\'' + rel + '\')" class="' + classes + '">' + Stats.RangeText[range] + '</a>';
+
+            return tpl;
+        }).join('')
+    }
+    window.changeRange = function (range, el) {
+
         ActiveView.range(range);
+        return false;
     }
     var chartOptions =
     {
@@ -26,12 +37,8 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
         },
 
         subtitle:{
-            text:_.map(Stats.Ranges,function (rel, range) {
-
-                var tpl = '<a href="javascript:changeRange(\'' + rel + '\')" class="range">' + Stats.RangeText[range] + '</a>';
-                console.log(tpl);
-                return tpl;
-            }).join('')
+            text:breakdown(),
+            useHTML:true
         },
 
         xAxis:{
@@ -147,13 +154,13 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             var t = this.t || (this.t = _.template($("#tpl-plays").html()))
             return t(item);
         },
-        group:function (items) {
+        prep:function (items) {
             return items;
         },
         compute:function (item) {
             return item.metric == "play" ? item.total : 0
         },
-        prep:function (items) {
+        format:function (items) {
 
             var tracks = _.sortBy(
                 _.map(
@@ -204,7 +211,7 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
         compute:function (item) {
             return item.total;
         },
-        group:function (items) {
+        prep:function (items) {
 
             return  _.reduce(items, function (memo, values) {
                 _.each(values, function (i, date) {
@@ -218,7 +225,7 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             }, {})
 
         },
-        prep:function (items) {
+        format:function (items) {
 
             var rank = 0;
             items = _.sortBy(
@@ -257,8 +264,8 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
             this._onError = _.bind(this._onError, this);
 
 
-            // this.load(Stats.Metrics.Play, Stats.Ranges.AllTime)
-            this.load(Stats.Reports.Sales, Stats.Ranges.AllTime)
+            this.load(Stats.Reports.Plays, Stats.Ranges.AllTime)
+            //this.load(Stats.Reports.Sales, Stats.Ranges.Today)
             this.changeView("#plays-stats");
         },
         changeView:function (id) {
@@ -272,9 +279,11 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
         },
         range:function (range) {
+            this.debug(this.chart);
+
             this.fetch(this._rules, range);
         },
-        play:function (range) {
+        plays:function (range) {
             this.fetch(PlayRules, range)
         },
 
@@ -284,6 +293,7 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
         fetch:function (rules, range) {
 
             this._rules = rules;
+            this._range = range;
 
 
             rules.method(range, this._onSuccess, this._onError)
@@ -298,11 +308,11 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
         },
         update:function (data) {
-            this.currentData = data;
+
 
             var rules = this._rules;
             var stats = _.map(
-                rules.group(data), function (items, date) {
+                rules.prep(data), function (items, date) {
                     date = new Date(date);
 
                     date = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
@@ -328,6 +338,9 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
 
             stats.unshift([Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()), 0]);
             chartOptions.title.text = rules.title;
+            chartOptions.subtitle.text = breakdown(this._range)
+
+
             chartOptions.series[0].data = stats;
             chartOptions.series[0] = {
                 name:rules.title,
@@ -338,13 +351,15 @@ define(["underscore", "backbone", "app/common", "highcharts"], function (_, Back
                 data:stats
             }
             //chartOptions.plotOptions.series.pointStart = minDate.getUTCMilliseconds();
-            this.chat = new Highcharts.Chart(chartOptions);
+            if (this.chart) this.chart.destroy();
+
+            this.chart = new Highcharts.Chart(chartOptions);
 
 
         },
         render:function (items) {
             var rules = this._rules;
-            items = rules.prep(items);
+            items = rules.format(items);
             this.debug(items);
             var rows = _.map(items, function (item) {
                 return rules.template(item);

@@ -7,6 +7,7 @@ import actions.{Authorizer, SquerylTransaction}
 import actions.Actions._
 
 import com.codahale.jerkson.Json._
+import utils.Utils.withArtist
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,14 +39,24 @@ object Stats extends Controller with Auth with AuthConfigImpl with WithDB with S
 
 
   def track(metric: Metric, objectID: Long, remove: Boolean) = TransAction {
-    WithArtist {
-      artist => implicit request =>
-        if (remove) {
-          Stat.remove(metric, artist.id, objectID)
-        } else {
-          Stat(metric, artist.id, objectID)
-        }
-        Ok
+    optionalUserAction {
+      user => implicit request =>
+
+        withArtist(request).map {
+          artist => {
+            if (user.isEmpty || user.get.id != artist.id) {
+              if (remove) {
+                Stat.remove(metric, artist.id, objectID)
+              } else {
+                Stat(metric, artist.id, objectID)
+              }
+            }
+            Ok
+          }
+        }.getOrElse(Ok)
     }
+
+
   }
+
 }
