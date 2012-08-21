@@ -70,6 +70,11 @@ POST    /upload/status           controllers.Upload.status()
 
 
 
+POST /purchase/album/:album                controllers.Purchase.album(album:String)
+POST /purchase/track/:track         controllers.Purchase.track(track:String)
+GET /purchase/checkout/:token               controllers.Purchase.checkout(token:String)
+GET /purchase/finalize/:sig                     controllers.Purchase.callback(sig:String)
+GET    /ajax/purchase/:sig               controllers.Purchase.ajaxCommit(sig:String)
 
 
 
@@ -91,9 +96,4 @@ GET     /media/*file               controllers.Assets.at(path="/public/media", f
 GET  /:page                         controllers.Application.page(path="/public/html/",page:String)
 
 
-POST /purchase/album/:album                controllers.Purchase.album(album:String)
-POST /purchase/track/:track         controllers.Purchase.track(track:String)
-GET /purchase/checkout/:token               controllers.Purchase.checkout(token:String)
-GET /purchase/finalize/:sig                     controllers.Purchase.callback(sig:String)
-GET    /ajax/purchase/:sig               controllers.Purchase.ajaxCommit(sig:String)
 
