@@ -33,7 +33,7 @@ object Purchase extends Controller with SquerylTransaction {
             sig <- withSig(artistId, price, item)
             token <- withPaypal(sig, item, price, "http://bulabowl.com")
             _ <- Transaction(sig, item, price, token)
-          } yield Ok(token)) getOrElse (BadRequest("error"))
+          } yield Ok(token)) getOrElse (BadRequest("no_token"))
 
         }
       )
