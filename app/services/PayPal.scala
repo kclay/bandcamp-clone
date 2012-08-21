@@ -4,6 +4,7 @@ import play.api.libs.ws.WS
 
 
 import play.api.Play
+import play.api.Logger
 
 import java.text.{SimpleDateFormat, DecimalFormat}
 import java.net.InetAddress
@@ -215,7 +216,8 @@ case class PaypalAdaptive() extends PayPalClient {
     // .put("receiverList.receiver(1).paymentType", "DIGITALGOODS")
 
 
-    val payKey = call("Pay", params).get("payKey")
+    val results=call("Pay", params)
+    val payKey = results.get("payKey")
     payKey.map {
       key =>
       val r = call("SetPaymentOptions",
@@ -226,6 +228,7 @@ case class PaypalAdaptive() extends PayPalClient {
 
 
     }
+    Logger.debug(results.mkString("\n"))
     payKey
 
 
