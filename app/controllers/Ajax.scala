@@ -185,6 +185,19 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     }
   }
 
+  def deleteTrack(slug: String) = TransAction {
+    authorizedAction(NormalUser) {
+      artist => implicit request =>
+        Track.bySlug(artist.id, slug).map {
+          track =>
+            import utils.AudioDataStore.deleteAudioSession
+            deleteAudioSession(track.session)
+            tracks.delete(track.id)
+            json(Map("ok" -> true))
+        }.getOrElse(error(Map("ok" -> false)))
+    }
+  }
+
   def updateAlbum(slug: String) = TransAction {
     authorizedAction(NormalUser) {
       implicit artist => implicit request =>

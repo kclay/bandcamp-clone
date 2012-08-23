@@ -7,17 +7,21 @@ define(["underscore", "backbone", "app/common", "app"], function (_, Backbone) {
         events:{
             "click a.delete":"confirmDelete"
         },
+        initalize:function (options) {
+            this.album = (options || {}).album;
+        },
         confirmDelete:function (e) {
             var $li = $(e.currentTarget).parents("li");
-            var album = $li.attr("data-slug")
+            var slug = $li.attr("data-slug")
+            var deleteAlbum = this.album;
             new Common.ConfirmView({
                 data:{
-                    title:"Delete Album",
-                    message:"Are you sure you want to delete this album? This action cannot be undone."
+                    title:deleteAlbum ? "Delete Album" : "Delete Track",
+                    message:"Are you sure you want to delete this " + (deleteAlbum ? "album" : "track") + "? This action cannot be undone."
                 },
                 callback:function (ok) {
                     if (ok) {
-                        Routes.Ajax.deleteAlbum(album).ajax({
+                        Routes.Ajax[deleteAlbum ? "deleteAlbum" : "deleteTrack"](slug).ajax({
 
                                 success:function (resp) {
                                     if (resp.ok) {

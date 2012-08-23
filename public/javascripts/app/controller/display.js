@@ -120,16 +120,19 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
                     price:user_price,
                     artist_id:this.model.artist_id
                 },
-                success:function (token) {
-                    if (token == "error") {
-                        alert("error");
+                dataType:"json",
+                success:function (json) {
+                    if (!json) {
+                        alert("An unknown error has occured")
+                    } else if (json.error) {
+                        alert(json.error);
                     } else {
-                        var url = Routes.Purchase.checkout(token).url;
+                        var url = Routes.Purchase.checkout(json.token).url;
                         window.location = url;
                     }
                 },
                 error:function () {
-
+                    alert("An unknown error has occured")
                 }
             }
 

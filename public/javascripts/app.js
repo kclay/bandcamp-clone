@@ -42,7 +42,16 @@ define(["underscore", "dropdown"], function () {
                 ctr:"app/controller/display"
             },
             "my_albums":{
-                ctr:"app/controller/albums"
+                ctr:"app/controller/my",
+                config:{
+                    album:true
+                }
+            },
+            "my_tracks":{
+                ctr:"app/controller/my",
+                config:{
+
+                }
             },
             "stats":{
                 ctr:"app/controller/stats"

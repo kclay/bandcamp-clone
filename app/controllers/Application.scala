@@ -34,7 +34,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
-          Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.publish, Ajax.fetchTrack,
+          Ajax.fetchAlbum, Ajax.deleteAlbum,Ajax.deleteTrack, Ajax.publish, Ajax.fetchTrack,
           Stats.track, Stats.sales, Stats.plays,
           Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
 
