@@ -55,9 +55,12 @@ GET     /ajax/albums/:slug                controllers.Ajax.fetchAlbum(slug:Strin
 DELETE     /ajax/albums/:slug                controllers.Ajax.deleteAlbum(slug:String)
 
 
+
+
 POST    /ajax/tracks                    controllers.Ajax.saveTrack()
 GET     /ajax/tracks/:slug            controllers.Ajax.fetchTrack(slug:String)
 PUT    /ajax/tracks/:slug                    controllers.Ajax.updateTrack(slug:String)
+DELETE     /ajax/tracks/:slug                controllers.Ajax.deleteTrack(slug:String)
 
 
 
