@@ -16,6 +16,7 @@ GET     /logout                     controllers.Application.logout
 POST    /signup                     controllers.Application.validateSignup
 GET     /signup                     controllers.Application.signup
 
+GET     /___promo___                controllers.Application.createCodes
 
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 

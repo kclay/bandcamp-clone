@@ -13,7 +13,7 @@ import utils.Utils._
  * Date: 6/20/12
  * Time: 9:17 PM
  */
-case class Signup(username: String, password: String, email: String, name: String)
+case class Signup(username: String, password: String, email: String, name: String,code:String)
 
 case class AlbumModel(album: Album)
 

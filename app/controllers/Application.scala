@@ -4,6 +4,7 @@ package controllers
 import actions.Actions._
 import play.api._
 
+import libs.Crypto
 import play.api.mvc._
 import views._
 import models.Forms._
@@ -13,12 +14,9 @@ import actions.SquerylTransaction
 import play.api.Play.current
 
 
-import utils.{ZipCreator, Zip}
 import java.io.File
 import models._
 import play.api.Play
-
-import com.typesafe.plugin._
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -34,7 +32,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(
         Routes.javascriptRouter("jsRoutes")(
           Upload.audio, Upload.art, Upload.audioUploaded, Upload.status,
-          Ajax.fetchAlbum, Ajax.deleteAlbum,Ajax.deleteTrack, Ajax.publish, Ajax.fetchTrack,
+          Ajax.fetchAlbum, Ajax.deleteAlbum, Ajax.deleteTrack, Ajax.publish, Ajax.fetchTrack,
           Stats.track, Stats.sales, Stats.plays,
           Purchase.album, Purchase.track, Purchase.checkout, Purchase.ajaxCommit
 
@@ -139,6 +137,14 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(html.forgotPassword(forgotForm))
   }
 
+  def createCodes = TransAction {
+    implicit request =>
+
+      val promos = for (i <- 1 to 10) yield Crypto.sign(i + "bula_code_promo" + System.nanoTime())
+      codes.insert(for (c <- promos) yield PromoCode(c))
+      Ok(promos.mkString("\n"))
+  }
+
   def validateSignup = Action {
     implicit request =>
       db {
@@ -148,6 +154,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
             val artist = artists insert Artist(user.username, user.password, user.email, user.name)
 
 
+            PromoCode.delete(user.code)
 
 
 

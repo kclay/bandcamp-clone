@@ -1,6 +1,6 @@
 package models
 
-import utils.{AudioDataStore}
+import utils.AudioDataStore
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{KeyedEntity, Schema}
 import org.squeryl.annotations.Column
@@ -18,6 +18,19 @@ import scala.Some
 
 class DBObject extends KeyedEntity[Long] {
   var id: Long = 0
+}
+
+case class PromoCode(var id: String) extends KeyedEntity[String] {
+
+}
+
+object PromoCode {
+
+  import SiteDB._
+
+  def find(id: String) = codes.lookup(id)
+
+  def delete(id: String) = codes.delete(id)
 }
 
 case class Tag(name: String) extends DBObject
@@ -191,6 +204,7 @@ object SiteDB extends Schema {
     r.artistID is (named("artist_id")),
     r.createdAt is (named("created_at"))
   ))
+  val codes = table[PromoCode]("promo_codes")
 
 
 }

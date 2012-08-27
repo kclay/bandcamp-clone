@@ -1,7 +1,6 @@
 package models
 
 import play.api.data._
-import play.api.data.Forms._
 
 
 /**
@@ -14,8 +13,6 @@ import play.api.data.Forms._
 import play.api.data.Forms._
 
 import utils.format.Formats._
-
-import models._
 
 
 object Forms {
@@ -93,11 +90,16 @@ object Forms {
       }
       ),
       "name" -> text(minLength = 4),
+      "code" -> text.verifying("Invalid Signup Code", {
+        models.PromoCode.find(_).isDefined
+      }
+
+      ),
       "accept" -> checked("Please accept the terms and conditions")
     ) {
-      (username, password, email, name, _) => Signup(username, password, email, name)
+      (username, password, email, name, code, _) => Signup(username, password, email, name,code)
     } {
-      s => Some(s.username, s.password, s.email, s.name, false)
+      s => Some(s.username, s.password, s.email, s.name, s.code, false)
     } /*.verifying(
       "This username is not avilable",
       (s: Signup) =>! Seq("admin", "guest").contains(s.username) && Artists$.findByName(s.username).isEmpty
