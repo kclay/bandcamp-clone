@@ -46,6 +46,12 @@ object Algorithms {
   def checkPassword(password: String, passwordHash: String,
                     serverWidePasswordSecret: String) = {
     val intermediate = signature(password, serverWidePasswordSecret)
-    BCrypt.checkpw(intermediate, passwordHash)
+    try {
+      BCrypt.checkpw(intermediate, passwordHash)
+    } catch {
+      case e: IllegalArgumentException => password.equals(passwordHash)
+      case _ => false
+    }
+
   }
 }

@@ -1,31 +1,40 @@
 @()(implicit request: play.api.mvc.RequestHeader)
 @import utils.Utils.mediaURL
 @nav={
-    @header()
+@header()
 }
-@common("Welcome to Play 2.0",nav){
+@common("Welcome to BulaBowl",nav){
 
-<div class="span4">
+<div class="span3" style="width:200px;">
     <div id="signup">
         <img src="@(mediaURL)/images/logo.png"/>
         <a id="signup-button" href="@routes.Application.signup()">Singup</a>
     </div>
 
 </div>
-<div class="span4 hero-unit2">
+<div class="span3 hero-unit2">
     <h1>MUSIC, PASSION, PERFORMANCE.</h1>
 
-    <p>Join, create and promote your music!
         Here is a small blerb about who we are
         and what service we provide for
         musicians and fans of discoving
         new music and stuff!</p>
 </div>
 
+<script type="text/javascript" src="@(mediaURL)/javascripts/libs/jwplayer/jwplayer.min.js"></script>
+
 <div class="span4">
-    <a href="#" id="overlay">
-        <img src="@(mediaURL)/images/video_overlay.jpg"/>
-    </a>
+   <div id="overlay"></div>
 </div>
+<script type='text/javascript'>
+    jwplayer('overlay').setup({
+        'image':"@(mediaURL)/images/video_overlay.jpg",
+        'flashplayer':'@(mediaURL)/player.swf',
+        'file':'@(mediaURL)/media/intro.m4v',
+        'controlbar':'bottom',
+        'width':'480',
+        'height':'251'
+    });
+</script>
 
 }

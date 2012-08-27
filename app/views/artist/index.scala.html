@@ -1,5 +1,6 @@
 @()(implicit request: play.api.mvc.RequestHeader)
 @import utils.session._
+@import utils.Utils.mediaURL
 
 
 @main(SessionHelper.username,"welcome"){
@@ -15,6 +16,23 @@
         <a href="@routes.Artists.newAlbum()" class="btn btn-primary btn-xlarge">Add an Album</a> or <a
             href="@routes.Artists.newTrack()" class="btn btn-primary btn-xlarge">Add Track</a>
     </div>
+
+<script type="text/javascript" src="@(mediaURL)/javascripts/libs/jwplayer/jwplayer.min.js"></script>
+
+<br/><br/>
+<div class="span6 center">
+    <div id="overlay"></div>
+</div>
+<script type='text/javascript'>
+    jwplayer('overlay').setup({
+
+        'flashplayer':'@(mediaURL)/player.swf',
+        'file':'@(mediaURL)/media/how-two.mp4',
+        'controlbar':'bottom',
+        'width':'522',
+        'height':'290'
+    });
+</script>
 
 
 
