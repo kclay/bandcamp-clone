@@ -9,10 +9,9 @@
             <div class="container">
 
                 <ul class="nav">
-                    <li><a href="@routes.Application.page("features")">Features</a></li>
-                    <li><a href="@routes.Application.page("pricing")">Pricing</a></li>
+                    <li><a href="mailto:admin@@bulabowl.com">Contact Us</a></li>
 
-                    <li><a href="@routes.Artists.list()">Artists</a></li>
+
                     <li><a href="@routes.Application.page("faqs")">Faqs</a></li>
 
                     @if(SessionHelper.authenticated){
@@ -21,7 +20,7 @@
                     }else{
                     <li><a href="@routes.Application.login()">Login</a></li>
                     }
-                    <li><a href="mailto:admin@@bulabowl.com">Contact Us</a></li>
+
                 </ul>
             </div>
         </div>
