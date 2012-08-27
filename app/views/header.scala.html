@@ -2,26 +2,28 @@
 @import utils.session._
 @import utils.Utils.mediaURL
 <div id="main-header">
-<a class="brand pull-left" href="/"><img src="@(mediaURL)/images/nav_logo.png"/></a>
-<div class="navbar pull-right">
-    <div class="navbar-inner">
-        <div class="container">
+    <a class="brand pull-left" href="/"><img src="@(mediaURL)/images/nav_logo.png"/></a>
 
-            <ul class="nav">
-                <li><a href="@routes.Application.page("features")">Features</a></li>
-                <li><a href="@routes.Application.page("pricing")">Pricing</a></li>
+    <div class="navbar pull-right">
+        <div class="navbar-inner">
+            <div class="container">
 
-                <li><a href="@routes.Artists.list()">Artists</a></li>
-                <li><a href="@routes.Application.page("faqs")">Faqs</a></li>
+                <ul class="nav">
+                    <li><a href="@routes.Application.page(" features")">Features</a></li>
+                    <li><a href="@routes.Application.page(" pricing")">Pricing</a></li>
 
-                @if(SessionHelper.authenticated){
-                 <li><a href="@routes.Artists.index()">My Profile</a></li>
-                 <li><a href="@routes.Application.logout()">Logout</a></li>
-                }else{
-                <li><a href="@routes.Application.login()">Login</a></li>
-                }
-            </ul>
+                    <li><a href="@routes.Artists.list()">Artists</a></li>
+                    <li><a href="@routes.Application.page(" faqs")">Faqs</a></li>
+
+                    @if(SessionHelper.authenticated){
+                    <li><a href="@routes.Artists.index()">My Profile</a></li>
+                    <li><a href="@routes.Application.logout()">Logout</a></li>
+                    }else{
+                    <li><a href="@routes.Application.login()">Login</a></li>
+                    }
+                    <li><a href="mailto:admin@@bulabowl.com">Contact Us</a></li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
 </div>
