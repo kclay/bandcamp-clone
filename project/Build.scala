@@ -18,8 +18,8 @@ object ApplicationBuild extends Build {
     "org.squeryl" %% "squeryl" % "0.9.5-2" withSources(),
     //"org.scalaquery" % "scalaquery_2.9.0-1" % "0.9.5",
     "mysql" % "mysql-connector-java" % "5.1.18",
-    "com.typesafe" %% "play-plugins-mailer" % "2.0.4"
-    //"org.mindrot" % "jbcrypt" % "0.3m"
+    "com.typesafe" %% "play-plugins-mailer" % "2.0.4",
+    "org.mindrot" % "jbcrypt" % "0.3m"
   )
 
   // Only compile the bootstrap bootstrap.less file and any other *.less file in the stylesheets directory

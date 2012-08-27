@@ -133,14 +133,14 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   }
 
 
-  def pickTags = Authorize {
+  def pickTags = authorizedAction(NormalUser) {
     artist => implicit request =>
       Ok(html.artist.pickTags(tagsForm, db(Genre.allAsString)))
 
 
   }
 
-  def insertTags = Authorize {
+  def insertTags = authorizedAction(NormalUser) {
     artist => implicit request =>
       tagsForm.bindFromRequest.fold(
         errors => BadRequest(html.artist.pickTags(errors, Genre.allAsString)),
@@ -154,7 +154,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
         })
   }
 
-  def insertDomain = Authorize {
+  def insertDomain = authorizedAction(NormalUser) {
     artist => implicit request =>
 
       domainForm.bindFromRequest.fold(
@@ -170,7 +170,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
 
   }
 
-  def pickDomain = Authorize {
+  def pickDomain = authorizedAction(NormalUser) {
     artist => implicit request =>
       val defaultDomain = artist.name.replace(" ", "").toLowerCase
       Ok(html.artist.pickDomain(domainForm.fill(defaultDomain)))

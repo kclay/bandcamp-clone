@@ -4,6 +4,7 @@ import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import java.sql.Date
 import org.squeryl.KeyedEntity
+import security.Algorithms
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,7 +19,7 @@ object Artist {
 
   import SiteDB._
 
-  def hasTag(id: Long): Boolean = inTransaction(artistTags.where(t => t.artistID === id).Count != 0)
+  def hasTag(id: Long): Boolean = inTransaction(artistTags.where(t => t.artistID === id).Count > 0)
 
   def domainAvail(domain: String): Boolean = artists.where(a => a.domain === domain).Count == 1
 
@@ -26,11 +27,13 @@ object Artist {
 
   def findByDomain(domain: String): Option[Artist] = inTransaction(artists.where(a => a.domain === domain).headOption)
 
-  def authenticate(name: String, password: String): Option[Artist] = findByUsername(name).filter(a => a.pass == hash(password))
+  private def check(pass: String, hash: String) = Algorithms.checkPassword(pass, hash, SALT)
+
+  def authenticate(name: String, password: String): Option[Artist] = findByUsername(name).filter(a => check(password, a.pass))
 
   def findByUsername(username: String): Option[Artist] = artists.where(a => a.username === username).headOption
 
-  private def hash(pass: String): String = pass
+  def hash(pass: String): String = Algorithms.hashPassword(pass, SALT)
 
   def byEmail(email: String): Option[Artist] = artists.where(a => a.email === email).headOption
 
