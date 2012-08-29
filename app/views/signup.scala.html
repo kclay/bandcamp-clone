@@ -17,7 +17,7 @@ signupFrom("username"),
 @inputText(signupFrom("name"),'_label->"Artist/Band name",'_showConstraints->false)
 @inputText(signupFrom("code"),'_label->"Signup Code",'_showConstraints->false)
 @checkbox(signupFrom("accept"),'_label->None,
-'_text->"I have read and agree to the Terms of Use",'_showConstraints->false)
+'_text->Html("I have read and agree to the <a href='/tos'>Terms of Use</a>"),'_showConstraints->false)
 <div class="control-group">
     <div class="controls">
         <input type="submit" value="Sign Up for BulaBowl" class="btn btn-primary btn-large"/>
