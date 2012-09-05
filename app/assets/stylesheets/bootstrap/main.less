@@ -1,4 +1,4 @@
-html, body, .container, #content {
+html, body, #main-container, #content {
     height: 100%;
 }
 
@@ -39,11 +39,12 @@ html, body, .container, #content {
 .navbar .navbar-inner {
     .border-radius(0);
 }
-#features{
-    color:@purple;
-    margin-top:40px;
-    font-size:16px;
-    line-height:18px;
+
+#features {
+    color: @purple;
+    margin-top: 40px;
+    font-size: 16px;
+    line-height: 18px;
 }
 
 .hero-unit2 {
@@ -67,6 +68,44 @@ html, body, .container, #content {
     }
 }
 
+hr {
+    height: 7px;
+    width: 100%;
+    margin: 10px 0px;
+    background: @purple;
+}
+
+#discover {
+    color: @purple;
+    text-align: center;
+}
+
+.click-button {
+    display: block;
+    width: 185px;
+    height: 49px;
+    margin: 0 auto;
+    background: url('/images/click_button.png') no-repeat;
+    text-indent: -99999px;
+}
+
+.home #main-container {
+    background: url('/images/index_background.jpg') no-repeat;
+}
+
+#recent-items {
+    margin-top: 10px;
+    list-style: none;
+
+}
+
+.display-item {
+    h4 {
+        font-weight: normal;
+    }
+    float: left;
+    margin-right: 40px;
+}
 
 #domain {
     text-align: left;
@@ -108,6 +147,10 @@ html, body, .container, #content {
     height: 210px;
     width: 210px;
 
+}
+
+.row {
+    margin-left: 0px;
 }
 
 h3.inline {

@@ -2,7 +2,11 @@
 
 @import utils.session._
 @nav={
-@artist.header()
+@if(SessionHelper.authenticated){
+    @artist.header()
+}else{
+    @header()
+}
 }
 @common(title,nav,"inner"){
 

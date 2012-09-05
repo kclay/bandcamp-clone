@@ -105,6 +105,6 @@ trait AuthConfigImpl extends AuthConfig {
       case _ => false
     }
 
-  override def resolver[A](implicit request: Request[A]): RelationResolver[Id] = new CookieRelationResolver[Id, A](request)
+  /*override def resolver[A](implicit request: Request[A]): RelationResolver[Id] = new CookieRelationResolver[Id, A](request)*/
 
 }

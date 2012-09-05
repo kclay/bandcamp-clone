@@ -1,41 +1,61 @@
-@()(implicit request: play.api.mvc.RequestHeader)
+@(items:Seq[(SaleAbleItem,Artist)])(implicit request: play.api.mvc.RequestHeader)
 @import utils.Utils.mediaURL
 @nav={
 @header()
 }
-@common("Welcome to BulaBowl",nav){
+@common("Welcome to BulaBowl",nav,"home"){
 
-<div class="span3" style="width:200px;">
-    <div id="signup">
-        <img src="@(mediaURL)/images/logo.png"/>
-        <a id="signup-button" href="@routes.Application.signup()">Singup</a>
+<div class="row">
+    <div class="span3" style="width:200px;">
+        <div id="signup">
+            <img src="@(mediaURL)/images/logo.png"/>
+            <a id="signup-button" href="@routes.Application.signup()">Singup</a>
+        </div>
+
+    </div>
+    <div id="features" class="span3">
+
+
+        <ul>
+            <li><strong>Discover New Music!</strong></li>
+            <li>International Exposure</li>
+            <li>Merging a Virtual World with a Live Audience</li>
+        </ul>
     </div>
 
+    <script type="text/javascript" src="@(mediaURL)/javascripts/libs/jwplayer/jwplayer.min.js"></script>
+
+    <div class="span4">
+        <div id="overlay"></div>
+    </div>
 </div>
-<div id="features" class="span3">
+<hr/>
+<div class="row">
+    <div class="span8">
+        <h3>Check out a few of the artists powered by BulaBowl</h3>
+        <ul id="recent-items">
+            @for((trackOrAlbum,artist) <- items){
+            @item(artist,trackOrAlbum)
+            }
+        </ul>
+    </div>
+    @******
+    <div class="span3" id="discover">
+        <h2>Discover New</h2>
 
-
-
-
-    <ul>
-        <li><strong>Discover New Music!</strong></li>
-        <li>International Exposure</li>
-        <li>Merging a Virtual World with a Live Audience</li>
-    </ul>
+        <h2><strong>Bands & Music</strong></h2>
+        <a href="/list" class="click-button">Click Here</a>
+    </div>
+    ************************@
 </div>
 
-<script type="text/javascript" src="@(mediaURL)/javascripts/libs/jwplayer/jwplayer.min.js"></script>
-
-<div class="span4">
-    <div id="overlay"></div>
-</div>
 <script type='text/javascript'>
     jwplayer('overlay').setup({
         'image':"@(mediaURL)/images/video_overlay.jpg",
         'flashplayer':'@(mediaURL)/player.swf',
         'file':'@(mediaURL)/media/intro.m4v',
         'controlbar':'bottom',
-        'width':'480',
+        'width':'420',
         'height':'251'
     });
 </script>

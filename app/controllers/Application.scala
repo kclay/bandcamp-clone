@@ -68,12 +68,23 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
 
-  def index = optionalUserAction {
-    artist => implicit request =>
+  def index = TransAction {
+    optionalUserAction {
+      artist => implicit request =>
 
-      if (hasSubdomain) Redirect(routes.Artists.index()) else Ok(html.index())
+        if (hasSubdomain) {
+          Redirect(routes.Artists.index())
+        } else {
+          val albums = Album.list(1, 2)
+          val needed = 4 - (albums.size)
+
+          val tracks = if (needed > 0) Track.withSingleAndArtist(1, needed) else List()
+          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist)]]
+          Ok(html.index(collection))
+        }
 
 
+    }
   }
 
   private def hasSubdomain(implicit request: RequestHeader): Boolean = {

@@ -14,6 +14,7 @@ import utils.Assets._
 trait SaleAbleItem {
   def itemType: String
 
+
   def itemID: Long
 
   def ownerID: Long
@@ -23,6 +24,10 @@ trait SaleAbleItem {
   def signature: String
 
   def itemSlug: String
+
+  def smallArtURL: String
+
+  def itemArtistName: Option[String]
 
   def artist = Artist.find(ownerID)
 }
@@ -45,6 +50,7 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
 
   lazy val artURL: String = art.map(Image(_).getOrResize(Default()).url).getOrElse("")
 
+  def itemArtistName: Option[String] = artistName
 
   def itemType = "album"
 
@@ -81,6 +87,15 @@ object Album {
         select (a)
     ).headOption
   )
+
+  def list(page: Int = 1, amount: Int = 20, orderAsc: Boolean = false) = {
+    join(albums, artists)((a, aa) =>
+      where(a.active === true)
+        select(a, aa)
+        orderBy (if (orderAsc) a.id.asc else a.id.desc)
+        on (a.artistID === aa.id)
+    ).take(amount).drop(page - 1 * amount).toList
+  }
 
   def bySession(artistId: Long, session: String) = inTransaction(from(albums)(a =>
     where(a.artistID === artistId and a.session === session)
@@ -173,7 +188,7 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   def ownerID: Long = artistID
 
-  def itemSlug: String=slug
+  def itemSlug: String = slug
 
 
   def signature: String = file.get
@@ -186,6 +201,10 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def defaultArtImage = artImage.map(a => Some(a.getOrResize(Default()))).getOrElse(None)
 
   def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
+
+  def smallArtURL = smallArtImage.map(_.url).getOrElse("")
+
+  def itemArtistName: Option[String] = artistName
 
 
 }
@@ -208,6 +227,13 @@ object Track {
   def withSingle(artistID: Long, page: Int = 1, amount: Int = 20) = from(tracks)(t =>
     where(t.artistID === artistID and t.single === true)
       select (t)
+  ).take(amount).drop(page - 1 * amount).toList
+
+  def withSingleAndArtist(page: Int = 1, amount: Int = 20, orderAsc: Boolean = false) = join(tracks, artists)((t, a) =>
+    where(t.single === true and t.active === true)
+      select(t, a)
+      orderBy (if (orderAsc) t.id.asc else t.id.desc)
+      on (t.artistID === a.id)
   ).take(amount).drop(page - 1 * amount).toList
 
   def byFile(artistID: Long, file: String): Option[Track] = inTransaction(tracks.where(t => t.artistID === artistID and t.file === Some(file)).headOption)
