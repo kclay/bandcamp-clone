@@ -47,18 +47,17 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
   }
 
 
-  def saveTrack() = TransAction {
-    authorizedAction(NormalUser) {
+  def saveTrack() = Authorize {
+
       implicit artist => implicit request =>
         commitTrack(artist)
-    }
+
   }
 
-  def updateTrack(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def updateTrack(slug: String) = Authorize {
       implicit artist => implicit request =>
         commitTrack(artist)
-    }
+
   }
 
   def commitTrack(artist: Artist)(implicit request: play.api.mvc.Request[_]): play.api.mvc.Result = {
@@ -101,8 +100,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   }
 
-  def fetchTrack(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def fetchTrack(slug: String) =  Authorize {
       artist => implicit request =>
 
         Ok(Track.bySlug(artist.id, slug).map {
@@ -110,11 +108,10 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         }.getOrElse(""))
 
 
-    }
+
   }
 
-  def publish(kind: String, slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def publish(kind: String, slug: String) =  Authorize {
       implicit artist => implicit request =>
 
         kind match {
@@ -141,17 +138,16 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         }
         Ok("")
 
-    }
+
   }
 
-  def fetchAlbum(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def fetchAlbum(slug: String) =  Authorize {
       artist => implicit request =>
         Ok(Album.bySlug(artist.id, slug).map {
           a => generate(Map("album" -> a, "tracks" -> Album.withTracks(a.id).toList))
         }.getOrElse(""))
 
-    }
+
   }
 
   private def g(obj: Any) = generate(obj)
@@ -160,8 +156,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   private def error(obj: Any) = BadRequest(g(obj)).as("text/json")
 
-  def deleteAlbum(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def deleteAlbum(slug: String) =  Authorize {
       artist => implicit request =>
 
         Album.bySlug(artist.id, slug).map {
@@ -182,11 +177,10 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
             json(Map("ok" -> true))
 
         }.getOrElse(error(Map("ok" -> false)))
-    }
+
   }
 
-  def deleteTrack(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
+  def deleteTrack(slug: String) =  Authorize {
       artist => implicit request =>
         Track.bySlug(artist.id, slug).map {
           track =>
@@ -195,25 +189,23 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
             tracks.delete(track.id)
             json(Map("ok" -> true))
         }.getOrElse(error(Map("ok" -> false)))
-    }
+
   }
 
-  def updateAlbum(slug: String) = TransAction {
-    authorizedAction(NormalUser) {
-      implicit artist => implicit request =>
-
-        commitAlbum(artist)
-    }
-  }
-
-  def saveAlbum() = TransAction {
-    authorizedAction(NormalUser) {
+  def updateAlbum(slug: String) = Authorize {
       implicit artist => implicit request =>
 
         commitAlbum(artist)
 
+  }
 
-    }
+  def saveAlbum() =  Authorize {
+      implicit artist => implicit request =>
+
+        commitAlbum(artist)
+
+
+
   }
 
   private def commitAlbum(artist: Artist)(implicit request: play.api.mvc.Request[_]): play.api.mvc.Result = {

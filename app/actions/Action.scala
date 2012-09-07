@@ -39,10 +39,11 @@ trait Authorizer {
       val domain = parts.drop(1).mkString(".")
 
 
-
-      authorized(NormalUser.asInstanceOf[this.Authority])(request).right.map(
-        u => if (u.asInstanceOf[Artist].domain.equals(subdomain)) f(u.asInstanceOf[Artist])(request) else Redirect("http://" + domain + routes.Artists.index().url)
-      ).merge
+      inTransaction {
+        authorized(NormalUser.asInstanceOf[this.Authority])(request).right.map(
+          u => if (u.asInstanceOf[Artist].domain.equals(subdomain)) f(u.asInstanceOf[Artist])(request) else Redirect("http://" + domain + routes.Artists.index().url)
+        ).merge
+      }
 
   }
 }

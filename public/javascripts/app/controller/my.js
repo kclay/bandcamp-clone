@@ -7,7 +7,7 @@ define(["underscore", "backbone", "app/common", "app"], function (_, Backbone) {
         events:{
             "click a.delete":"confirmDelete"
         },
-        initalize:function (options) {
+        initialize:function (options) {
             this.album = (options || {}).album;
         },
         confirmDelete:function (e) {

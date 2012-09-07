@@ -81,7 +81,7 @@ trait AuthConfigImpl extends AuthConfig {
   /**
    * A redirect target after a successful user logout.
    */
-  def logoutSucceeded[A](request: Request[A]): PlainResult = Redirect(routes.Application.login)
+  def logoutSucceeded[A](request: Request[A]): PlainResult = Redirect(routes.Application.login).withNewSession
 
   /**
    * A redirect target after a failed authentication.
@@ -105,6 +105,6 @@ trait AuthConfigImpl extends AuthConfig {
       case _ => false
     }
 
-  /*override def resolver[A](implicit request: Request[A]): RelationResolver[Id] = new CookieRelationResolver[Id, A](request)*/
+  override def resolver[A](implicit request: Request[A]): RelationResolver[Id] = new CookieRelationResolver[Id, A](request)
 
 }

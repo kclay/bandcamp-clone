@@ -53,7 +53,7 @@ POST    /ajax/albums                    controllers.Ajax.saveAlbum()
 POST    /ajax/publish                    controllers.Ajax.publish(kind:String,slug:String)
 PUT    /ajax/albums/:slug                    controllers.Ajax.updateAlbum(slug:String)
 GET     /ajax/albums/:slug                controllers.Ajax.fetchAlbum(slug:String)
-DELETE     /ajax/albums/:slug                controllers.Ajax.deleteAlbum(slug:String)
+DELETE  /ajax/albums/:slug                controllers.Ajax.deleteAlbum(slug:String)
 
 
 
