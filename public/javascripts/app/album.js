@@ -42,7 +42,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
         capture:function () {
             this._tags = this.get("tags").split(",")
-            _(this.tracks).each(function (track) {
+            _(this.tracks.models).each(function (track) {
 
                 track.capture();
             })
@@ -52,7 +52,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             var tags = [
                 {slug:this.get("slug"), "tags":this._tags}
             ];
-            var trackTags = _(this.tracks).map(function (track) {
+            var trackTags = _(this.tracks.models).map(function (track) {
 
                 return {slug:track.get("slug"), tags:track._tags}
             });
