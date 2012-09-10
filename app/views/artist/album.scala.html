@@ -43,7 +43,8 @@
 
     @textarea(album("credits"),'_label->"album credits")
 
-
+    @inputText(album("tags"),'class->"tag-selector",'_label->"Album tags",
+    'placeholder->"comma-separated list of tags")
     @input(album("art"),'_label->""){(id, name, value, args) =>
 
 

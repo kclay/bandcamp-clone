@@ -147,7 +147,8 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
         value => {
 
           val (genre, tags, location) = value
-          tags.map(t => ArtistTag.insert(artist, t.split(",").toList.map(_.trim)));
+          import models.Tag._
+          tags.map(t => Tag.insert(artist.asInstanceOf[Artist], t.split(",").toList));
 
 
           Redirect(routes.Artists.pickDomain)

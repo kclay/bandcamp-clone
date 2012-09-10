@@ -2,6 +2,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         var _ = require("underscore");
         var Common = require("app/common");
         var V = Common.Validate
+
         var Routes = require("app").Routes
         var Track = Backbone.Model.extend({
             validation:{
@@ -27,6 +28,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     license:"all_rights",
                     status:"",
                     order:0,
+                    tags:"",
+
                     session:app_config.session()
 
 
@@ -40,11 +43,31 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
 
             },
+            capture:function () {
+                this._tags = this.get("tags").split(",");
+            },
 
+            saveTags:function () {
 
+                Routes.Ajax.saveTags("track").ajax({
+                    contentType:"application/json",
+                    data:JSON.stringify({
+                        kind:"track",
+                        items:[
+                            {
+                                slug:this.get("slug"),
+                                tags:this._tags
+                            }
+                        ]
+
+                    })
+                })
+
+            },
             urlRoot:"/ajax/tracks",
             toJSON:function () {
                 var t = _.clone(this.attributes);
+
                 if (this.isNew())t.id = 0
                 return t;
             },
@@ -61,7 +84,17 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 return {track:track}
             },
             parse:function (resp, xhr) {
-                return resp.track;
+                var track = resp.track;
+                if (this._tags) {
+                    track.tags = this._tags.join(',');
+                } else {
+                    var tags = _.map(track.tags, function (t) {
+                        return t.name
+                    });
+
+                    track.tags = tags.join(',');
+                }
+                return track;
             }
         })
 
@@ -83,7 +116,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             credits:"[name='track.credits']",
             artist:"[name='track.artist']",
             license:"[name='track.license']",
-            releaseDate:"[name='track.releaseDate']"
+            releaseDate:"[name='track.releaseDate']",
+            tags:"[name='track.tags']"
 
         }
 
@@ -162,6 +196,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 this.model.on("refresh", this.render, this);
                 this.artUploder = new Common.ArtUploader(this.$el, this.artUploadView, this.model);
 
+                Common.TagSelector(this.$(".tag-selector"));
+
 
             },
 
@@ -209,7 +245,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             }
         })
 
-        var Routes = jsRoutes.controllers.Upload;
+        var RoutesUpload = Routes.Upload;
         var TrackOverviewView = Common.OverviewView.extend({
 
             initialize:function (options, parent) {
@@ -324,7 +360,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     this._encodingTrack = info;
 
 
-                    Routes.audioUploaded().ajax({
+                    RoutesUpload.audioUploaded().ajax({
                         data:{
                             id:info.id,
                             session:app_config.session()
@@ -373,7 +409,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             trackEncodingStatus:function (delay) {
                 var self = this;
                 setTimeout(function () {
-                    Routes.status().ajax({
+                    RoutesUpload.status().ajax({
                         data:{
                             ids:{0:self._currentStatusId }
                         }

@@ -80,6 +80,12 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
     <p>@l</p>
 
     }
+
+    @if(album.tags.nonEmpty){
+    <div class="tags">
+        <span>tags:</span> @album.tags.map(_.name).mkString(",")
+    </div>
+    }
 </div>
 
 <div id="details-right" class="span5 pull-left">

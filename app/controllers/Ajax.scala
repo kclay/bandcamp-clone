@@ -18,6 +18,7 @@ import utils.TempAudioDataStore._
 import scala.Some
 import actions.Actions._
 import scala.Some
+import models.Tag._
 
 
 /**
@@ -46,17 +47,53 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
     }
   }
 
+  def insertAlbumTags(artist: Artist, albums: List[(String, List[String])]) = {
+
+    val album = albums(0)
+    Album.bySlug(artist.id, album._1).map {
+      a => Tag.insert(a, album._2)
+    }
+    albums.drop(1).map {
+      track =>
+        for {
+          t <- Track.bySlug(artist.id, track._1)
+        } yield Tag.insert(t, track._2)
+    }
+  }
+
+  def insertTrackTags(artist: Artist, tracks: List[(String, List[String])]) {
+
+    tracks.foreach(track =>
+      for {
+        t <- Track.bySlug(artist.id, track._1)
+      } yield (Tag.insert(t, track._2))
+    )
+
+  }
+
+  def saveTags = Authorize {
+    artist => implicit request =>
+
+      saveTagsForm.bindFromRequest.fold(
+        errors => BadRequest(errors.errorsAsJson),
+        value => {
+          val (kind, items) = value
+          if (kind == "album") insertAlbumTags(artist, items) else insertTrackTags(artist, items)
+          Ok("")
+        }
+      )
+  }
 
   def saveTrack() = Authorize {
 
-      implicit artist => implicit request =>
-        commitTrack(artist)
+    implicit artist => implicit request =>
+      commitTrack(artist)
 
   }
 
   def updateTrack(slug: String) = Authorize {
-      implicit artist => implicit request =>
-        commitTrack(artist)
+    implicit artist => implicit request =>
+      commitTrack(artist)
 
   }
 
@@ -100,52 +137,51 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   }
 
-  def fetchTrack(slug: String) =  Authorize {
-      artist => implicit request =>
+  def fetchTrack(slug: String) = Authorize {
+    artist => implicit request =>
 
-        Ok(Track.bySlug(artist.id, slug).map {
-          case t => generate(Map("track" -> t))
-        }.getOrElse(""))
-
+      Ok(Track.bySlug(artist.id, slug).map {
+        case t => generate(Map("track" -> t))
+      }.getOrElse("")).as("text/json")
 
 
   }
 
-  def publish(kind: String, slug: String) =  Authorize {
-      implicit artist => implicit request =>
+  def publish(kind: String, slug: String) = Authorize {
+    implicit artist => implicit request =>
 
-        kind match {
-          case "album" => Album.bySlug(artist.id, slug).map {
-            album =>
-              update(albums)(a =>
-                where(a.id === album.id)
-                  set (a.active := true))
+      kind match {
+        case "album" => Album.bySlug(artist.id, slug).map {
+          album =>
+            update(albums)(a =>
+              where(a.id === album.id)
+                set (a.active := true))
 
-              update(tracks)(t =>
-                where(t.id in
-                  from(Album.withTracks(album.id))(t2 => select(t2.id))
-                )
-                  set (t.active := true)
+            update(tracks)(t =>
+              where(t.id in
+                from(Album.withTracks(album.id))(t2 => select(t2.id))
               )
+                set (t.active := true)
+            )
 
 
-          }
-          case "track" => Track.bySlug(artist.id, slug).map {
-            track => update(tracks)(t =>
-              where(t.id === track.id)
-                set (t.active := true))
-          }
         }
-        Ok("")
+        case "track" => Track.bySlug(artist.id, slug).map {
+          track => update(tracks)(t =>
+            where(t.id === track.id)
+              set (t.active := true))
+        }
+      }
+      Ok("")
 
 
   }
 
-  def fetchAlbum(slug: String) =  Authorize {
-      artist => implicit request =>
-        Ok(Album.bySlug(artist.id, slug).map {
-          a => generate(Map("album" -> a, "tracks" -> Album.withTracks(a.id).toList))
-        }.getOrElse(""))
+  def fetchAlbum(slug: String) = Authorize {
+    artist => implicit request =>
+      Ok(Album.bySlug(artist.id, slug).map {
+        a => generate(Map("album" -> a, "tracks" -> Album.withTracks(a.id).toList))
+      }.getOrElse("")).as("text/json")
 
 
   }
@@ -156,54 +192,53 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
 
   private def error(obj: Any) = BadRequest(g(obj)).as("text/json")
 
-  def deleteAlbum(slug: String) =  Authorize {
-      artist => implicit request =>
+  def deleteAlbum(slug: String) = Authorize {
+    artist => implicit request =>
 
-        Album.bySlug(artist.id, slug).map {
-          album =>
-            import utils.AudioDataStore.deleteAudioSession
-            deleteAudioSession(album.session)
-            albums.delete(album.id)
-            val allTracks = from(albumTracks)(at =>
-              where(at.albumID === album.id)
-                select (at)
+      Album.bySlug(artist.id, slug).map {
+        album =>
+          import utils.AudioDataStore.deleteAudioSession
+          deleteAudioSession(album.session)
+          albums.delete(album.id)
+          val allTracks = from(albumTracks)(at =>
+            where(at.albumID === album.id)
+              select (at)
 
-            )
-            tracks.deleteWhere(t =>
-              (t.id in from(allTracks)(at => select(at.trackID)))
+          )
+          tracks.deleteWhere(t =>
+            (t.id in from(allTracks)(at => select(at.trackID)))
 
-            )
-            albumTracks.delete(allTracks)
-            json(Map("ok" -> true))
+          )
+          albumTracks.delete(allTracks)
+          json(Map("ok" -> true))
 
-        }.getOrElse(error(Map("ok" -> false)))
+      }.getOrElse(error(Map("ok" -> false)))
 
   }
 
-  def deleteTrack(slug: String) =  Authorize {
-      artist => implicit request =>
-        Track.bySlug(artist.id, slug).map {
-          track =>
-            import utils.AudioDataStore.deleteAudioSession
-            deleteAudioSession(track.session)
-            tracks.delete(track.id)
-            json(Map("ok" -> true))
-        }.getOrElse(error(Map("ok" -> false)))
+  def deleteTrack(slug: String) = Authorize {
+    artist => implicit request =>
+      Track.bySlug(artist.id, slug).map {
+        track =>
+          import utils.AudioDataStore.deleteAudioSession
+          deleteAudioSession(track.session)
+          tracks.delete(track.id)
+          json(Map("ok" -> true))
+      }.getOrElse(error(Map("ok" -> false)))
 
   }
 
   def updateAlbum(slug: String) = Authorize {
-      implicit artist => implicit request =>
+    implicit artist => implicit request =>
 
-        commitAlbum(artist)
+      commitAlbum(artist)
 
   }
 
-  def saveAlbum() =  Authorize {
-      implicit artist => implicit request =>
+  def saveAlbum() = Authorize {
+    implicit artist => implicit request =>
 
-        commitAlbum(artist)
-
+      commitAlbum(artist)
 
 
   }

@@ -1,4 +1,4 @@
-define(["underscore", "backbone", "modal"], function (_) {
+define(["underscore", "backbone", "modal", "typeahead"], function (_) {
 
 
     var FeedbackView = Backbone.View.extend({
@@ -258,6 +258,62 @@ define(["underscore", "backbone", "modal"], function (_) {
 
         }
     })
+
+    var TagSelector = function (el) {
+        $(el).each(function () {
+            var beforeValues;
+            $(this).typeahead({
+                matcher:function () {
+                    return true;
+                },
+
+                updater:function (item) {
+
+                    beforeValues.push(item);
+                    var self = this;
+                    setTimeout(function () {
+                        var len = self.$element[0].value.length || 0;
+                        if (len) {
+                            if ('setSelectionRange' in el) el.setSelectionRange(len, len);
+                            else if ('createTextRange' in el) {// for IE
+                                var range = el.createTextRange();
+                                range.moveStart('character', len);
+                                range.select();
+                            }
+                        }
+
+                    }, 1)
+
+
+                    return beforeValues.join(", ") + ", ";
+                },
+                ajax:{
+                    url:"/ajax/tags",
+                    displayField:"name",
+                    method:"get",
+                    timeout:500,
+                    preProcess:function (data) {
+                        try {
+                            return $.parseJSON(data);
+                        } catch (e) {
+                        }
+                        return data;
+                    },
+                    preDispatch:function (query) {
+                        beforeValues = query.split(",")
+                        query = $.trim(beforeValues.pop())
+                        if (query.length < 3)return false;
+
+                        return {
+                            q:query
+                        }
+                    }
+                }
+
+            })
+        });
+    }
+
     return {
         OverviewView:OverviewView,
         FeedbackView:FeedbackView,
@@ -266,6 +322,7 @@ define(["underscore", "backbone", "modal"], function (_) {
         Validate:Validators,
         STATES:STATES,
         LoadingView:LoadingView,
-        StateManager:StatesManager
+        StateManager:StatesManager,
+        TagSelector:TagSelector
     }
 })

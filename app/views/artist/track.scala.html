@@ -88,6 +88,9 @@
         'placeholder->"leave blank to use band name",
         '_help->"for complications, labels, etc.")
 
+        @inputText(track("tags"),'class->"tag-selector",'_label->"Track tags",
+        'placeholder->"comma-separated list of tags")
+
 
         @input(track("art"),'_label->""){(id, name, value, args) =>
 

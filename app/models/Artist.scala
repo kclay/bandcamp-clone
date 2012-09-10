@@ -3,8 +3,9 @@ package models
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import java.sql.Date
-import org.squeryl.KeyedEntity
+import org.squeryl.{Table, KeyedEntity}
 import security.Algorithms
+import models.SiteDB._
 
 /**
  * Created by IntelliJ IDEA.
@@ -60,8 +61,11 @@ case class Artist(username: String, pass: String, email: String, name: String, d
 }
 
 
-case class ArtistTag(artistID: Long, tagID: Long)
 
+
+
+
+/*
 object ArtistTag {
 
 
@@ -94,7 +98,7 @@ object ArtistTag {
 
   }
 }
-
+      */
 
 
 

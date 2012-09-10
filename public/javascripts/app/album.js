@@ -33,15 +33,39 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 art:"",
                 artURL:"",
                 releaseDate:"",
+                tags:"",
                 session:app_config.session()
 
 
             }
         },
 
+        capture:function () {
+            this._tags = this.get("tags").split(",")
+        },
+        saveTags:function () {
+
+            var tags = [
+                {slug:this.get("slug"), "tags":this._tags}
+            ];
+            tags = tags.concat(_(this.tracks).map(function (track) {
+                track.capture()
+                return {slug:track.get("slug"), tags:track._tags}
+            }))
+            Routes.Ajax.saveTags().ajax({
+                contentType:"application/json",
+                data:JSON.stringify({
+                    kind:"album",
+                    items:tags
+
+                })
+            })
+        },
         refresh:function () {
             this.trigger("refresh");
         },
+
+
         validate:function (attrs, options) {
             if (!_.isEmpty(attrs.releaseDate) && !V.date(attrs.releaseDate)) {
                 return "releaseDate"
@@ -61,8 +85,19 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 }
             }, this)
 
+            var album = resp.album
+            if (this._tags) {
+                album.tags = this._tags.join(',');
+            } else {
+                var tags = _.map(album.tags, function (t) {
+                    return t.name
+                });
+
+                album.tags = tags.join(',');
+            }
+
             //this.tracks.reset(resp.tracks, {slient:true});
-            return resp.album
+            return album
         },
         toJSON:function () {
             var o = _.clone(this.attributes);
@@ -95,7 +130,8 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
             credits:"[name='album.credits']",
             artist:"[name='album.artist']",
-            releaseDate:"[name='album.releaseDate']"
+            releaseDate:"[name='album.releaseDate']",
+            tags:"[name='album.tags']"
 
 
         },

@@ -70,6 +70,11 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
         @display.trackRow(0,track)
 
     </table>-->
+    @if(track.tags.nonEmpty){
+    <div class="tags">
+        <span>tags:</span> @track.tags.map(_.name).mkString(",")
+    </div>
+    }
 </div>
 
 <div id="details-right" class="span5 pull-left">

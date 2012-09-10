@@ -21,6 +21,17 @@ object Forms {
   val forgotForm = Form(
     single("email" -> artistEmail)
   )
+  var itemTagsMapping = tuple(
+    "slug" -> text,
+    "tags" -> list(text)
+  )
+
+  val saveTagsForm = Form(
+    tuple(
+      "kind" -> text,
+      "items" -> list(itemTagsMapping)
+    )
+  )
   val resetForm = Form(
     tuple(
       "password" -> text,
@@ -97,7 +108,7 @@ object Forms {
       ),
       "accept" -> checked("Please accept the terms and conditions")
     ) {
-      (username, password, email, name, code, _) => Signup(username, password, email, name,code)
+      (username, password, email, name, code, _) => Signup(username, password, email, name, code)
     } {
       s => Some(s.username, s.password, s.email, s.name, s.code, false)
     } /*.verifying(
@@ -141,11 +152,11 @@ object Forms {
     "donateMore" -> boolean,
     "download" -> boolean,
     "price" -> of[Double],
-    "license" -> text,
+
     "artist" -> optional(text),
     "art" -> optional(text),
     "lyrics" -> optional(text),
-    /*"about" -> optional(text),*/
+    "about" -> optional(text),
     "credits" -> optional(text),
     "date" -> optional(sqlDate("MM-dd-yyyy")),
     "activate" -> boolean,

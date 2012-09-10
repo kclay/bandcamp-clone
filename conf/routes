@@ -19,6 +19,7 @@ GET     /signup                     controllers.Application.signup
 GET     /___promo___                controllers.Application.createCodes
 
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
+POST    /ajax/tags/save                  controllers.Ajax.saveTags()
 
 
 GET     /ajax/stats/tracks/:range                      controllers.Stats.plays(range:Range)
@@ -62,6 +63,8 @@ POST    /ajax/tracks                    controllers.Ajax.saveTrack()
 GET     /ajax/tracks/:slug            controllers.Ajax.fetchTrack(slug:String)
 PUT    /ajax/tracks/:slug                    controllers.Ajax.updateTrack(slug:String)
 DELETE     /ajax/tracks/:slug                controllers.Ajax.deleteTrack(slug:String)
+
+
 
 
 

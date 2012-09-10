@@ -8,6 +8,8 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
     var Backbone = require("backbone");
 
     var Ajax = jsRoutes.controllers.Ajax
+
+
     var CollectionView = UpdatingCollectionView.extend({
         _createChildView:function (model, index) {
             return  new this._childViewConstructor({
@@ -554,11 +556,14 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 $("#saving").delay(500).slideUp()
             }
             var self = this;
-            (this.album || this.track).save(null, {
+            var model = (this.album || this.track);
+            model.capture();
+            model.save(null, {
                 success:function () {
                     finish()
                     $("#publish-button").fadeIn();
                     self.stateManager.reset();
+                    model.saveTags();
                 },
                 error:function () {
                     finish()
