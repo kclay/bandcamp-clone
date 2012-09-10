@@ -154,7 +154,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             this.artUploder = new Common.ArtUploader(this.$el, this.artUploadView, this.model);
             this.model.on("error", this._onAttributeError, this)
             this.model.on("change:releaseDate", this._onModelAttributeChanged, this)
-
+            Common.TagSelector(this.$(".tag-selector"));
             this.render();
 
         },
