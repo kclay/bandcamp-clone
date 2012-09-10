@@ -42,10 +42,8 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
         capture:function () {
             this._tags = this.get("tags").split(",")
-            _(this.tracks.models).each(function (track) {
+            this.tracks.capture();
 
-                track.capture();
-            })
         },
         saveTags:function () {
 
@@ -82,11 +80,12 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
         parse:function (resp, xhr) {
             var edit = !this.tracks.models.length && !this._init;
             this._init = true;
+            var track = new Track.Model()
             _(resp.tracks).each(function (attrs, index) {
                 if (edit) {
-                    this.tracks.add(attrs)
+                    this.tracks.add(track.parse(attrs))
                 } else {
-                    this.tracks.at(index).set(attrs, {slient:true})
+                    this.tracks.at(index).set(track.parse(attrs), {slient:true})
                 }
             }, this)
 

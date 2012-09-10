@@ -84,7 +84,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 return {track:track}
             },
             parse:function (resp, xhr) {
-                var track = resp.track;
+                var track = "track" in resp ? resp.track : resp;
                 if (this._tags) {
                     track.tags = this._tags.join(',');
                 } else {
@@ -479,6 +479,12 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         })
         var Tracks = Backbone.Collection.extend({
             model:Track,
+            capture:function () {
+                _(this.models).each(function (track) {
+
+                    track.capture();
+                })
+            },
             toJSON:function () {
                 var data = [];
                 _(this.models).each(function (model, i) {
