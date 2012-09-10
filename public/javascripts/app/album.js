@@ -80,7 +80,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
         parse:function (resp, xhr) {
             var edit = !this.tracks.models.length && !this._init;
             this._init = true;
-            var track = new Track.Model()
+            var track = new Track.SingleTrack()
             _(resp.tracks).each(function (attrs, index) {
                 if (edit) {
                     this.tracks.add(track.parse(attrs))
