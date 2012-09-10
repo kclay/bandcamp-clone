@@ -42,16 +42,21 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
 
         capture:function () {
             this._tags = this.get("tags").split(",")
+            _(this.tracks).each(function (track) {
+
+                track.capture();
+            })
         },
         saveTags:function () {
 
             var tags = [
                 {slug:this.get("slug"), "tags":this._tags}
             ];
-            tags = tags.concat(_(this.tracks).map(function (track) {
-                track.capture()
+            var trackTags = _(this.tracks).map(function (track) {
+
                 return {slug:track.get("slug"), tags:track._tags}
-            }))
+            });
+            tags = [].concat(tags, trackTags);
             Routes.Ajax.saveTags().ajax({
                 contentType:"application/json",
                 data:JSON.stringify({
