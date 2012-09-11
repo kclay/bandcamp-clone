@@ -53,7 +53,7 @@ object Artist {
     )
   }
 
-  def updateGenre(artistId: Long, genreID: Long) = update(artists)(
+  def updateGenre(artistID: Long, genreID: Long) = update(artists)(
     a => where(a.id === artistID)
       set (a.genreID := genreID)
   )
@@ -61,7 +61,7 @@ object Artist {
 
 }
 
-case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false, genreID: Long=0) extends KeyedEntity[Long] {
+case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false, genreID: Long = 0) extends KeyedEntity[Long] {
   var id: Long = 0
 
   import models.SiteDB.genres
