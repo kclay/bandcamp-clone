@@ -53,52 +53,57 @@ object Artist {
     )
   }
 
+  def updateGenre(artistId: Long, genreID: Long) = update(artists)(
+    a => where(a.id === artistID)
+      set (a.genreID := genreID)
+  )
+
 
 }
 
-case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false) extends KeyedEntity[Long] {
+case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false, genreID: Long=0) extends KeyedEntity[Long] {
   var id: Long = 0
+
+  import models.SiteDB.genres
+
+  lazy val genre = genres.lookup(genreID).get
 }
-
-
-
-
 
 
 /*
 object ArtistTag {
 
 
-  import SiteDB._
+import SiteDB._
 
-  def insert(artist: Artist, ts: List[String]) = inTransaction {
-
-
-    val foundTags = Tag.find(ts)
-    // insert tags that are already in db
-    artistTags.insert(foundTags.map({
-      tag => ArtistTag(artist.id, tag.id)
-    }))
-    // create flatten List[String]
-    val flattenTags = foundTags.map(_.name)
-    // find new tags that were not found in db
-    val missingTags = ts.filter({
-      tag => !flattenTags.contains(tag)
-    })
-
-    if (!missingTags.isEmpty) {
-      // insert the new tags
-      tags.insert(missingTags.map(Tag(_)))
-      // search for the tags that were newly inserted
-      artistTags.insert(Tag.find(missingTags).map({
-        tag => ArtistTag(artist.id, tag.id)
-      }))
-    }
+def insert(artist: Artist, ts: List[String]) = inTransaction {
 
 
-  }
+val foundTags = Tag.find(ts)
+// insert tags that are already in db
+artistTags.insert(foundTags.map({
+tag => ArtistTag(artist.id, tag.id)
+}))
+// create flatten List[String]
+val flattenTags = foundTags.map(_.name)
+// find new tags that were not found in db
+val missingTags = ts.filter({
+tag => !flattenTags.contains(tag)
+})
+
+if (!missingTags.isEmpty) {
+// insert the new tags
+tags.insert(missingTags.map(Tag(_)))
+// search for the tags that were newly inserted
+artistTags.insert(Tag.find(missingTags).map({
+  tag => ArtistTag(artist.id, tag.id)
+}))
 }
-      */
+
+
+}
+}
+*/
 
 
 

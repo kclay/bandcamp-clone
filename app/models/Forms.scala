@@ -135,7 +135,7 @@ object Forms {
 
   val tagsForm = Form {
     tuple(
-      "genre" -> number,
+      "genre" -> longNumber,
       "tags" -> optional(text),
       "location" -> optional(text)
     )

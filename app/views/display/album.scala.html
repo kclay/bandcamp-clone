@@ -86,6 +86,9 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
         <span>tags:</span> @album.tags.map(_.name).mkString(",")
     </div>
     }
+    <div class="genre">
+        <span>Genre:</span>@artist.genre.name
+    </div>
 </div>
 
 <div id="details-right" class="span5 pull-left">
