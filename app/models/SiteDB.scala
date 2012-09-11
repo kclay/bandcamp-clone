@@ -232,7 +232,8 @@ object SiteDB extends Schema {
   ))
   val artists = table[Artist]("artists")
   on(artists)(a => declare(
-    a.name is (named("artist_name"))
+    a.name is (named("artist_name")),
+    a.genreID is (named("genre_id"))
 
   ))
   val albums = table[Album]("albums")
