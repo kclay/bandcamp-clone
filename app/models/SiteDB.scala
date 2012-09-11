@@ -292,7 +292,7 @@ object SiteDB extends Schema {
     t.name is(indexed, named("tag_name"))
   ))
 
-  val genres = table[Genre]
+  val genres = table[Genre]("genre")
   on(genres)(g => declare(
     g.name is (named("genre_name"))
   )
