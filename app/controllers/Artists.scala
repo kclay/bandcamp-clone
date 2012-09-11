@@ -148,7 +148,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
 
           val (genre, tags, location) = value
           import models.Tag._
-          Artist.updateGenere(artist.id,genre)
+          Artist.updateGenre(artist.id,genre)
           tags.map(t => Tag.insert(artist.asInstanceOf[Artist], t.split(",").toList));
 
 
