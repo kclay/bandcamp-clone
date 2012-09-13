@@ -11,6 +11,7 @@ import scala.Some
 import views._
 import models.Download
 import scala.Some
+import com.codahale.jerkson.Json._
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,18 +28,31 @@ object Purchase extends Controller with SquerylTransaction {
       purchaseForm.bindFromRequest.fold(
         errors => BadRequest("error"),
         value => {
-          val (artistId, price) = value
-          (for {
-            item <- Album.bySlug(artistId, album)
-            sig <- withSig(artistId, price, item)
-            token <- withPaypal(sig, item, price, "http://bulabowl.com")
-            _ <- Transaction(sig, item, price, token)
-          } yield Ok(token)) getOrElse (BadRequest("no_token"))
+          val (artistID, price) = value
+
+          withToken(artistID, price) {
+            Album.bySlug(artistID, album)
+          }
+
 
         }
       )
 
 
+  }
+
+  private def withToken(artistID: Long, price: Double)(block: => Option[SaleAbleItem])(implicit request: RequestHeader) = {
+
+    def e(message: String) = BadRequest(generate(Map("error" -> message)))
+    block.map {
+      item => withSig(artistID, price, item).map {
+        sig: String => withPaypal(sig, item, price, "http://bulabowl.com") match {
+          case Left(error) => e(error.message)
+          case Right(token) => Transaction(sig, item, price, token.key)
+          Ok(generate(Map("token" -> token.key)))
+        }
+      }.getOrElse(e("Unable to checkout."))
+    }.getOrElse(e("Unable to find item."))
   }
 
   private def withSig(artistId: Long, price: Double, item: SaleAbleItem)(implicit request: RequestHeader) =
@@ -52,10 +66,11 @@ object Purchase extends Controller with SquerylTransaction {
     }
   }
 
-  private def withPaypal(sig: String, item: SaleAbleItem, price: Double, cancelURL: String)(implicit request: RequestHeader) = for {
-    a <- item.artist
-    token <- PayPal(a.email, item.itemTitle, price, routes.Purchase.callback(sig).absoluteURL(), cancelURL)
-  } yield token
+  private def withPaypal(sig: String, item: SaleAbleItem, price: Double, cancelURL: String)(implicit request: RequestHeader) = {
+
+    val artist = item.artist.get
+    PayPal(artist.email, item.itemTitle, price, routes.Purchase.callback(sig).absoluteURL(), cancelURL)
+  }
 
 
   def withCommit(details: Map[String, String]) = {
@@ -123,7 +138,7 @@ object Purchase extends Controller with SquerylTransaction {
           (for {
             ok <- PayPal ok details
             commit <- withCommit(details)
-            s<-Sale(trans)
+            s <- Sale(trans)
             _ <- withEmail(details, commit, token)
           } yield Ok("ok")
             ).getOrElse(Ok("error"))
@@ -136,13 +151,10 @@ object Purchase extends Controller with SquerylTransaction {
       purchaseForm.bindFromRequest.fold(
         errors => BadRequest("error"),
         value => {
-          val (artistId, price) = value
-          (for {
-            item <- Track.bySlug(artistId, track)
-            sig <- withSig(artistId, price, item)
-            token <- withPaypal(sig, item, price, "http://bulabown.com")
-            _ <- Transaction(sig, item, price, token)
-          } yield Ok(token)) getOrElse (BadRequest("error"))
+          val (artistID, price) = value
+          withToken(artistID, price) {
+            Track.bySlug(artistID, track)
+          }
 
         }
       )

@@ -31,6 +31,14 @@ case class Nvp() {
   }
 }
 
+case class PayPalError(message: String) {
+  override def toString = message
+}
+
+case class PayPalToken(key: String) {
+  override def toString = key
+}
+
 trait PayPalClient {
 
   import play.api.Play.current
@@ -44,18 +52,19 @@ trait PayPalClient {
   lazy val app = Play.application
   lazy val config = app.configuration
 
-  lazy val password = config.getString("paypal.password").get
-  lazy val username = config.getString("paypal.username").get
-  lazy val signature = config.getString("paypal.signature").get
+  lazy val password = config.getString("paypal." + env + ".password").get
+  lazy val username = config.getString("paypal." + env + ".username").get
+  lazy val signature = config.getString("paypal." + env + ".signature").get
   lazy val env = config.getString("paypal.env").get
   lazy val appID = config.getString("paypal." + env + ".app").get
-  lazy val timeout = java.lang.Long.parseLong(config.getString("paypal.timeout").get)
+  lazy val timeout = java.lang.Long.parseLong(config.getString("paypal." + env + ".timeout").get)
 
-  lazy val api = "https://api-3t.%s.paypal.com/nvp".format(env)
+
+  lazy val api = if (env == "sandbox") "https://api-3t.sandbox.paypal.com/nvp" else "https://api-3t.paypal.com/nvp"
 
   lazy val site = if (env == "sandbox") "https://www.sandbox.paypal.com/cgi-bin/webscr?" else "https://www.paypal.com/cgi-bin/webscr?"
 
-  def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD"): Option[String] = None
+  def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD"): Either[PayPalError, PayPalToken] = Left(PayPalError("uknown"))
 
   def ok(results: Map[String, String]) = results.get("ACK").map {
     a => if (a.equals("Success")) Some(true) else None
@@ -195,7 +204,7 @@ case class PaypalAdaptive() extends PayPalClient {
     a => if (a.equals("Success")) Some(true) else None
   }
 
-  override def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD"): Option[String] = {
+  override def checkoutWithEmail(email: String, title: String, amount: Double, returnURL: String, cancelURL: String, currencyCode: String = "USD"): Either[PayPalError, PayPalToken] = {
     val cut = (amount * percentage)
     val params = defaultParams
       .put("actionType", "CREATE")
@@ -216,20 +225,21 @@ case class PaypalAdaptive() extends PayPalClient {
     // .put("receiverList.receiver(1).paymentType", "DIGITALGOODS")
 
 
-    val results=call("Pay", params)
-    val payKey = results.get("payKey")
-    payKey.map {
+    val results = call("Pay", params)
+
+    val value = results.get("payKey").map {
       key =>
-      val r = call("SetPaymentOptions",
-        defaultParams.put("payKey", key)
-          .put("reciverOptions.description", title)
-          .put("reciverOptions.invoiceData.item(0).name", title)
-      )
+        val r = call("SetPaymentOptions",
+          defaultParams.put("payKey", key)
+            .put("reciverOptions.description", title)
+            .put("reciverOptions.invoiceData.item(0).name", title)
+        )
+        Right(PayPalToken(key))
 
 
-    }
+    }.getOrElse(Left(PayPalError(results.get("error(0).message").get)))
     Logger.debug(results.mkString("\n"))
-    payKey
+    value
 
 
   }
