@@ -175,8 +175,8 @@ case class PaypalAdaptive() extends PayPalClient {
   override val FIELD_TRANSACTIONID = "paymentInfoList.paymentInfo(0).transactionId"
   lazy val tld = if (env == "sandbox") "sandbox.paypal.com" else "paypal.com"
   override lazy val api = "https://svcs.%s/AdaptivePayments/".format(tld)
-  lazy val account = config.getString("paypal.account").get
-  lazy val percentage = java.lang.Double.parseDouble(config.getString("paypal.percentage").get)
+  lazy val account = config.getString("paypal." + env + ".account").get
+  lazy val percentage = java.lang.Double.parseDouble(config.getString("paypal." + env + ".percentage").get)
 
   override lazy val site = "https://www.%s/cgi-bin/webscr?cmd=_ap-payment&paykey=".format(tld)
   //override lazy val site = "https://www.%s/webapps/adaptivepayment/flow/pay?paykey=".format(tld)

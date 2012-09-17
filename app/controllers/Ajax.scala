@@ -48,6 +48,9 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
   }
 
   def insertAlbumTags(artist: Artist, albums: List[(String, List[String])]) = {
+    // data is in :
+    // [0] = Album
+    // [1-n] = tracks
 
     val album = albums(0)
     Album.bySlug(artist.id, album._1).map {
@@ -102,7 +105,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
       errors => BadRequest(errors.errorsAsJson),
       track => {
 
-        // select all slugs
+        // select all slugs for tracks for said artist
         val slugs = from(tracks)(t =>
           where(t.artistID === artist.id)
             select(t.slug, t.id)
@@ -316,6 +319,7 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         // this will allow us to only copy files that are being saved,
         // so if the user deletes a file before a save we don't worry about saving that one,
         // this will prevent any false overwritting of files
+        // TODO : create a job to clean up tmp directory
         val activeHashes = List(album.art.getOrElse("")) ++ allTracks.map(_.file.getOrElse("")) ++ allTracks.map(_.art.getOrElse(""))
 
         // go ahead and delete files that were not send over with this save
