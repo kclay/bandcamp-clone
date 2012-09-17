@@ -30,6 +30,10 @@ trait SaleAbleItem {
   def itemArtistName: Option[String]
 
   def artist = Artist.find(ownerID)
+
+  def url(host: String) = Option(host)
+    .map(h => if (h.startsWith("http://")) h else ("http://" + h))
+    .get + "/" + itemType + "/" + itemSlug
 }
 
 case class Album(var id: Long = 0, var artistID: Long, session: String, name: String, artistName: Option[String], var slug: String, var active: Boolean = false,
@@ -212,6 +216,7 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def smallArtURL = smallArtImage.map(_.url).getOrElse("")
 
   def itemArtistName: Option[String] = artistName
+
 
   @Transient
   lazy val tags = {

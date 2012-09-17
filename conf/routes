@@ -4,6 +4,8 @@
 
 GET     /stylesheets/*file               controllers.Assets.at(path="/public/stylesheets/", file)
 
+
+GET /api/fetch/:scene        controllers.Api.fetch(scene:GameScene,page:Int ?=1,amount:Int ?=20)
 # Home page
 GET     /                           controllers.Application.index
 POST    /forgot_password            controllers.Application.sendForgottenPassword

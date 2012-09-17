@@ -88,7 +88,7 @@ define(["underscore", "dropdown"], function () {
             Sales:fetch
 
         },
-        track:{},
+        track:{},  // will hold an tracking instance for each Event
         Reports:{
             Plays:"plays",
             Sales:"sales"
@@ -112,6 +112,7 @@ define(["underscore", "dropdown"], function () {
 
 
         },
+        fetch:{},// return fetch for Play and Sales stats
         RangeText:{
             Today:"today",
             Week:"7 Days",
@@ -153,7 +154,7 @@ define(["underscore", "dropdown"], function () {
                         tracked.previous[object] = true
                         // all metrics are in lowercase
                         var PreviousMetric = PreviousEvent.toLowerCase();
-                        Routes.Stats.track(PreviousMetric, object, 1).ajax({
+                        Routes.Stats.track(PreviousMetric, object, true).ajax({
 
                             error:function () {
                                 // if an error happens delete tracker
@@ -169,7 +170,7 @@ define(["underscore", "dropdown"], function () {
                 tracked.now[object] = true;
 
 
-                Routes.Stats.track(Metric, object, 0).ajax({
+                Routes.Stats.track(Metric, object, false).ajax({
                     error:function () {
                         delete tracked.now[object];
                     }

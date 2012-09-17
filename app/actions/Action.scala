@@ -19,14 +19,15 @@ import controllers.routes
 
 
 trait SquerylTransaction {
-  def TransAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
-    Action {
-      implicit request =>
-        inTransaction {
-          f(request)
-        }
-    }
+  def TransAction(f: Request[AnyContent] => Result) = Action {
+
+    implicit request =>
+
+      inTransaction {
+        f(request)
+      }
   }
+
 }
 
 trait Authorizer {

@@ -6,6 +6,9 @@ import play.api.mvc.QueryStringBindable
 import models._
 import scala.Left
 import scala.Right
+import scala.Left
+import scala.Right
+import scala.Some
 
 object `package` {
 
@@ -52,6 +55,7 @@ object `package` {
 
     } yield metric
   }
+
   /*
 
   implicit def purchaseMetricBinder(implicit metricBinder: PathBindable[Metric]) = new PathBindable[PurchaseMetric] {
@@ -100,6 +104,28 @@ object `package` {
       range <- withRange(m).toRight("Invalid Range").right
 
     } yield range
+  }
+
+  implicit def gameSceneBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[GameScene] {
+    def unbind(key: String, value: GameScene) = stringBinder.unbind(key, value.name)
+
+    def withScene(value: String) = {
+
+      value match {
+        case CoffeeShop(_) => Some(CoffeeShop)
+        case OldStationBar(_) => Some(OldStationBar)
+        case RhythmBoat(_) => Some(RhythmBoat)
+        case SpeckledGecko(_) => Some(SpeckledGecko)
+        case _ => None
+      }
+    }
+
+    def bind(key: String, value: String): Either[String, GameScene] = for {
+      m <- stringBinder.bind(key, value).right
+      range <- withScene(m).toRight("Invalid Range").right
+
+    } yield range
+
   }
 
 
