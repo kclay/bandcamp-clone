@@ -111,7 +111,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         purchase:function () {
             var user_price = parseFloat(this.$("#price").val())
             var price = this.options.price;
-            if (isNaN(price) || price && user_price < price) {
+            if (isNaN(user_price) || price && user_price < price) {
                 alert("Invalid Price");
                 return;
             }
