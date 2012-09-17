@@ -166,7 +166,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
             val artist = artists insert Artist(user.username, Artist.hash(user.password), user.email, user.name)
 
 
-            PromoCode.delete(user.code)
+            //PromoCode.delete(user.code)
 
 
 
