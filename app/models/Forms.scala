@@ -100,17 +100,18 @@ object Forms {
         models.Artist.byEmail(_).isEmpty
       }
       ),
-      "name" -> text(minLength = 4),
+      "name" -> text(minLength = 4)
+      /*,
       "code" -> text.verifying("Invalid Signup Code", {
         models.PromoCode.find(_).isDefined
       }
 
-      ),
+    )*/ ,
       "accept" -> checked("Please accept the terms and conditions")
     ) {
-      (username, password, email, name, code, _) => Signup(username, password, email, name, code)
+      (username, password, email, name, _) => Signup(username, password, email, name)
     } {
-      s => Some(s.username, s.password, s.email, s.name, s.code, false)
+      s => Some(s.username, s.password, s.email, s.name, false)
     } /*.verifying(
       "This username is not avilable",
       (s: Signup) =>! Seq("admin", "guest").contains(s.username) && Artists$.findByName(s.username).isEmpty
