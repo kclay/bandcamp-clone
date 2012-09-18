@@ -9,9 +9,11 @@ import services._
 import models.Forms.{purchaseForm, paypalCallbackForm}
 import scala.Some
 import views._
+import play.api.Logger
 import models.Download
 import scala.Some
 import com.codahale.jerkson.Json._
+import javax.mail.internet.InternetAddress
 
 /**
  * Created by IntelliJ IDEA.
@@ -82,6 +84,37 @@ object Purchase extends Controller with SquerylTransaction {
     } yield commit
   }
 
+  def resendEmail(token: String, email: String) = TransAction {
+    implicit request =>
+      composeEmail(token, "info@ihaveinternet.com")
+      Ok("sent")
+  }
+
+  private def composeEmail(token: String, email: String)(implicit request: RequestHeader) = {
+    Transaction.withArtistAndItem(token).map {
+      case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
+        import play.api.Play.current
+        import com.typesafe.plugin._
+        val download = new Download(token, item.signature, item.itemType)
+        val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.signedURL).body
+        val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
+        val mail = use[MailerPlugin].email
+
+        mail.setSubject("Your download from %s".format(artist.name))
+        mail.addRecipient("BulaBowl Customer <%s>".format(email))
+        mail.addFrom("%s <noreply@bulabowl.com>".format(artist.name))
+
+        //sends both text and html
+        try {
+          mail.send(textContent, htmlContent)
+        } catch {
+          case e: Exception => Logger.error("Error composing email", e)
+        }
+
+      case _ =>
+    }
+  }
+
   def withEmail(details: Map[String, String], commit: Map[String, String], token: String)(implicit request: RequestHeader) = {
 
     Transaction.commit(token,
@@ -91,29 +124,9 @@ object Purchase extends Controller with SquerylTransaction {
 
     var email = details.get(PayPal.FIELD_EMAIL).get
     if (email.contains("conceptual-ideas.com"))
-      email = "info@ihaveinternet.com";
+      email = "info@ihaveinternet.com"
 
-    Transaction.withArtistAndItem(token).map {
-      case (trans: Transaction, artist: Artist, item: SaleAbleItem) =>
-        import play.api.Play.current
-        import com.typesafe.plugin._
-        val download = new Download(token, item.signature, item.itemType)
-        val htmlContent = html.email.downloadHtml(artist.name, item.itemTitle, download.signedURL).body
-        val textContent = html.email.downloadText(artist.name, item.itemTitle, download.signedURL).body
-        val mail = use[MailerPlugin].email
-        mail.setSubject("Your download from %s".format(artist.name))
-        mail.addRecipient(email)
-        mail.addFrom("%s <noreply@%s>".format(artist.name, request.host))
-
-        //sends both text and html
-        try {
-          mail.send(textContent, htmlContent)
-        } catch {
-          case _ =>
-        }
-
-      case _ =>
-    }
+    composeEmail(token, email)(request)
   }
 
   def callback(sig: String) = TransAction {

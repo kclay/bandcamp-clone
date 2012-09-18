@@ -83,6 +83,7 @@ POST /purchase/album/:album                controllers.Purchase.album(album:Stri
 POST /purchase/track/:track         controllers.Purchase.track(track:String)
 GET /purchase/checkout/:token               controllers.Purchase.checkout(token:String)
 GET /purchase/finalize/:sig                     controllers.Purchase.callback(sig:String)
+GET /purchase/resend/:token                 controllers.Purchase.resendEmail(token:String,email:String)
 GET    /ajax/purchase/:sig               controllers.Purchase.ajaxCommit(sig:String)
 
 
