@@ -86,7 +86,7 @@ object Purchase extends Controller with SquerylTransaction {
 
   def resendEmail(token: String, email: String) = TransAction {
     implicit request =>
-      composeEmail(token, "info@ihaveinternet.com")
+      composeEmail(token, email)
       Ok("sent")
   }
 
