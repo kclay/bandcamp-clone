@@ -56,14 +56,14 @@ case class Download(token: String, item: String, kind: String, from: String = "e
 
 
         val normalizedArtist = normalize(artist.name, " ")
-        val normalizedAlbum = if (track.single) track.name
+        val normalizedAlbum = if (track.single) ""
         else AlbumTracks.withAlbum(track.id).map {
-          a => normalize(a.name, " ")
+          a => normalize(a.name, " ") + " - "
         }.getOrElse("")
         val file = audioStore.full(track.session, track.file.get)
 
         val uri = "/audio" + file.getAbsolutePath.replace(audioStore.store.getAbsolutePath, "").replace("\\", "/")
-        val name = "%s - %s - %s.mp3".format(normalizedArtist, normalizedAlbum, track.name)
+        val name = "%s - %s%s.mp3".format(normalizedArtist, normalizedAlbum, track.name)
         (uri, name, "application/octet-stream")
 
     }
