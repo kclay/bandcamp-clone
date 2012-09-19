@@ -53,9 +53,13 @@ case class Download(token: String, item: String, kind: String, from: String = "e
     val track = withItem.asInstanceOf[Track]
     Artist.find(track.artistID).map {
       artist =>
-        val album = AlbumTracks.withAlbum(track.id).get
+
+
         val normalizedArtist = normalize(artist.name, " ")
-        val normalizedAlbum = normalize(album.name, " ")
+        val normalizedAlbum = if (track.single) track.name
+        else AlbumTracks.withAlbum(track.id).map {
+          a => normalize(a.name, " ")
+        }.getOrElse("")
         val file = audioStore.full(track.session, track.file.get)
 
         val uri = "/audio" + file.getAbsolutePath.replace(audioStore.store.getAbsolutePath, "").replace("\\", "/")
