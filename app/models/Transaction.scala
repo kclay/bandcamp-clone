@@ -56,7 +56,7 @@ object Transaction {
       t =>
         val item = if (t.kind == PURCHASE_ALBUM)
           albums.where(a => a.id === t.itemID).head
-        else tracks.where(t => t.id === t.itemID).head
+        else tracks.where(tt => tt.id === t.itemID).head
 
         Some(item)
 
@@ -68,7 +68,7 @@ object Transaction {
       t =>
         val item = if (t.kind == PURCHASE_ALBUM)
           albums.where(a => a.id === t.itemID).head
-        else tracks.where(t => t.id === t.itemID).head
+        else tracks.where(tt => tt.id === t.itemID).head
 
         Some((t, artists.where(a => a.id === item.ownerID).head, item))
 
