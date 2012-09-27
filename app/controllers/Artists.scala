@@ -14,6 +14,14 @@ import actions._
 import actions.Actions._
 import utils.AudioDataStore
 
+import models.ProfileInfo
+import scala.Some
+import play.api.data.Form
+import play.api.data.Forms._
+import models.ProfileInfo
+import scala.Some
+import org.squeryl.PrimitiveTypeMode
+
 /**
  * Created by IntelliJ IDEA.
  * User: Keyston
@@ -148,7 +156,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
 
           val (genre, tags, location) = value
           import models.Tag._
-          Artist.updateGenre(artist.id,genre)
+          Artist.updateGenre(artist.id, genre)
           tags.map(t => Tag.insert(artist.asInstanceOf[Artist], t.split(",").toList));
 
 
@@ -178,6 +186,68 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       Ok(html.artist.pickDomain(domainForm.fill(defaultDomain)))
 
 
+  }
+
+
+  def profileForm(implicit artist: Artist) = Form(
+    mapping(
+
+      "username" -> text(minLength = 6)
+        .verifying("Invalid username", {
+        !Seq("admin", "guest").contains(_)
+      }).
+        verifying("This username is not available", {
+        username => username == artist.username || models.Artist.findByUsername(username).isEmpty
+      }),
+      "passwords" -> tuple(
+        "password" -> text,
+        "confirm_password" -> text
+      ).verifying(
+        // Add an additional constraint: both passwords must match
+        "Passwords don't match", passwords => passwords._1 == passwords._2
+      ),
+      "email" -> email.verifying("This email has already been registered", {
+        e => e == artist.email || models.Artist.byEmail(e).isEmpty
+      }),
+      "genre" -> longNumber,
+      "name" -> text(minLength = 1, maxLength = 100)
+
+    ) {
+
+      (username, password, email, genre, name) => ProfileInfo(username, password._1, email, genre, name)
+    } {
+      s => Some(s.username, (s.password, s.password), s.email, s.genre, s.name)
+    }
+  )
+
+  def updateProfile = Authorize {
+    implicit artist => implicit request =>
+      profileForm(artist).bindFromRequest.fold(
+        hasErrors => Ok(withProfile(artist)),
+        profile => {
+          import models.SiteDB._
+          import PrimitiveTypeMode._
+          update(artists)(
+            a => where(a.id === artist.id)
+              set(a.username := profile.username, a.email := profile.email,
+              a.genreID:= profile.genre, a.name := profile.name)
+
+          )
+          if (profile.password.nonEmpty) Artist.updatePassword(artist.id, profile.password)
+          Redirect(routes.Artists.displayProfile()).flashing("success" -> "Profile Infomation updated")
+        }
+
+      )
+  }
+
+  private def withProfile(artist: Artist)(implicit request: RequestHeader) = html.artist.profile(artist,
+    profileForm(artist).fill(ProfileInfo(artist.username, "", artist.email, artist.genreID, artist.name)),
+    Genre.allAsString
+  )
+
+  def displayProfile = Authorize {
+    implicit artist => implicit request =>
+      Ok(withProfile(artist))
   }
 
 }

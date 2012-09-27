@@ -53,10 +53,12 @@ object Artist {
     )
   }
 
-  def updateGenre(artistID: Long, genreID: Long) = update(artists)(
-    a => where(a.id === artistID)
-      set (a.genreID := genreID)
-  )
+  def updateGenre(artistID: Long, genreID: Long) = inTransaction {
+    update(artists)(
+      a => where(a.id === artistID)
+        set (a.genreID := genreID)
+    )
+  }
 
 
 }

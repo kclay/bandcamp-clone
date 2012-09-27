@@ -14,18 +14,7 @@ sealed abstract class GameScene {
   val name = ""
   val GENRES = Seq.empty[String]
 
-  def genres: Seq[Long] = {
-    import play.api.Play.current
-    Cache.getOrElse("genres_" + name) {
-      import models.SiteDB.{genres => _genres}
-      import org.squeryl.PrimitiveTypeMode._
 
-      from(_genres)(g =>
-        where(g.name in GENRES)
-          select (g.id)
-      ).toSeq
-    }
-  }
 
 
   def unapply(value: String) = if (value.equals(name)) Some(this) else None

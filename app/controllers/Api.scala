@@ -8,6 +8,7 @@ import org.squeryl.PrimitiveTypeMode._
 import models.GameScene
 import utils.Utils
 import com.codahale.jerkson.Json._
+import play.api.cache.Cache
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,11 +18,15 @@ import com.codahale.jerkson.Json._
  */
 object Api extends Controller with SquerylTransaction {
 
-  def fetch(scene: GameScene, page: Int, amount: Int) = TransAction {
+
+  def fetch(tags: String, page: Int, amount: Int) = TransAction {
     Action {
       val domain = Utils.domain
       val rs = join(tracks, artists)((t, a) =>
-        where(a.genreID in scene.genres)
+        where(a.genreID in from(genres)(
+          g => where(g.tag in tags.split(",").toSeq)
+            select (g.id)
+        ))
           select(t, a)
           on (t.artistID === a.id)
 

@@ -5,7 +5,7 @@
 GET     /stylesheets/*file               controllers.Assets.at(path="/public/stylesheets/", file)
 
 
-GET /api/fetch/:scene        controllers.Api.fetch(scene:GameScene,page:Int ?=1,amount:Int ?=20)
+GET /api/fetch        controllers.Api.fetch(tags:String,page:Int ?=1,amount:Int ?=20)
 # Home page
 GET     /                           controllers.Application.index
 POST    /forgot_password            controllers.Application.sendForgottenPassword
@@ -51,6 +51,9 @@ GET     /stats                      controllers.Artists.stats
 
 GET     /new_track                 controllers.Artists.newTrack()
 GET     /edit_track/:slug                 controllers.Artists.editTrack(slug:String)
+
+POST /update_profile                controllers.Artists.updateProfile
+GET /update_profile                 controllers.Artists.displayProfile
 
 POST    /ajax/albums                    controllers.Ajax.saveAlbum()
 POST    /ajax/publish                    controllers.Ajax.publish(kind:String,slug:String)

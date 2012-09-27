@@ -259,7 +259,7 @@ object Track {
 }
 
 
-case class Genre(name: String) extends KeyedEntity[Long] {
+case class Genre(name: String, tag: String) extends KeyedEntity[Long] {
   var id: Long = 0
 }
 
