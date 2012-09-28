@@ -323,8 +323,13 @@ object Ajax extends Controller with Auth with AuthConfigImpl with WithDB with Sq
         val activeHashes = List(album.art.getOrElse("")) ++ allTracks.map(_.file.getOrElse("")) ++ allTracks.map(_.art.getOrElse(""))
 
         // go ahead and delete files that were not send over with this save
+
+        val removedTracks = from(albumTracks)(at =>
+          where(at.trackID notIn currentTrackIds and at.albumID === album.id)
+            select (at.trackID)
+        )
         // TODO: maybe this should clean up on the delete files
-        tracks.deleteWhere(t => t.id notIn currentTrackIds and t.artistID === artist.id)
+        tracks.deleteWhere(t => t.id in removedTracks and t.artistID === artist.id)
 
 
 

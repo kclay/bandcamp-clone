@@ -5,7 +5,7 @@
 GET     /stylesheets/*file               controllers.Assets.at(path="/public/stylesheets/", file)
 
 
-GET /api/fetch        controllers.Api.fetch(tags:String,page:Int ?=1,amount:Int ?=20)
+GET /api/fetch        controllers.Api.fetch(tags:String,query:Option[String],page:Int ?=1,amount:Int ?=20)
 # Home page
 GET     /                           controllers.Application.index
 POST    /forgot_password            controllers.Application.sendForgottenPassword

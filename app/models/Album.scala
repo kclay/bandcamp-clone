@@ -10,6 +10,10 @@ import org.squeryl.annotations._
 import scala.Some
 import org.apache.commons.codec.digest.DigestUtils.shaHex
 import utils.Assets._
+import utils.Medium
+import scala.Some
+import utils.Default
+import utils.Small
 
 trait SaleAbleItem {
   def itemType: String
@@ -31,7 +35,7 @@ trait SaleAbleItem {
 
   def artist = Artist.find(ownerID)
 
-  def url(host: String) = Option(host)
+  def url(host: String): String = Option(host)
     .map(h => if (h.startsWith("http://")) h else ("http://" + h))
     .get + "/" + itemType + "/" + itemSlug
 }
@@ -173,7 +177,7 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   var single = false
 
-  def previewURL(host: String) = {
+  def previewURL(host: String): String = {
     file.map(audioStore.previewURL(host, session, _)).getOrElse("")
 
   }
@@ -269,7 +273,9 @@ object Genre {
 
   def allAsString: List[(String, String)] = inTransaction(from(genres)(g => select(g.id.toString, g.name)).toList)
 
-  def all: List[Genre] = from(genres)(g => select(g)).toList
+  def get = from(genres)(g => select(g))
+
+  def all: List[Genre] = get.toList
 }
 
 
