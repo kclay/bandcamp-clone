@@ -54,6 +54,7 @@ object Writes {
     def writes(a: Album) = toObj(Map(
       "kind" -> "album",
       "name" -> a.name,
+      "about" -> a.about.getOrElse(""),
 
       "link" -> a.url(Utils.domain),
       "image" -> a.artURL
@@ -70,6 +71,7 @@ object Writes {
         "genre" -> withGenre(artist.genreID),
         "kind" -> "artist",
         "name" -> artist.name,
+        "bio" -> artist.bio.getOrElse(""),
         "domain" -> artist.domain,
         "link" -> "http://%s.%s".format(artist.domain, Utils.domain)
       ))

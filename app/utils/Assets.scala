@@ -76,7 +76,9 @@ abstract class Image(_id: String, imageSize: ImageSize = Normal(), tempFile: Opt
   }
 
   def exists: Boolean = {
-    toFile().exists()
+    val f = toFile()
+    f.exists()
+
   }
 
   def getOrResize(size: ImageSize, recreate: Boolean = false): Image = {
@@ -278,6 +280,19 @@ object Image {
   }
 
 
+}
+
+
+case class DefaultCoverImage(_id: String = "no_cover", imageSize: ImageSize = Normal(), tempFile: Option[FilePart[TemporaryFile]] = None) extends Image(_id, imageSize, tempFile) {
+
+  override lazy val shard = false
+
+  override def uri: String = "/images/" + path
+  override def toFile(): File = new File(new File(store, "../../images/").getCanonicalFile, path)
+}
+
+object DefaultCoverImage {
+  def apply = new DefaultCoverImage("no_cover")
 }
 
 

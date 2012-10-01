@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Date
-import utils.{Small, Image, Default, Medium}
+import utils.{Small, Image, BaseImage, DefaultCoverImage, Default, Medium}
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import scala.math
@@ -47,16 +47,17 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
 
   def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), "", Some(""), "", false, true, true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)))
 
-  def artImage = art.map(a => Some(Image(a))).getOrElse(None)
+  def artImage = art.map(a => new BaseImage(a)).getOrElse(new DefaultCoverImage())
 
 
-  def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
+  def smallArtImage = artImage.getOrResize(Small())
 
-  def smallArtURL = smallArtImage.map(_.url).getOrElse("")
+  def smallArtURL = smallArtImage.url
 
-  def defaultArtImage = artImage.map(a => Some(a.getOrResize(Default()))).getOrElse(None)
+  def defaultArtImage = artImage.getOrResize(Default())
 
-  lazy val artURL: String = art.map(Image(_).getOrResize(Default()).url).getOrElse("")
+  @Transient
+  lazy val artURL: String = artImage.url
 
   def itemArtistName: Option[String] = artistName
 
@@ -80,12 +81,10 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
   }
 
   def rebuild() = {
-    artImage.map {
-      a =>
-        a.getOrResize(Default(), true)
-        a.getOrResize(Small(), true)
-        a.getOrResize(Medium(), true)
-    }
+    artImage.getOrResize(Default(), true)
+    artImage.getOrResize(Small(), true)
+    artImage.getOrResize(Medium(), true)
+
   }
 
 }
@@ -178,7 +177,6 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   var single = false
 
 
-
   def previewURL(host: String): String = {
     file.map(audioStore.previewURL(host, session, _)).getOrElse("")
 
@@ -187,12 +185,10 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def withTime = "%02d:%02d".format(math.floor(duration / 60).toInt, math.floor(duration % 60).toInt)
 
   def rebuild = {
-    artImage.map {
-      a =>
-        a.getOrResize(Default(), true)
-        a.getOrResize(Small(), true)
-        a.getOrResize(Medium(), true)
-    }
+    artImage.getOrResize(Default(), true)
+    artImage.getOrResize(Small(), true)
+    artImage.getOrResize(Medium(), true)
+
   }
 
   def toFile = file.map(audioStore.full(session, _)).getOrElse(None)
@@ -210,16 +206,17 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   def signature: String = file.get
 
-  lazy val artURL: String = art.map(Image(_).getOrResize(Default()).url).getOrElse("")
+  @Transient
+  lazy val artURL: String = artImage.url
 
 
-  def artImage = art.map(a => Some(Image(a))).getOrElse(None)
+  def artImage = art.map(a => new BaseImage(a)).getOrElse(new DefaultCoverImage())
 
-  def defaultArtImage = artImage.map(a => Some(a.getOrResize(Default()))).getOrElse(None)
+  def defaultArtImage = artImage.getOrResize(Default())
 
-  def smallArtImage = artImage.map(a => Some(a.getOrResize(Small()))).getOrElse(None)
+  def smallArtImage = artImage.getOrResize(Small()) //map(a => Some(a.getOrResize(Small()))).getOrElse(None)
 
-  def smallArtURL = smallArtImage.map(_.url).getOrElse("")
+  def smallArtURL = smallArtImage.url
 
   def itemArtistName: Option[String] = artistName
 
