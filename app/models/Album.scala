@@ -177,6 +177,8 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
   var single = false
 
+
+
   def previewURL(host: String): String = {
     file.map(audioStore.previewURL(host, session, _)).getOrElse("")
 

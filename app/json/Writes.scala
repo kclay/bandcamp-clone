@@ -80,10 +80,11 @@ object Writes {
       toObj(Map(
 
         "kind" -> "track",
-        "file" -> track.previewURL(Utils.domain),
+        "file" -> track.previewURL(Utils.mediaURL),
         "title" -> track.name,
+        "artistName" -> track.artistName.getOrElse(""),
         "duration" -> String.valueOf(track.duration),
-        "link" -> track.url(Utils.domain),
+
         "slug" -> track.slug,
         "image" -> track.artURL
       )

@@ -57,6 +57,7 @@ object Api extends Controller with SquerylTransaction {
           select (g.id)
       ) and (t.name like prepQuery(query)
         or (a.name like prepQuery(query))
+
         )
     )
 
@@ -102,14 +103,15 @@ object Api extends Controller with SquerylTransaction {
 
   def rate(slug: String) = WithArtist {
     artist => implicit request =>
-      withPoints.map {
+      val o = withPoints.map {
         wp => wp match {
           case Right(points) => withRate(artist.id, slug, points)
-          case _ =>
+          true
+          case _ => false
         }
-      }
+      }.getOrElse(false)
 
-      Ok
+      Ok(JsObject(Seq(("kind", JsString("rate")), ("ok", JsBoolean(o)))).toString)
 
 
   }
@@ -117,12 +119,11 @@ object Api extends Controller with SquerylTransaction {
   def artist(domain: String) = TransAction {
     Action {
       val o = Artist.findByDomain(domain).map {
-        a =>
+        a => toJson(Full(a)).toString
+      }.getOrElse("")
 
-          toJson(Full(a)).toString
-      }
 
-      Ok(o.getOrElse(""))
+      Ok(o)
     }
   }
 
