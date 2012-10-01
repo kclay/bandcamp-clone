@@ -5,7 +5,7 @@ import actions.SquerylTransaction
 import play.api.mvc._
 import models.SiteDB._
 import org.squeryl.PrimitiveTypeMode._
-import models.{Track, Artist, Genre, Album}
+import models._
 import utils.Utils
 
 
@@ -13,6 +13,10 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 import com.codahale.jerkson.Json._
 import play.api.cache.Cache
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
+import play.api.libs.json.JsObject
+import actions.Actions.WithArtist
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,97 +26,31 @@ import play.api.cache.Cache
  */
 object Api extends Controller with SquerylTransaction {
 
+  import json.Writes._
 
-  def withGenre(id: Long): String = {
-    import play.api.Play.current
-    Cache.getOrElse("api_avail_genre") {
-      Genre.get.map {
-        g => (g.id, g.tag)
-      }.toMap
-
-    }.getOrElse(id, "unknown")
-
-
-  }
-
-  implicit val maybeOlbumWriter: Writes[Option[Album]] = new Writes[Option[Album]] {
-    def writes(a: Option[Album]) = a.map(toJson(_)).getOrElse(JsString(""))
-  }
-  implicit val albumWriter: Writes[Album] = new Writes[Album] {
-    def writes(a: Album) = toJson(Map(
-      "kind" -> "album",
-      "name" -> a.name,
-
-      "link" -> a.url(Utils.domain),
-      "image" -> a.artURL
-    ))
-  }
-  implicit val artistWriter: Writes[Artist] = new Writes[Artist] {
-    def writes(artist: Artist): JsValue = {
-      toJson(Map(
-        "genre" -> withGenre(artist.genreID),
-        "kind" -> "artist",
-        "name" -> artist.name,
-        "link" -> "http://%s.%s".format(artist.domain, Utils.domain)
-      ))
-    }
-  }
-  implicit val trackWriter: Writes[Track] = new Writes[Track] {
-    def writes(track: Track): JsValue = {
-      toJson(Map(
-
-        "kind" -> "track",
-        "file" -> track.previewURL(Utils.domain),
-        "title" -> track.name,
-        "duration" -> String.valueOf(track.duration),
-        "link" -> track.url(Utils.domain),
-        "image" -> track.artURL
-      )
-
-
-      )
-
-    }
-  }
-  implicit val trackWithArtistAlbumWriter: Writes[(Track, Artist, Option[Album])] = new Writes[(Track, Artist, Option[Album])] {
-    def writes(o: (Track, Artist, Option[Album])): JsValue = {
-      val t = toJson(o._1).asInstanceOf[JsObject]
-
-      val a = toJson(Map("artist" -> o._2)).asInstanceOf[JsObject]
-      val ab = toJson(Map("album" -> o._3)).asInstanceOf[JsObject]
-      t ++ a ++ ab
-    }
-  }
-  implicit val trackWithArtistWriter: Writes[(Track, Artist)] = new Writes[(Track, Artist)] {
-    def writes(o: (Track, Artist)): JsValue = {
-      val t = toJson(o._1).asInstanceOf[JsObject]
-
-      val a = toJson(Map("artist" -> o._2)).asInstanceOf[JsObject]
-
-      t ++ a
-    }
-  }
 
   def writeResults(kind: String, results: JsArray) = JsObject(Seq(("kind", JsString(kind)), ("results", results))).toString
 
 
-  def withTags(tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists)((t, at, ab, a) =>
+  def withTags(tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
     where(a.genreID in from(genres)(
       g => where(g.tag in tags.split(",").toSeq)
         select (g.id)
     ))
-      select(t, a, ab)
+      select(t, a, ab, r)
       on(
       at.map(_.trackID) === t.id,
       at.map(_.albumID) === ab.map(_.id),
-      t.artistID === a.id
+
+      t.artistID === a.id,
+      r.map(_.trackID) === t.id
       )
 
   )
 
   def prepQuery(query: String) = "%" + query + "%"
 
-  def withQuery(query: String, tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists)((t, at, ab, a) =>
+  def withQuery(query: String, tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
     where(
       a.genreID in from(genres)(
         g => where(g.tag in tags.split(",").toSeq)
@@ -123,14 +61,70 @@ object Api extends Controller with SquerylTransaction {
     )
 
 
-      select(t, a, ab)
+      select(t, a, ab, r)
       on(
+
       at.map(_.trackID) === t.id,
       at.map(_.albumID) === ab.map(_.id),
-      t.artistID === a.id
+
+      t.artistID === a.id,
+      r.map(_.trackID) === t.id
       )
 
   )
+
+  def withPoints(implicit request: Request[AnyContent]): Option[Either[String, Double]] = {
+    request.body.asFormUrlEncoded.get("points").headOption.map {
+      i =>
+        try {
+          Right(java.lang.Double.parseDouble(i))
+        } catch {
+          case e: NumberFormatException => Left("Cannot parse parameter points as Double: " + e.getMessage)
+        }
+    }
+  }
+
+  def withRate(artistID: Long, slug: String, points: Double): Unit = Track.bySlug(artistID, slug).map {
+    t =>
+      try {
+        Rating(t.id, 1, points).save
+      } catch {
+        case e: RuntimeException =>
+          if (e.getMessage.contains("Duplicate")) {
+            update(ratings)(r =>
+              where(r.trackID === t.id)
+                set(r.votes := r.votes plus 1,
+                r.points := r.points plus points)
+            )
+          }
+      }
+  }
+
+  def rate(slug: String) = WithArtist {
+    artist => implicit request =>
+      withPoints.map {
+        wp => wp match {
+          case Right(points) => withRate(artist.id, slug, points)
+          case _ =>
+        }
+      }
+
+      Ok
+
+
+  }
+
+  def artist(domain: String) = TransAction {
+    Action {
+      val o = Artist.findByDomain(domain).map {
+        a =>
+
+          toJson(Full(a)).toString
+      }
+
+      Ok(o.getOrElse(""))
+    }
+  }
 
   def fetch(tags: String, query: Option[String], page: Int, amount: Int) = TransAction {
 

@@ -57,8 +57,10 @@ object Actions {
       implicit request =>
         request.host.split("\\.").headOption.map {
           domain =>
-            models.Artist.findByDomain(domain).map(f(_)(request))
-              .getOrElse(Results.Redirect("/signup?new_domain=%s".format(domain)))
+            inTransaction {
+              models.Artist.findByDomain(domain).map(f(_)(request))
+                .getOrElse(Results.Redirect("/signup?new_domain=%s".format(domain)))
+            }
 
         }.getOrElse(Results.NotFound)
 

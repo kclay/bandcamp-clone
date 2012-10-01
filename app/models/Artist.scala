@@ -63,7 +63,8 @@ object Artist {
 
 }
 
-case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false, genreID: Long = 0) extends KeyedEntity[Long] {
+case class Artist(username: String, pass: String, email: String, name: String, domain: String = "", permission: String = "normal", activated: Boolean = false, genreID: Long = 0,
+                  bio: Option[String] = Some("")) extends KeyedEntity[Long] {
   var id: Long = 0
 
   import models.SiteDB.genres

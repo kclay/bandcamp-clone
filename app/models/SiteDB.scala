@@ -328,6 +328,12 @@ object SiteDB extends Schema {
     r.createdAt is (named("created_at"))
   ))
   val codes = table[PromoCode]("promo_codes")
+  val ratings = table[Rating]("track_ratings")
+  on(ratings)(r => declare(
+    r.trackID is named("track_id")
+
+  )
+  )
 
 
 }

@@ -210,14 +210,17 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
         e => e == artist.email || models.Artist.byEmail(e).isEmpty
       }),
       "genre" -> longNumber,
-      "name" -> text(minLength = 1, maxLength = 100)
+      "name" -> text(minLength = 1, maxLength = 100),
+
+      "bio" -> text
 
     ) {
 
-      (username, password, email, genre, name) => ProfileInfo(username, password._1, email, genre, name)
+      (username, password, email, genre, name, bio) => ProfileInfo(username, password._1, email, genre, name, bio)
     } {
-      s => Some(s.username, (s.password, s.password), s.email, s.genre, s.name)
+      s => Some(s.username, (s.password, s.password), s.email, s.genre, s.name, s.bio)
     }
+
   )
 
   def updateProfile = Authorize {
@@ -225,12 +228,15 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       profileForm(artist).bindFromRequest.fold(
         hasErrors => Ok(withProfile(artist)),
         profile => {
+
           import models.SiteDB._
           import PrimitiveTypeMode._
+
           update(artists)(
             a => where(a.id === artist.id)
               set(a.username := profile.username, a.email := profile.email,
-              a.genreID:= profile.genre, a.name := profile.name)
+              a.genreID := profile.genre, a.name := profile.name,
+              a.bio := Some(profile.bio))
 
           )
           if (profile.password.nonEmpty) Artist.updatePassword(artist.id, profile.password)
@@ -241,7 +247,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   }
 
   private def withProfile(artist: Artist)(implicit request: RequestHeader) = html.artist.profile(artist,
-    profileForm(artist).fill(ProfileInfo(artist.username, "", artist.email, artist.genreID, artist.name)),
+    profileForm(artist).fill(ProfileInfo(artist.username, "", artist.email, artist.genreID, artist.name, artist.bio.getOrElse(""))),
     Genre.allAsString
   )
 

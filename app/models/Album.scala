@@ -279,3 +279,4 @@ object Genre {
 }
 
 
+case class Rating(trackID: Long, votes: Long, points: Double)

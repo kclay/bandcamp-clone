@@ -17,7 +17,7 @@ case class Signup(username: String, password: String, email: String, name: Strin
 
 case class AlbumModel(album: Album)
 
-case class ProfileInfo(username: String, password: String, email: String, genre: Long, name: String)
+case class ProfileInfo(username: String, password: String, email: String, genre: Long, name: String,bio:String)
 
 case class Download(token: String, item: String, kind: String, from: String = "email", sig: String = "") {
 

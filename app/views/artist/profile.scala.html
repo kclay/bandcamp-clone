@@ -3,52 +3,55 @@
 @import helper._
 @import helpers.twitterBootstrapCustom._
 @implicitField = @{
-    FieldConstructor(twitterBootstrapFieldConstructorCustom.f)
+FieldConstructor(twitterBootstrapFieldConstructorCustom.f)
 }
 
 
-@main(SessionHelper.username, "Profile") {
+@main(SessionHelper.username, "profile") {
 
 
-    <h2>Update your profile information</h2>
-    <h4 class="purple">
+<h2>Update your profile information</h2>
+<h4 class="purple">
     @flash.get("success")
-    </h4>
-    @helper.form(action = routes.Artists.updateProfile) {
-        <fieldset class="control-group">
-            @inputText(profile("name"), '_label -> "Artist Name", 'placeholder -> "artist name",
-                '_showConstraints -> false, 'maxlength -> "100")
-            @inputText(profile("username"), '_label -> "Username", 'placeholder -> "username",
-                '_showConstraints -> false, 'maxlength -> "45")
+</h4>
+@helper.form(action = routes.Artists.updateProfile) {
+<fieldset class="control-group">
+    @inputText(profile("name"), '_label -> "Artist Name", 'placeholder -> "artist name",
+    '_showConstraints -> false, 'maxlength -> "100")
+    @inputText(profile("username"), '_label -> "Username", 'placeholder -> "username",
+    '_showConstraints -> false, 'maxlength -> "45")
 
 
+    @select(profile("genre"), genres,
+    '_label -> "Genre",
+    '_default -> "select one",
+    '_showConstraints -> false)
+
+    @inputText(profile("email"), '_label -> "Paypal email ",
+    'placeholder -> "leave blank to keep the same email", '_showConstraints -> false)
+</fieldset>
+
+<fieldset class="control-group">
+    <h3>Change Password</h3>
+
+    @inputPassword(profile("passwords.password"), '_label -> "New Password", 'placeholder -> "new password",
+    '_showConstraints -> false, 'maxlength -> "45")
+
+    @inputPassword(profile("passwords.confirm_password"), '_label -> "Confirm password",
+    'placeholder -> "confirm password",
+    '_showConstraints -> false, 'maxlength -> "45", 'type -> "password")
+</fieldset>
+<fieldset class="control-group">
+    <h3>Bio</h3>
+    @textarea(field=profile("bio"),args = 'rows -> 20,'_showConstraints -> false,'_label->"")
+</fieldset>
+
+<div class="control-group">
+    <div class="controls">
+        <input type="submit" value="Update" class="btn btn-primary btn-large"/>
+    </div>
+</div>
 
 
-            @select(profile("genre"), genres,
-                '_label -> "Genre",
-                '_default -> "select one",
-                '_showConstraints -> false)
-
-            @inputText(profile("email"), '_label -> "Paypal email ",
-                'placeholder -> "leave blank to keep the same email", '_showConstraints -> false)
-        </fieldset>
-
-        <fieldset class="control-group">
-            <h3>Change Password</h3>
-
-            @inputPassword(profile("passwords.password"), '_label -> "New Password", 'placeholder -> "new password",
-                '_showConstraints -> false, 'maxlength -> "45")
-
-            @inputPassword(profile("passwords.confirm_password"), '_label -> "Confirm password", 'placeholder -> "confirm password",
-                '_showConstraints -> false, 'maxlength -> "45", 'type -> "password")
-        </fieldset>
-
-        <div class="control-group">
-            <div class="controls">
-            <input type="submit" value="Update" class="btn btn-primary btn-large"/>
-            </div>
-        </div>
-
-
-    }
+}
 }
