@@ -1,18 +1,19 @@
 package models
 
 import java.sql.Date
-import utils.DefaultCoverImage
+import utils._
 import org.squeryl.PrimitiveTypeMode._
 import scala.math
 import org.squeryl.KeyedEntity
 import org.squeryl.annotations._
 import org.apache.commons.codec.digest.DigestUtils.shaHex
 import utils.Assets._
+import scala.Some
 import utils.Medium
 import scala.Some
-import utils.BaseImage
-import utils.Default
-import utils.Small
+import utils.{BaseImage,Default,Small,Medium,Image}
+
+
 
 /**
  * Helper for pagination.
@@ -32,11 +33,15 @@ trait SaleAbleItem {
 
   def itemTitle: String
 
+  def artImage: Image
+
   def signature: String
 
   def itemSlug: String
 
   def smallArtURL: String
+
+  def mediumArtURL: String
 
   def itemArtistName: Option[String]
 
@@ -60,6 +65,8 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
   def smallArtImage = artImage.getOrResize(Small())
 
   def smallArtURL = smallArtImage.url
+
+  def mediumArtURL = artImage.getOrResize(Medium()).url
 
   def defaultArtImage = artImage.getOrResize(Default())
 
@@ -220,6 +227,8 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def artImage = art.map(a => new BaseImage(a)).getOrElse(new DefaultCoverImage())
 
   def defaultArtImage = artImage.getOrResize(Default())
+
+  def mediumArtURL = artImage.getOrResize(Medium()).url
 
   def smallArtImage = artImage.getOrResize(Small()) //map(a => Some(a.getOrResize(Small()))).getOrElse(None)
 

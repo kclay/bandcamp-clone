@@ -25,7 +25,7 @@ case class Normal() extends ImageSize(350, 350, "normal")
 
 case class Default() extends ImageSize(350, 350, "default")
 
-
+case class Discover() extends ImageSize(138,138, "discover")
 case class Medium() extends ImageSize(210, 210, "medium")
 
 case class Small() extends ImageSize(72, 72, "small")
