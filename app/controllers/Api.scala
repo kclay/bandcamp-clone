@@ -17,6 +17,7 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
 import actions.Actions.WithArtist
+import org.squeryl.dsl.ast.BinaryOperatorNodeLogicalBoolean
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,39 +30,24 @@ object Api extends Controller with SquerylTransaction {
   import json.Writes._
 
 
-  def writeResults(kind: String, results: JsArray) = JsObject(Seq(("kind", JsString(kind)), ("results", results))).toString
+  def withGenre(tags: Seq[String]) = from(genres)(g => where(g.tag in tags) select (g.id)).toSeq
 
-
-  def withTags(tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
-    where(a.genreID in from(genres)(
-      g => where(g.tag in tags.split(",").toSeq)
-        select (g.id)
-    ))
-      select(t, a, ab, r)
-      on(
-      at.map(_.trackID) === t.id,
-      at.map(_.albumID) === ab.map(_.id),
-
-      t.artistID === a.id,
-      r.map(_.trackID) === t.id
-      )
-
-  )
 
   def prepQuery(query: String) = "%" + query + "%"
 
-  def withQuery(query: String, tags: String) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
-    where(
-      a.genreID in from(genres)(
-        g => where(g.tag in tags.split(",").toSeq)
-          select (g.id)
-      ) and (t.name like prepQuery(query)
-        or (a.name like prepQuery(query))
-
-        )
-    )
+  def buildWhere(t: Track, a: Artist, query: Option[String], tags: Option[Seq[String]]) = {
+    val expr = Seq(
+      if (query.nonEmpty) Some((a.name like query.get) or (t.name like query.get)) else None,
+      if (tags.nonEmpty) Some(a.genreID in withGenre(tags.get)) else None
 
 
+    ).filter(_ != None).map(_.get)
+    if (expr.isEmpty) 1 === 1 else expr.reduceRight((ex1, ex2) => new BinaryOperatorNodeLogicalBoolean(ex1, ex2, "and"))
+  }
+
+  def find(query: Option[String], tags: Option[Seq[String]]) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
+
+    where(buildWhere(t, a, query, tags))
       select(t, a, ab, r)
       on(
 
@@ -73,6 +59,9 @@ object Api extends Controller with SquerylTransaction {
       )
 
   )
+
+
+  def writeResults(kind: String, results: JsArray) = JsObject(Seq(("kind", JsString(kind)), ("results", results))).toString
 
   def withPoints(implicit request: Request[AnyContent]): Option[Either[String, Double]] = {
     request.body.asFormUrlEncoded.get("points").headOption.map {
@@ -127,14 +116,16 @@ object Api extends Controller with SquerylTransaction {
     }
   }
 
-  def fetch(tags: String, query: Option[String], page: Int, amount: Int) = TransAction {
+  def fetch(tags: Option[String], term: Option[String], page: Int, amount: Int) = TransAction {
 
     Action {
 
 
-      val rs = query.map(withQuery(_, tags))
-        .getOrElse(withTags(tags))
+      val rs = find(term.map(prepQuery(_)), tags.map(_.split(",").toSeq))
         .page((page - 1) * amount, amount).map(toJson(_)).toSeq
+      /*val rs = query.map(withQuery(_, tags))
+        .getOrElse(withTags(tags))
+        ..map(toJson(_)).toSeq */
 
 
       Ok(writeResults("tracks", JsArray(rs)))
