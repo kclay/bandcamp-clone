@@ -121,7 +121,7 @@ object Api extends Controller with SquerylTransaction {
     Action {
 
 
-      val rs = find(term.map(prepQuery(_)), tags.map(_.split(",").toSeq))
+      val rs = find(term.filter(_.nonEmpty).map(prepQuery(_)), tags.filter(_.nonEmpty).map(_.split(",").toSeq))
         .page((page - 1) * amount, amount).map(toJson(_)).toSeq
       /*val rs = query.map(withQuery(_, tags))
         .getOrElse(withTags(tags))
