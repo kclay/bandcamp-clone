@@ -25,7 +25,7 @@ GET     /___promo___                controllers.Application.createCodes
 GET    /ajax/tags                   controllers.Ajax.tags(q:String)
 POST    /ajax/tags/save                  controllers.Ajax.saveTags()
 
-
+GET     /discover                                controllers.Browse.index(page:Int?=1,amount:Int?=30)
 GET     /ajax/stats/tracks/:range                      controllers.Stats.plays(range:Range)
 GET     /ajax/stats/sales/:range                      controllers.Stats.sales(range:Range)
 GET     /ajax/stats/:metric/:objectID/:remove    controllers.Stats.track(metric:Metric,objectID:Long,remove:Boolean)

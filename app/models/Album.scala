@@ -1,19 +1,26 @@
 package models
 
 import java.sql.Date
-import utils.{Small, Image, BaseImage, DefaultCoverImage, Default, Medium}
+import utils.DefaultCoverImage
 import org.squeryl.PrimitiveTypeMode._
-import scala.Some
 import scala.math
 import org.squeryl.KeyedEntity
 import org.squeryl.annotations._
-import scala.Some
 import org.apache.commons.codec.digest.DigestUtils.shaHex
 import utils.Assets._
 import utils.Medium
 import scala.Some
+import utils.BaseImage
 import utils.Default
 import utils.Small
+
+/**
+ * Helper for pagination.
+ */
+case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
+  lazy val prev = Option(page - 1).filter(_ >= 0)
+  lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
+}
 
 trait SaleAbleItem {
   def itemType: String
@@ -279,3 +286,167 @@ object Genre {
 
 
 case class Rating(trackID: Long, votes: Long, points: Double)
+
+
+abstract class ObjectTag(objectID: Long, tagID: Long)
+
+case class Tag(name: String) extends DBObject
+
+case class ArtistTag(artistID: Long, tagID: Long) extends ObjectTag(artistID, tagID)
+
+case class AlbumTag(albumID: Long, tagID: Long) extends ObjectTag(albumID, tagID)
+
+case class TrackTag(trackID: Long, tagID: Long) extends ObjectTag(trackID, tagID)
+
+trait TagCreator[T] {
+
+
+  def insert(item: T, foundTags: List[Tag])
+
+  def find(item: T): List[Tag]
+
+
+  def delete(item: T)
+
+
+}
+
+object Tag {
+
+  import SiteDB._
+
+  def byName(s: List[String]) = tags.where(t => t.name in s)
+
+  def search(query: String): List[Tag] = tags.where(t => t.name like "%" + query + "%").toList
+
+  def find(query: List[String]): List[Tag] = byName(query).toList
+
+
+  implicit val albumTagCreator = new TagCreator[Album] {
+
+    def insert(item: Album, foundTags: List[Tag]) = {
+      albumTags.insert(foundTags.map({
+        tag => AlbumTag(item.id, tag.id)
+      }))
+      // create
+    }
+
+    def delete(item: Album) = albumTags.deleteWhere(at => at.albumID === item.id)
+
+
+    def find(item: Album) = join(albumTags, tags)((a, t) =>
+      where(a.albumID === item.id)
+        select (t)
+        on (a.tagID === t.id)
+    ).toList
+  }
+  implicit val trackTagCreator = new TagCreator[Track] {
+
+
+    def insert(item: Track, foundTags: List[Tag]) = {
+      trackTags.insert(foundTags.map({
+        tag => TrackTag(item.id, tag.id)
+      }))
+      // create
+    }
+
+    def delete(item: Track) = trackTags.deleteWhere(tt => tt.trackID === item.id)
+
+    def find(item: Track) = {
+      join(trackTags, tags)((a, t) =>
+        where(a.trackID === item.id)
+          select (t)
+          on (a.tagID === t.id)
+      ).toList
+    }
+  }
+
+  implicit val artistTagCreator = new TagCreator[Artist] {
+
+
+    def insert(item: Artist, foundTags: List[Tag]) = {
+      artistTags.insert(foundTags.map({
+        tag => ArtistTag(item.id, tag.id)
+      }))
+      // create
+    }
+
+    def delete(item: Artist) = artistTags.deleteWhere(at => at.artistID === item.id)
+
+    def find(item: Artist) = {
+      join(artistTags, tags)((a, t) =>
+        where(a.artistID === item.id)
+          select (t)
+          on (a.tagID === t.id)
+      ).toList
+    }
+
+  }
+
+  def forItem[A](item: A)(implicit creator: TagCreator[A]): List[Tag] = creator.find(item)
+
+  def insert[A](item: A, ts: List[String], delete: Boolean = true)(implicit creator: TagCreator[A]): Unit = {
+
+    val filtered = ts.map(_.trim).filter(_.nonEmpty)
+    val foundTags = find(filtered)
+
+    // insert tags that are already in db
+    creator.delete(item)
+
+    creator.insert(item, foundTags)
+    val flattenTags = foundTags.map(_.name)
+    // find new tags that were not found in db
+    val missingTags = filtered.filter({
+      tag => !flattenTags.contains(tag)
+    })
+
+    if (!missingTags.isEmpty) {
+      // insert the new tags
+      tags.insert(missingTags.map(Tag(_)))
+      // search for the tags that were newly inserted
+      creator.insert(item, Tag.find(missingTags))
+
+    }
+
+
+  }
+
+}
+
+
+trait Browser[T] {
+
+}
+
+/*
+(filters: T => Seq[LogicalBoolean] = Nil) {
+
+type ItemType = T
+
+def withGenre (genres: Seq[String] ) = copy (filters = (a: T) :: filters)
+
+//def filter(f: LogicalBoolean): Browser[T] =
+val table: Table[SaleAbleItem]
+
+def buildWhere () = 1 === 1
+
+def get (page: Int, amount: Int): Query[(ItemType, Artist)] = {
+join (table, artists) ((i, a) =>
+where (buildWhere () )
+select (i, a)
+on (i.artistID === a.id)
+)
+}
+}
+
+
+case class AlbumBrowser(filters: Album => Seq[LogicalBoolean] = Nil) extends Browser[Album](filters) {
+  override val table: Table[SaleAbleItem] = albums
+}
+
+object Browser {
+
+
+}
+
+*/

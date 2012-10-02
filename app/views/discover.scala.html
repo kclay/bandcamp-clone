@@ -1,0 +1,63 @@
+@(currentPage:Page[(SaleAbleItem,Artist)])(implicit request: play.api.mvc.RequestHeader)
+@nav={
+@header()
+}
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage: Int) ={
+routes.Browse.index(newPage)
+
+}
+@common("Discover BulaBowl",nav,"inner"){
+
+<div id="inner-wrap" class="row content-wrap">
+
+    @Option(currentPage.items).filterNot(_.isEmpty).map { items=>
+
+    <div class="span10 row">
+        <h3>Check out a few of the artists powered by BulaBowl</h3>
+        <ul id="recent-items">
+
+
+            @items.map{ i=>
+            @item(i._2,i._1)
+
+
+            }
+
+
+        </ul>
+    </div>
+
+    <div id="pagination" class="pagination row span12">
+        <ul>
+            @currentPage.prev.map { page =>
+            <li class="prev">
+                <a href="@link(page)">&larr; Previous</a>
+            </li>
+            }.getOrElse {
+            <li class="prev disabled">
+                <a>&larr; Previous</a>
+            </li>
+            }
+            <li class="current">
+                <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + items.size) of
+                    @currentPage.total</a>
+            </li>
+            @currentPage.next.map { page =>
+            <li class="next">
+                <a href="@link(page)">Next &rarr;</a>
+            </li>
+            }.getOrElse {
+            <li class="next disabled">
+                <a>Next &rarr;</a>
+            </li>
+            }
+        </ul>
+    </div>
+
+    }
+
+</div>
+}

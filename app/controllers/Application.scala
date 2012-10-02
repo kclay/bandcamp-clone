@@ -88,6 +88,8 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
     }
   }
 
+
+
   private def hasSubdomain(implicit request: RequestHeader): Boolean = {
     val parts = request.host.split("\\.")
 
