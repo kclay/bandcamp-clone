@@ -1,4 +1,4 @@
-@(trackForm: Form[Track])(implicit  user:Artist,request: play.api.mvc.RequestHeader)
+@(trackForm: Form[Track],genres: List[(String, String)])(implicit  user:Artist,request: play.api.mvc.RequestHeader)
 @import helper._
 @import utils.session._
 
@@ -13,7 +13,7 @@
 
 <div class="right-panel span6">
     <div id="track" class="input-block track-block">
-        @artist.track(trackForm("track"))
+        @artist.track(trackForm("track"),genres)
     </div>
 </div>
 @artist.upload("Audio","add audio")

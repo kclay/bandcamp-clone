@@ -1,4 +1,4 @@
-@(albumForm: Form[(Album, Seq[Track])])(implicit  user:Artist,request: play.api.mvc.RequestHeader)
+@(albumForm: Form[(Album, Seq[Track])],genres: List[(String, String)])(implicit  user:Artist,request: play.api.mvc.RequestHeader)
 @import helper._
 @import utils.session._
 
@@ -28,7 +28,7 @@
 <script type="text/template" id="tpl-track">
 
     <div class="right-panel input-block">
-        @artist.track(albumForm("tracks"))
+        @artist.track(albumForm("tracks"),genres)
     </div>
     <div class="left-panel span6">
         <div class="track-overview album-info">

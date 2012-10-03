@@ -182,11 +182,12 @@ object AlbumTracks {
 }
 
 case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
-                 name: String, var slug: String, donateMore: Boolean = true, download: Boolean = true, price: Double = 1.00,
+                 name: String, var slug: String,  download: Boolean = true, price: Double = 1.00,
                  artistName: Option[String],
-                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date], active: Boolean = false, var duration: Int = 0)
+                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
+                 active: Boolean = false, var duration: Int = 0,genreID:Long=0)
   extends KeyedEntity[Long] with SaleAbleItem {
-  def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
+  def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "",  true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
   var single = false
 

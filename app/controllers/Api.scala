@@ -38,7 +38,7 @@ object Api extends Controller with SquerylTransaction {
   def buildWhere(t: Track, a: Artist, query: Option[String], tags: Option[Seq[String]]) = {
     val expr = Seq(
       if (query.nonEmpty) Some((a.name like query.get) or (t.name like query.get)) else None,
-      if (tags.nonEmpty) Some(a.genreID in withGenre(tags.get)) else None
+      if (tags.nonEmpty) Some(t.genreID in withGenre(tags.get)) else None
 
 
     ).filter(_ != None).map(_.get)

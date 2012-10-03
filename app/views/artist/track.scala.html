@@ -1,4 +1,4 @@
-@(track: Field,index:Int=0)(implicit  artist:Artist)
+@(track: Field,genres: List[(String, String)],index:Int=0)(implicit  artist:Artist)
 
 @import helper._
 
@@ -73,13 +73,15 @@
 
         '_help->"enter zero or more",'_showConstraints->false)
 
-        @checkbox(track("donateMore"),'_style->"checkbox",'class->"track-donate ",
-        '_label->"let fans pay more if they want",
-        '_showConstraints->false)
+
         <p>Payments will go to @artist.email</p>
     </fieldset>
     <fieldset class="control-group">
-        @*@textarea(track("about"),'_label->"about this track")*@
+        @select(track("genre"), genres,
+        '_label -> "Genre",
+        '_default -> "No Genre",
+        '_showConstraints -> false)
+        @textarea(track("about"),'_label->"about this track")
         @textarea(track("lyrics"),'_label->"lyrics")
         @textarea(track("credits"),'_label->"track credits")
         @inputText(track("artist"),

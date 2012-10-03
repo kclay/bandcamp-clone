@@ -29,6 +29,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     status:"",
                     order:0,
                     tags:"",
+                    genre_id:0,
 
                     session:app_config.session()
 
@@ -117,7 +118,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             artist:"[name='track.artist']",
             license:"[name='track.license']",
             releaseDate:"[name='track.releaseDate']",
-            tags:"[name='track.tags']"
+            tags:"[name='track.tags']",
+            genre_id:"[name='track.genre']"
 
         }
 
@@ -215,22 +217,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
 
                 input.parents("div.control-group")[error ? 'addClass' : 'removeClass']("error")
             },
-            /*
-             _onArtUploaded:function (info) {
-             if (info.error) {
-             new Common.FeedbackView({title:"Upload Error", message:info.error, error:true});
-             } else {
-             var wrapper = $("<div class='image'><img/><i class='close icon-remove'></i></div>").prependTo(this.$el.find(".track-art"));
-             wrapper.find("img").attr("src", info.url);
-             if (!this._artID) {
-             this._artID = info.id;
-             this.artUploadView.setPostParam("id", info.id)
-             }
-             this.model.set({art:info.id, artURL:info.url});
-             }
 
-
-             },       */
             removeArt:function () {
                 this.$(".image").remove();
                 this.model.set({art:"", artURL:""});

@@ -152,10 +152,9 @@ object Forms {
     "fileName" -> optional(text),
     "name" -> text(minLength = 1, maxLength = 50),
     "slug" -> slug,
-    "donateMore" -> boolean,
+
     "download" -> boolean,
     "price" -> of[Double],
-
     "artist" -> optional(text),
     "art" -> optional(text),
     "lyrics" -> optional(text),
@@ -163,7 +162,9 @@ object Forms {
     "credits" -> optional(text),
     "date" -> optional(sqlDate("MM-dd-yyyy")),
     "activate" -> boolean,
-    "duration" -> number
+    "duration" -> number,
+    "genre"->longNumber
+
   )(Track.apply)(Track.unapply)
 
 

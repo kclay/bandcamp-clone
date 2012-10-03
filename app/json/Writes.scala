@@ -27,7 +27,7 @@ object Writes {
         g => (g.id, g.tag)
       }.toMap
 
-    }.getOrElse(id, "unknown")
+    }.getOrElse(id, "no-genre")
 
 
   }
@@ -86,7 +86,7 @@ object Writes {
         "title" -> track.name,
         "artistName" -> track.artistName.getOrElse(""),
         "duration" -> String.valueOf(track.duration),
-
+        "genre" -> withGenre(track.genreID),
         "slug" -> track.slug,
         "image" -> track.artURL
       )
