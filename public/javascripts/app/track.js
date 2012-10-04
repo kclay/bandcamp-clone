@@ -18,7 +18,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     name:"",
                     download:true,
                     price:"1.00",
-                    donateMore:true,
+
                     about:"",
                     lyrics:"",
                     credits:"",
@@ -29,7 +29,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     status:"",
                     order:0,
                     tags:"",
-                    genre_id:0,
+                    genre:0,
 
                     session:app_config.session()
 
@@ -111,7 +111,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             name:"[name='track.name']",
             download:"[name='track.download']",
             price:"[name='track.price']",
-            donateMore:"[name='track.donateMore']",
+
             about:"[name='track.about']",
             lyrics:"[name='track.lyrics']",
             credits:"[name='track.credits']",
@@ -119,7 +119,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             license:"[name='track.license']",
             releaseDate:"[name='track.releaseDate']",
             tags:"[name='track.tags']",
-            genre_id:"[name='track.genre']"
+            genre:"[name='track.genre']"
 
         }
 

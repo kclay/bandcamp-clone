@@ -73,25 +73,16 @@ object Utils {
     play.api.Play.isDev
   }
 
-  def mediaURL = {
+  def serverURL(name:String)={
     import play.api.Play.current
     import play.api.Play
+    Play.configuration.getString("server."+name).get
 
-    Play.configuration.getString("server.media").get
   }
+  def mediaURL = serverURL("media")
 
-  def domain = {
-    import play.api.Play.current
-    import play.api.Play
-
-    Play.configuration.getString("server.domain").get
-  }
-
-  def uploadURL = {
-    import play.api.Play.current
-    import play.api.Play
-    Play.configuration.getString("server.upload").get
-  }
+  def domain = serverURL("domain")
+  def uploadURL =serverURL("upload")
 
   def withArtist(request: RequestHeader) = {
     for {

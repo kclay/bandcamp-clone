@@ -35,19 +35,23 @@ object Api extends Controller with SquerylTransaction {
 
   def prepQuery(query: String) = "%" + query + "%"
 
-  def buildWhere(t: Track, a: Artist, query: Option[String], tags: Option[Seq[String]]) = {
+  def buildWhere(t: Track, a: Artist, ts: Option[Tag], query: Option[String], genres: Option[Seq[String]]) = {
     val expr = Seq(
-      if (query.nonEmpty) Some((a.name like query.get) or (t.name like query.get)) else None,
-      if (tags.nonEmpty) Some(t.genreID in withGenre(tags.get)) else None
+      if (query.nonEmpty) Some((a.name like query.get)
+        or (t.name like query.get) or ((ts.get.name like query.get).inhibitWhen(ts == None)))
+      else None,
+
+      if (genres.nonEmpty) Some(t.genreID in withGenre(genres.get)) else None
 
 
     ).filter(_ != None).map(_.get)
     if (expr.isEmpty) 1 === 1 else expr.reduceRight((ex1, ex2) => new BinaryOperatorNodeLogicalBoolean(ex1, ex2, "and"))
   }
 
-  def find(query: Option[String], tags: Option[Seq[String]]) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists, ratings.leftOuter)((t, at, ab, a, r) =>
+  def find(query: Option[String], genres: Option[Seq[String]]) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists,
+    ratings.leftOuter, trackTags.leftOuter, tags.leftOuter)((t, at, ab, a, r, tt, ts) =>
 
-    where(buildWhere(t, a, query, tags))
+    where(buildWhere(t, a, ts, query, genres))
       select(t, a, ab, r)
       on(
 
@@ -55,7 +59,9 @@ object Api extends Controller with SquerylTransaction {
       at.map(_.albumID) === ab.map(_.id),
 
       t.artistID === a.id,
-      r.map(_.trackID) === t.id
+      r.map(_.trackID) === t.id,
+      tt.map(_.trackID) === t.id,
+      tt.map(_.tagID) === ts.map(_.id)
       )
 
   )
