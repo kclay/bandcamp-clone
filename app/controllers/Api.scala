@@ -17,7 +17,9 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
 import actions.Actions.WithArtist
-import org.squeryl.dsl.ast.BinaryOperatorNodeLogicalBoolean
+import org.squeryl.dsl.ast.{FunctionNode, BinaryOperatorNodeLogicalBoolean}
+import org.squeryl.dsl.StringExpression
+import org.squeryl.internals.{StatementWriter, OutMapper}
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,30 +31,41 @@ object Api extends Controller with SquerylTransaction {
 
   import json.Writes._
 
+  class GroupConcat(e: StringExpression[String], m: OutMapper[String])
+    extends FunctionNode[String]("group_concat", Some(m), Seq(e)) with StringExpression[String] {
+    override def doWrite(sw: StatementWriter) = {
+      sw.write(name)
+      sw.write("(")
+      sw.writeNodesWithSeparator(args, ",", false)
+      sw.write(" separator ',')")
+    }
+  }
 
   def withGenre(tags: Seq[String]) = from(genres)(g => where(g.tag in tags) select (g.id)).toSeq
 
 
   def prepQuery(query: String) = "%" + query + "%"
 
-  def buildWhere(t: Track, a: Artist, ts: Option[Tag], query: Option[String], genres: Option[Seq[String]]) = {
+  def buildWhere(t: TrackWithTags, a: Artist, query: Option[String], genres: Option[Seq[String]]) = {
     val expr = Seq(
       if (query.nonEmpty) Some((a.name like query.get)
-        or (t.name like query.get) or ((ts.get.name like query.get).inhibitWhen(ts == None)))
+        or (t.name like query.get) or (t.tags like query.get))
       else None,
 
-      if (genres.nonEmpty) Some(t.genreID in withGenre(genres.get)) else None
+      if (genres.nonEmpty) Some(t.genreID in withGenre(genres.get)) else None,
+      Some(t.active === true)
 
 
     ).filter(_ != None).map(_.get)
     if (expr.isEmpty) 1 === 1 else expr.reduceRight((ex1, ex2) => new BinaryOperatorNodeLogicalBoolean(ex1, ex2, "and"))
   }
 
-  def find(query: Option[String], genres: Option[Seq[String]]) = join(tracks, albumTracks.leftOuter, albums.leftOuter, artists,
-    ratings.leftOuter, trackTags.leftOuter, tags.leftOuter)((t, at, ab, a, r, tt, ts) =>
+  def find(query: Option[String], genres: Option[Seq[String]]) = join(tracksWithTags, albumTracks.leftOuter, albums.leftOuter, artists,
+    ratings.leftOuter, trackTags.leftOuter)((t, at, ab, a, r, tt) =>
 
-    where(buildWhere(t, a, ts, query, genres))
+    where(buildWhere(t, a, query, genres))
       select(t, a, ab, r)
+
       on(
 
       at.map(_.trackID) === t.id,
@@ -60,9 +73,10 @@ object Api extends Controller with SquerylTransaction {
 
       t.artistID === a.id,
       r.map(_.trackID) === t.id,
-      tt.map(_.trackID) === t.id,
-      tt.map(_.tagID) === ts.map(_.id)
+      tt.map(_.trackID) === t.id
+
       )
+
 
   )
 

@@ -11,8 +11,8 @@ import utils.Assets._
 import scala.Some
 import utils.Medium
 import scala.Some
-import utils.{BaseImage,Default,Small,Medium,Image}
-
+import utils.{BaseImage, Default, Small, Medium, Image}
+import play.api.cache.Cache
 
 
 /**
@@ -181,23 +181,38 @@ object AlbumTracks {
 
 }
 
-case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
-                 name: String, var slug: String,  download: Boolean = true, price: Double = 1.00,
-                 artistName: Option[String],
-                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
-                 active: Boolean = false, var duration: Int = 0,genreID:Long=0)
-  extends KeyedEntity[Long] with SaleAbleItem {
-  def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "",  true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
+trait BaseTrack extends KeyedEntity[Long] with SaleAbleItem {
 
-  var single = false
 
+  var artistID: Long
+  val session: String
+  val file: Option[String]
+  val fileName: Option[String]
+  val name: String
+  var slug: String
+  val download: Boolean = true
+  val price: Double = 1.00
+  val artistName: Option[String]
+  val art: Option[String]
+  val lyrics: Option[String]
+  val about: Option[String]
+  val credits: Option[String]
+  val releaseDate: Option[Date]
+  val active: Boolean = false
+
+  val genreID: Long = 0
+
+
+  def genre = Utils.genreByID(genreID)
 
   def previewURL(host: String): String = {
     file.map(audioStore.previewURL(host, session, _)).getOrElse("")
 
   }
 
-  def withTime = "%02d:%02d".format(math.floor(duration / 60).toInt, math.floor(duration % 60).toInt)
+  def trackDuration = 0
+
+  def withTime = "%02d:%02d".format(math.floor(trackDuration / 60).toInt, math.floor(trackDuration % 60).toInt)
 
   def rebuild = {
     artImage.getOrResize(Default(), true)
@@ -236,8 +251,16 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def smallArtURL = smallArtImage.url
 
   def itemArtistName: Option[String] = artistName
+}
 
+case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
+                name: String, var slug: String,   override val download: Boolean = true, override val price: Double = 1.00,
+                 artistName: Option[String],
+                 art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
+                 override val active: Boolean = false, var duration: Int = 0,    override val genreID: Long = 0) extends BaseTrack {
+  def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
+  var single = false
   @Transient
   lazy val tags = {
     import models.Tag.trackTagCreator
@@ -247,6 +270,19 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
 
 }
+
+
+case class TrackWithTags(var id: Long = 0, var artistID: Long, session: String,  file: Option[String],  fileName: Option[String],
+                         name: String,  var slug: String,    override val download: Boolean = true,    override val price: Double = 1.00,
+                         artistName: Option[String],
+                         art: Option[String],  lyrics: Option[String],  about: Option[String],  credits: Option[String], releaseDate: Option[Date],
+                         override val active: Boolean = false, var duration: Int = 0,    override val genreID: Long = 0) extends BaseTrack {
+  val tags: String = ""
+  var single = false
+
+  override def trackDuration = duration
+}
+
 
 object Track {
 

@@ -119,7 +119,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             license:"[name='track.license']",
             releaseDate:"[name='track.releaseDate']",
             tags:"[name='track.tags']",
-            genre:"[name='track.genre']"
+            genre:"[name='track.genre']",
+            genreID:"[name='track.genre']"
 
         }
 

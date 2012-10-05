@@ -75,9 +75,13 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
         <span>tags:</span> @track.tags.map(_.name).mkString(",")
     </div>
     }
+    @track.genre.map{ g=>
     <div class="genre">
-        <span>Genre:</span>@artist.genre.name
-    </div>
+            <span>Genre:</span>@g.name
+        </div>
+
+    }
+
 </div>
 
 <div id="details-right" class="span5 pull-left">

@@ -4,6 +4,7 @@ import models.{SaleAbleItem, Artist}
 import play.api.mvc.{Results, RequestHeader}
 import play.api.libs.Crypto
 import play.api.Logger
+import play.api.cache.Cache
 
 /**
  * Created by IntelliJ IDEA.
@@ -73,16 +74,18 @@ object Utils {
     play.api.Play.isDev
   }
 
-  def serverURL(name:String)={
+  def serverURL(name: String) = {
     import play.api.Play.current
     import play.api.Play
-    Play.configuration.getString("server."+name).get
+    Play.configuration.getString("server." + name).get
 
   }
+
   def mediaURL = serverURL("media")
 
   def domain = serverURL("domain")
-  def uploadURL =serverURL("upload")
+
+  def uploadURL = serverURL("upload")
 
   def withArtist(request: RequestHeader) = {
     for {
@@ -90,6 +93,17 @@ object Utils {
       artist <- models.Artist.findByDomain(domain)
     } yield artist
 
+  }
+
+  def genreByID(id: Long) = {
+    import play.api.Play.current
+    Cache.getOrElse("genre_by_id") {
+      import models.Genre
+      Genre.get.map {
+        g => (g.id, g)
+      }.toMap
+
+    }.get(id)
   }
 
   def mod(a: Int, b: Int) = a % b == 0

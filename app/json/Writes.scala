@@ -77,15 +77,15 @@ object Writes {
       ))
     }
   }
-  implicit val trackWriter: Writes[Track] = new Writes[Track] {
-    def writes(track: Track) = {
+  implicit val trackWriter: Writes[BaseTrack] = new Writes[BaseTrack] {
+    def writes(track: BaseTrack) = {
       toObj(Map(
 
         "kind" -> "track",
         "file" -> track.previewURL(Utils.mediaURL),
         "title" -> track.name,
         "artistName" -> track.artistName.getOrElse(""),
-        "duration" -> String.valueOf(track.duration),
+        "duration" -> String.valueOf(track.trackDuration),
         "genre" -> withGenre(track.genreID),
         "slug" -> track.slug,
         "image" -> track.artURL
@@ -96,8 +96,8 @@ object Writes {
 
     }
   }
-  implicit val trackWithArtistAlbumWriter: Writes[(Track, Artist, Option[Album], Option[Rating])] = new Writes[(Track, Artist, Option[Album], Option[Rating])] {
-    def writes(o: (Track, Artist, Option[Album], Option[Rating])): JsValue = {
+  implicit val trackWithArtistAlbumWriter: Writes[(BaseTrack, Artist, Option[Album], Option[Rating])] = new Writes[(BaseTrack, Artist, Option[Album], Option[Rating])] {
+    def writes(o: (BaseTrack, Artist, Option[Album], Option[Rating])): JsValue = {
       val t = toObj(o._1)
 
       val a = toObj(Map("artist" -> o._2))
@@ -106,8 +106,13 @@ object Writes {
       t ++ a ++ ab ++ r
     }
   }
-  implicit val trackWithArtistWriter: Writes[(Track, Artist)] = new Writes[(Track, Artist)] {
-    def writes(o: (Track, Artist)): JsValue = {
+
+  implicit def trackWithTacksWithAritstAlbumWriter: Writes[(TrackWithTags, Artist, Option[Album], Option[Rating])] = new Writes[(TrackWithTags, Artist, Option[Album], Option[Rating])] {
+    def writes(o: (TrackWithTags, Artist, Option[Album], Option[Rating])) = trackWithArtistAlbumWriter.writes(o)
+  }
+
+  implicit val trackWithArtistWriter: Writes[(BaseTrack, Artist)] = new Writes[(BaseTrack, Artist)] {
+    def writes(o: (BaseTrack, Artist)): JsValue = {
       val t = toObj(o._1)
 
       val a = toObj(Map("artist" -> o._2))

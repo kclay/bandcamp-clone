@@ -132,7 +132,19 @@ object SiteDB extends Schema {
     t.genreID is named("genre_id"),
     t.artistName is (dbType("varchar(45)")),
     t.art is (dbType("varchar(45)")),
-    /*t.about is (dbType("text")),*/
+    t.about is (dbType("text")),
+    t.credits is (dbType("text")),
+    t.lyrics is (dbType("text"))
+  ))
+  val tracksWithTags = table[TrackWithTags]("tracks_with_tags")
+  on(tracksWithTags)(t => declare(
+    t.name is (named("track_name")),
+    t.active is (indexed),
+    t.artistID is(indexed, named("artist_id")),
+    t.genreID is named("genre_id"),
+    t.artistName is (dbType("varchar(45)")),
+    t.art is (dbType("varchar(45)")),
+    t.about is (dbType("text")),
     t.credits is (dbType("text")),
     t.lyrics is (dbType("text"))
   ))
