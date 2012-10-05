@@ -61,7 +61,7 @@ object Api extends Controller with SquerylTransaction {
   }
 
   def find(query: Option[String], genres: Option[Seq[String]]) = join(tracksWithTags, albumTracks.leftOuter, albums.leftOuter, artists,
-    ratings.leftOuter, trackTags.leftOuter)((t, at, ab, a, r, tt) =>
+    ratings.leftOuter)((t, at, ab, a, r) =>
 
     where(buildWhere(t, a, query, genres))
       select(t, a, ab, r)
@@ -72,8 +72,8 @@ object Api extends Controller with SquerylTransaction {
       at.map(_.albumID) === ab.map(_.id),
 
       t.artistID === a.id,
-      r.map(_.trackID) === t.id,
-      tt.map(_.trackID) === t.id
+      r.map(_.trackID) === t.id
+
 
       )
 
