@@ -17,10 +17,10 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <!--<logger name="play" level="DEBUG">
+    <logger name="play" level="DEBUG">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
-    </logger> -->
+    </logger>
 
     <logger name="application" level="DEBUG">
         <appender-ref ref="STDOUT"/>

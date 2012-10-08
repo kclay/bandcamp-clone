@@ -318,6 +318,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         _track:function (play) {
 
             var item = this.currentItem();
+            if (!item)return;
             var percent = (this._position * 100) / Duration;
             if (play && percent < 10) {
                 Stats.track.Play(item.id, false);
@@ -331,6 +332,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         render:function (position) {
             position = this._position = typeof position == "undefined" ? this.$slider.slider("value") : position;
             var item = this.currentItem();
+            if (!item)return;
             this.$title.text(item.title)
             this.$time.text(this._format(position) + "/" + this._format(Duration));
 
