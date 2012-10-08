@@ -1,2 +1,2 @@
 # --- !Ups
-insert  into `genre`(`genre_name`,`id`,`tag`) values ('Swing',26,'swing');
+insert  into `genre`(`genre_name`,`tag`) values ('Swing','swing');
