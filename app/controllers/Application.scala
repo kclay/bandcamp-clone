@@ -76,11 +76,13 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
         if (hasSubdomain) {
           Redirect(routes.Artists.index())
         } else {
+         /*
           val albums = Album.list(1, 2)
           val needed = 4 - (albums.size)
 
           val tracks = if (needed > 0) Track.withSingleAndArtist(1, needed) else List()
-          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist)]]
+          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist)]]  */
+          val collection = Track.withArtistAnAlbum(1,4)
           Ok(html.index(collection))
         }
 

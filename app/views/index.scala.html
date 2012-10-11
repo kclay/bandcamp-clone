@@ -1,4 +1,4 @@
-@(items:Seq[(SaleAbleItem,Artist)])(implicit request: play.api.mvc.RequestHeader)
+@(items:Seq[(Track, Artist, Option[Album])])(implicit request: play.api.mvc.RequestHeader)
 @import utils.Utils.mediaURL
 @nav={
 @header()
@@ -36,8 +36,8 @@
     <div class="span8">
         <h3>Check out a few of the artists powered by BulaBowl</h3>
         <ul id="recent-items">
-            @for((trackOrAlbum,artist) <- items){
-            @item(artist,trackOrAlbum)
+            @for((track,artist,album) <- items){
+            @item(artist,track,album)
             }
         </ul>
     </div>

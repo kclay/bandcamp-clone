@@ -57,7 +57,7 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
 
     @album.map{a=>
     <h3>
-        <a href="/album/@a.slug">Buy the Full Digital Album</a>
+        <a href="/album/@a.slug">View Other Tracks from @a.name</a>
     </h3>
     }
     @section("Lyrics",track.lyrics)
@@ -87,10 +87,10 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
 
-        @if(!track.art.isEmpty){
-        <img src="@track.artURL"/>
+        @if(track.art.isDefined || album.isEmpty ){
+            <img src="@track.artURL"/>
         }else{
-        @album.map{a=><img src="@a.artURL"/>}
+            @album.map{a=><img src="@a.artURL"/>}
 
         }
     </div>

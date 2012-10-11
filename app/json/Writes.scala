@@ -71,7 +71,6 @@ object Writes {
         "genre" -> withGenre(artist.genreID),
         "kind" -> "artist",
         "name" -> artist.name,
-        "bio" -> artist.bio.getOrElse(""),
         "domain" -> artist.domain,
         "link" -> "http://%s.%s".format(artist.domain, Utils.domain)
       ))
@@ -88,7 +87,8 @@ object Writes {
         "duration" -> String.valueOf(track.trackDuration),
         "genre" -> withGenre(track.genreID),
         "slug" -> track.slug,
-        "image" -> track.artURL
+        "about" -> track.about.getOrElse(""),
+        "image" -> track.art.map(a => track.artURL).getOrElse("")
       )
 
 

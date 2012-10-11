@@ -1,4 +1,4 @@
-@(currentPage:Page[(SaleAbleItem,Artist)])(implicit request: play.api.mvc.RequestHeader)
+@(currentPage:Page[(Track, Artist, Option[Album])])(implicit request: play.api.mvc.RequestHeader)
 @nav={
 @header()
 }
@@ -21,7 +21,7 @@ routes.Browse.index(newPage)
 
 
             @items.map{ i=>
-            @item(i._2,i._1,"medium")
+            @item(i._2,i._1,i._3,"medium")
 
 
             }

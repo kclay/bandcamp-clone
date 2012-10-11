@@ -1,15 +1,11 @@
-@(artist:Artist,item:SaleAbleItem,imageFormat:String="small")(implicit request: play.api.mvc.RequestHeader)
+@(artist:Artist,item:Track,album:Option[Album],imageFormat:String="small")(implicit request: play.api.mvc.RequestHeader)
 @import utils.Discover
-@mediumImage={
-    @item.artImage.getOrResize(Discover()).url
-}
+
 <li class="display-item">
     @defining("http://"+artist.domain+"."+request.host){domain=>
         <a href="@domain/@(item.itemType)/@item.itemSlug">
-            @imageFormat match{
-                case "small" => {<img src="@item.smallArtURL"></a>}
-                case "medium" => {<img src="@mediumImage"></a>}
-            }
+            <img src="@item.image(imageFormat,album)">
+
 
         <h4><a href="@domain/@(item.itemType)/@item.itemSlug">@item.itemTitle</a></h4>
 

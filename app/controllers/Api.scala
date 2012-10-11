@@ -31,15 +31,6 @@ object Api extends Controller with SquerylTransaction {
 
   import json.Writes._
 
-  class GroupConcat(e: StringExpression[String], m: OutMapper[String])
-    extends FunctionNode[String]("group_concat", Some(m), Seq(e)) with StringExpression[String] {
-    override def doWrite(sw: StatementWriter) = {
-      sw.write(name)
-      sw.write("(")
-      sw.writeNodesWithSeparator(args, ",", false)
-      sw.write(" separator ',')")
-    }
-  }
 
   def withGenre(tags: Seq[String]) = from(genres)(g => where(g.tag in tags) select (g.id)).toSeq
 

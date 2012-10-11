@@ -23,6 +23,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
             var button = this.$el.find(options.replace ? ".remove" : ".upload-button").click(function () {
                 return false;
             });
+            if (app_config.replaceTrack) {
+                button.html("replace audio");
+            }
 
             button.html("<span class='trigger'>" + button.html() + "</span>");
 

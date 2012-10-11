@@ -175,6 +175,16 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 limit:"291MB",
                 types:"*.wav;*.aif;*.flac"
             }
+
+            var path = window.location.pathname.split("/");
+            var slug = _.last(path);
+            var fetch = !_.isEmpty(slug) &&
+                slug.indexOf("_album") == -1 && slug.indexOf("_track") == -1;
+
+            if (!options.album)
+                app_config.replaceTrack = fetch;
+
+
             this.trackUploadView = new Upload.View(
                 $.extend({}, this.uploadDefaults, {
                     el:"#track-upload",
@@ -186,23 +196,22 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
             this.trackUploadView.on("started", this._onUploadStarted, this)
                 .on("beforeStarted", this._onBeforeUploadStarted, this)
                 .on('uploaded', this._onUploaded, this);
-            if (options.album) {
-                this._initAlbum();
-
-            } else {
-                this._initTrack();
-            }
 
 
             this.$saveButton = this.$("#save-button").addClass("disabled");
 
+            if (options.album) {
+                this._initAlbum();
 
-            var path = window.location.pathname.split("/");
-            var slug = _.last(path)
-            if (!_.isEmpty(slug) &&
-                slug.indexOf("_album") == -1 && slug.indexOf("_track") == -1) {
+            } else {
+
+                this._initTrack();
+            }
+
+            if (fetch) {
                 var self = this;
                 this.is("reloading", true);
+
                 var album = this.options.album;
                 var model = album ? this.album : this.track;
                 var loading = new Common.LoadingView();
@@ -236,6 +245,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
 
         },
+
         _initAlbum:function () {
             this.album = new Album.Model()
                 .on("change", this._onAlbumChanged, this)

@@ -265,8 +265,15 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
                  override val genreID: Long = 0) extends BaseTrack {
   def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
+  override def trackDuration = duration
   var single = false
 
+
+  def image(kind: String, album: Option[Album]): String = kind match {
+    case "small" => if (art.isDefined || album.isEmpty) smallArtURL else album.get.smallArtURL
+    case "medium" => if (art.isDefined || album.isEmpty) artImage.getOrResize(Discover()).url else album.get.artImage.getOrResize(Discover()).url
+    case _ => image("small", album)
+  }
 
   @Transient
   lazy val tags = {
@@ -318,6 +325,16 @@ object Track {
       orderBy (if (orderAsc) t.id.asc else t.id.desc)
       on (t.artistID === a.id)
   ).take(amount).drop(page - 1 * amount).toList
+
+  def withArtistAnAlbum(page: Int = 1, amount: Int = 20, orderAsc: Boolean = false) =
+    join(tracks, artists, albumTracks.leftOuter, albums.leftOuter)((t, a, at, ab) =>
+      where(t.active === true)
+        select(t, a, ab)
+        orderBy (if (orderAsc) t.id.asc else t.id.desc)
+        on(t.artistID === a.id,
+        t.id === at.map(_.trackID),
+        at.map(_.albumID) === ab.map(_.id))
+    ).take(amount).drop(page - 1 * amount).toList
 
   def byFile(artistID: Long, file: String): Option[Track] = inTransaction(tracks.where(t => t.artistID === artistID and t.file === Some(file)).headOption)
 }

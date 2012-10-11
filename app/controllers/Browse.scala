@@ -20,9 +20,17 @@ import PrimitiveTypeMode._
 object Browse extends Controller with SquerylTransaction {
 
 
-  lazy val find = join(tracks, artists)((t, a) =>
-    select(t, a)
-      on (t.artistID === a.id)
+  /* lazy val find = join(tracks, artists)((t, a) =>
+ select(t, a)
+   on (t.artistID === a.id)
+)   */
+  lazy val find = join(tracks, artists, albumTracks.leftOuter, albums.leftOuter)((t, a, at, ab) =>
+    where(t.active === true)
+      select(t, a, ab)
+      orderBy (t.id.desc)
+      on(t.artistID === a.id,
+      t.id === at.map(_.trackID),
+      at.map(_.albumID) === ab.map(_.id))
   )
 
   def index(page: Int, amount: Int) = TransAction {
@@ -30,8 +38,8 @@ object Browse extends Controller with SquerylTransaction {
 
       val offset = (page - 1) * amount
       val items = find.page(offset, amount).toSeq
-
-      Ok(html.discover(models.Page(items, page - 1, offset, find.Count)))
+      val count = tracks.where(t => t.active === true).Count
+      Ok(html.discover(models.Page(items, page - 1, offset, count)))
 
   }
 

@@ -73,7 +73,6 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 if (this.isNew())t.id = 0
 
 
-
                 return t;
             },
 
@@ -191,11 +190,13 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 return this;
             },
             init:function () {
+
                 this.artUploadView = new Upload.View(
                     {   el:this.$(".track-art"),
                         uri:"/upload/art",
                         limit:"4MB",
                         types:"*.jpg;*.gif;*.png"
+
                     }
                 );
                 this.model.on("error", this._onAttributeError, this)

@@ -209,16 +209,15 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
       "email" -> email.verifying("This email has already been registered", {
         e => e == artist.email || models.Artist.byEmail(e).isEmpty
       }),
-      "genre" -> longNumber,
-      "name" -> text(minLength = 1, maxLength = 100),
 
-      "bio" -> text
+      "name" -> text(minLength = 1, maxLength = 100)
+
 
     ) {
 
-      (username, password, email, genre, name, bio) => ProfileInfo(username, password._1, email, genre, name, bio)
+      (username, password, email, name) => ProfileInfo(username, password._1, email,  name)
     } {
-      s => Some(s.username, (s.password, s.password), s.email, s.genre, s.name, s.bio)
+      s => Some(s.username, (s.password, s.password), s.email, s.name)
     }
 
   )
@@ -235,8 +234,8 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
           update(artists)(
             a => where(a.id === artist.id)
               set(a.username := profile.username, a.email := profile.email,
-              a.genreID := profile.genre, a.name := profile.name,
-              a.bio := Some(profile.bio))
+               a.name := profile.name
+             )
 
           )
           if (profile.password.nonEmpty) Artist.updatePassword(artist.id, profile.password)
@@ -247,7 +246,7 @@ object Artists extends Controller with Auth with AuthConfigImpl with WithDB with
   }
 
   private def withProfile(artist: Artist)(implicit request: RequestHeader) = html.artist.profile(artist,
-    profileForm(artist).fill(ProfileInfo(artist.username, "", artist.email, artist.genreID, artist.name, artist.bio.getOrElse(""))),
+    profileForm(artist).fill(ProfileInfo(artist.username, "", artist.email,  artist.name)),
     Genre.allAsString
   )
 
