@@ -71,6 +71,10 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 var t = _.clone(this.attributes);
 
                 if (this.isNew())t.id = 0
+                var genre = this.get("genre") ? this.get("genre") : this.get("genreID");
+                t.genre = t.genreID = genre;
+
+
                 return t;
             },
 
