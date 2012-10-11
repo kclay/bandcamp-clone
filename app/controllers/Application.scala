@@ -17,6 +17,9 @@ import play.api.Play.current
 import java.io.File
 import models._
 import play.api.Play
+import org.squeryl.PrimitiveTypeMode._
+import scala.Some
+import scala.Some
 
 
 object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
@@ -77,11 +80,19 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
           Redirect(routes.Artists.index())
         } else {
 
-          val albums = Album.list(1, 2).map(a=>(a._1,a._2,Some(a._1)) )
-          val needed = 4 - (albums.size)
+          val albums0 = Album.list(1, 2).map(a=>(a._1,a._2,Some(a._1)) )
+          val needed = 4 - (albums0.size)
 
-          val tracks = if (needed > 0) Track.withArtistAnAlbum(1, needed) else List()
-          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist,Option[Album])]]
+          val tracks0 = join(tracks, artists, albumTracks.leftOuter, albums.leftOuter)((t, a, at, ab) =>
+            where(t.active === true and (at.get.albumID notIn albums0.map(a=>a._1.id)))
+              select(t, a, ab)
+              orderBy (t.id.desc)
+              on(t.artistID === a.id,
+              t.id === at.map(_.trackID),
+              at.map(_.albumID) === ab.map(_.id))
+          ).take(needed).toList
+
+          val collection = (albums0 ++ tracks0).asInstanceOf[Seq[(SaleAbleItem, Artist,Option[Album])]]
 
           Ok(html.index(collection))
         }
