@@ -161,7 +161,7 @@ object Forms {
     "about" -> optional(text),
     "credits" -> optional(text),
     "date" -> optional(sqlDate("MM-dd-yyyy")),
-    "activate" -> boolean,
+    "active" -> boolean,
     "duration" -> number,
     "genre"->longNumber
 
