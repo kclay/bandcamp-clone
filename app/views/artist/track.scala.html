@@ -125,7 +125,7 @@
         }
     </fieldset>
     @input(track("active"),'_label->""){(id, name, value, args) =>
-        <input type="hidden" name="@name" id="@id" @toHtmlArgs(args)/>
+        <input type="hidden" value="@value" name="@name" id="@id" @toHtmlArgs(args)/>
     }
 
     <fieldset>

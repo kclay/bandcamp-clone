@@ -112,7 +112,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             name:"[name='track.name']",
             download:"[name='track.download']",
             price:"[name='track.price']",
-            active:"[name='track.active]",
+            active:"[name='track.active']",
             about:"[name='track.about']",
             lyrics:"[name='track.lyrics']",
             credits:"[name='track.credits']",
