@@ -30,7 +30,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     status:"",
                     order:0,
                     tags:"",
-                    genre:0,
+
 
                     session:app_config.session()
 
@@ -71,8 +71,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 var t = _.clone(this.attributes);
 
                 if (this.isNew())t.id = 0
-                var genre = this.get("genre") ? this.get("genre") : this.get("genreID");
-                t.genre = t.genreID = genre;
+
 
 
                 return t;
@@ -124,8 +123,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             license:"[name='track.license']",
             releaseDate:"[name='track.releaseDate']",
             tags:"[name='track.tags']",
-            genre:"[name='track.genre']",
-            genreID:"[name='track.genre']"
+            genre:"[name='track.genre']"
+
 
         }
 

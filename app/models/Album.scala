@@ -13,6 +13,7 @@ import utils.Medium
 import scala.Some
 import utils.{BaseImage, Default, Small, Medium, Image}
 import play.api.cache.Cache
+import org.codehaus.jackson.annotate.JsonProperty
 
 
 /**
@@ -255,9 +256,12 @@ trait BaseTrack extends KeyedEntity[Long] with SaleAbleItem {
 
 case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
                 name: String, var slug: String,   override val download: Boolean = true, override val price: Double = 1.00,
+                 @JsonProperty("artist")
                  artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
-                 override val active: Boolean = false, var duration: Int = 0,    override val genreID: Long = 0) extends BaseTrack {
+                 override val active: Boolean = false, var duration: Int = 0,
+                 @JsonProperty("genre")
+                 override val genreID: Long = 0) extends BaseTrack {
   def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
   var single = false
@@ -276,6 +280,7 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 
 case class TrackWithTags(var id: Long = 0, var artistID: Long, session: String,  file: Option[String],  fileName: Option[String],
                          name: String,  var slug: String,    override val download: Boolean = true,    override val price: Double = 1.00,
+
                          artistName: Option[String],
                          art: Option[String],  lyrics: Option[String],  about: Option[String],  credits: Option[String], releaseDate: Option[Date],
                          override val active: Boolean = false, var duration: Int = 0,    override val genreID: Long = 0) extends BaseTrack {

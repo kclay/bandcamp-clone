@@ -124,7 +124,7 @@
         <input type="hidden" name="session" value="@value"/>
         }
     </fieldset>
-    @input(track("active"),'_label->""){(id, name, value, args) =>
+    @input(track("active"),'_label->"",'_showConstraints -> false){(id, name, value, args) =>
         <input type="hidden" value="@value" name="@name" id="@id" @toHtmlArgs(args)/>
     }
 
