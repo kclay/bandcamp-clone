@@ -155,7 +155,7 @@ object Forms {
 
     "download" -> boolean,
     "price" -> of[Double],
-    "artist" -> optional(text),
+    "artistName" -> optional(text),
     "art" -> optional(text),
     "lyrics" -> optional(text),
     "about" -> optional(text),
@@ -163,7 +163,7 @@ object Forms {
     "date" -> optional(sqlDate("MM-dd-yyyy")),
     "active" -> boolean,
     "duration" -> number,
-    "genre"->longNumber
+    "genreID"->longNumber
 
   )(Track.apply)(Track.unapply)
 
@@ -175,7 +175,7 @@ object Forms {
         "artist_id" -> artist,
         "session" -> text,
         "name" -> text(minLength = 1, maxLength = 50),
-        "artist" -> optional(text),
+        "artistName" -> optional(text),
         "slug" -> slug,
         "active" -> boolean,
         "download" -> boolean,

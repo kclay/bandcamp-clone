@@ -77,14 +77,14 @@
         <p>Payments will go to @artist.email</p>
     </fieldset>
     <fieldset class="control-group">
-        @select(track("genre"), genres,
+        @select(track("genreID"), genres,
         '_label -> "Genre",
         '_default -> "No Genre",
         '_showConstraints -> false)
         @textarea(track("about"),'_label->"about this track")
         @textarea(track("lyrics"),'_label->"lyrics")
         @textarea(track("credits"),'_label->"track credits")
-        @inputText(track("artist"),
+        @inputText(track("artistName"),
         '_label->"Track artist",'maxlength->"45",
 
         'placeholder->"leave blank to use band name",

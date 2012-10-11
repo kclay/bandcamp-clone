@@ -193,7 +193,8 @@ trait BaseTrack extends KeyedEntity[Long] with SaleAbleItem {
   var slug: String
   val download: Boolean = true
   val price: Double = 1.00
-  val artistName: Option[String]
+
+  @JsonProperty("artist") val artistName: Option[String]
   val art: Option[String]
   val lyrics: Option[String]
   val about: Option[String]
@@ -255,9 +256,9 @@ trait BaseTrack extends KeyedEntity[Long] with SaleAbleItem {
 }
 
 case class Track(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
-                name: String, var slug: String,   override val download: Boolean = true, override val price: Double = 1.00,
+                 name: String, var slug: String, override val download: Boolean = true, override val price: Double = 1.00,
                  @JsonProperty("artist")
-                 artistName: Option[String],
+                 val artistName: Option[String],
                  art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
                  override val active: Boolean = false, var duration: Int = 0,
                  @JsonProperty("genre")
@@ -278,12 +279,12 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
 }
 
 
-case class TrackWithTags(var id: Long = 0, var artistID: Long, session: String,  file: Option[String],  fileName: Option[String],
-                         name: String,  var slug: String,    override val download: Boolean = true,    override val price: Double = 1.00,
+case class TrackWithTags(var id: Long = 0, var artistID: Long, session: String, file: Option[String], fileName: Option[String],
+                         name: String, var slug: String, override val download: Boolean = true, override val price: Double = 1.00,
 
                          artistName: Option[String],
-                         art: Option[String],  lyrics: Option[String],  about: Option[String],  credits: Option[String], releaseDate: Option[Date],
-                         override val active: Boolean = false, var duration: Int = 0,    override val genreID: Long = 0) extends BaseTrack {
+                         art: Option[String], lyrics: Option[String], about: Option[String], credits: Option[String], releaseDate: Option[Date],
+                         override val active: Boolean = false, var duration: Int = 0, override val genreID: Long = 0) extends BaseTrack {
   val tags: String = ""
   var single = false
 

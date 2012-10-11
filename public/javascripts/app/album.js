@@ -29,7 +29,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
                 about:"",
 
                 credits:"",
-                artist:"",
+                artistName:"",
                 art:"",
                 artURL:"",
                 releaseDate:"",
@@ -133,7 +133,7 @@ define(["binder", "backbone", "app/upload", "app/common", "app/track"], function
             about:"[name='album.about']",
 
             credits:"[name='album.credits']",
-            artist:"[name='album.artist']",
+            artistName:"[name='album.artistName']",
             releaseDate:"[name='album.releaseDate']",
             tags:"[name='album.tags']"
 

@@ -23,7 +23,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     about:"",
                     lyrics:"",
                     credits:"",
-                    artist:"",
+                    artistName:"",
                     art:"",
                     artURL:"",
                     license:"all_rights",
@@ -119,11 +119,11 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             about:"[name='track.about']",
             lyrics:"[name='track.lyrics']",
             credits:"[name='track.credits']",
-            artist:"[name='track.artist']",
+            artistName:"[name='track.artistName']",
             license:"[name='track.license']",
             releaseDate:"[name='track.releaseDate']",
             tags:"[name='track.tags']",
-            genre:"[name='track.genre']"
+            genreID:"[name='track.genreID']"
 
 
         }
