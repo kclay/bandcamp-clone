@@ -47,7 +47,7 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
         <a href="#" class="download">Digital Track</a>
     </h3>
 
-    <p>Immediate download of Do It All in your choice of MP3 320.</p>
+    <p>Immediate download of "@track.name" in your choice of MP3 320.</p>
 
     <p>
         <a href="/track/@(track.slug)/?action=download" class="download"><h3 class="inline">Buy Now</h3></a>
@@ -87,7 +87,7 @@ pl.push({'kind':"track",'id':@track.id,'slug':'@track.slug','artist_id':@track.a
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
 
-        @if(!track.artURL.isEmpty){
+        @if(!track.art.isEmpty){
         <img src="@track.artURL"/>
         }else{
         @album.map{a=><img src="@a.artURL"/>}

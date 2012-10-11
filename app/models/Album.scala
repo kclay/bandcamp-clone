@@ -261,6 +261,8 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), Some(""), Some(""), "", "", true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)), false, 0)
 
   var single = false
+
+
   @Transient
   lazy val tags = {
     import models.Tag.trackTagCreator
