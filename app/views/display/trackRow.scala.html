@@ -11,17 +11,22 @@
         <div>
             <a href="/track/@track.slug">info</a>
         </div>
-        @if(track.lyrics.isDefined){
-            <div>
-                <a href="/track/@(track.slug)#lyrics">lyrics</a>
-            </div>
-        }
+
+
+
 
     </td>
+    @if(track.lyrics.isDefined){
+    <td class="track-info-column">
+        <div>
+            <a href="/track/@(track.slug)#lyrics">lyrics</a>
+        </div>
+     </td>
+    }
     @if(track.download){
     <td class="track-download-column">
         <div>
-            <a href="/track/@(track.slug)?action=download">download</a>
+            <a href="/track/@(track.slug)?action=download">buy-track</a>
         </div>
     </td>
     }
