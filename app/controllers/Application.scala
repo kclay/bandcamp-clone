@@ -84,7 +84,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
           val needed = 4 - (albums0.size)
 
           val tracks0 = join(tracks, artists, albumTracks.leftOuter, albums.leftOuter)((t, a, at, ab) =>
-            where(t.active === true and (at.get.albumID notIn albums0.map(a=>a._1.id)))
+            where(t.active === true and ((at.get.albumID notIn albums0.map(a=>a._1.id)) or (at.get.albumID isNull)))
               select(t, a, ab)
               orderBy (t.id.desc)
               on(t.artistID === a.id,
