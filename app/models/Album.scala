@@ -47,10 +47,17 @@ trait SaleAbleItem {
   def itemArtistName: Option[String]
 
   def artist = Artist.find(ownerID)
-
+  def rawImage:Option[String]
   def url(host: String): String = Option(host)
     .map(h => if (h.startsWith("http://")) h else ("http://" + h))
     .get + "/" + itemType + "/" + itemSlug
+
+  def image(kind: String, album: Option[Album]): String = kind match {
+    case "small" => if (rawImage.isDefined || album.isEmpty) smallArtURL else album.get.smallArtURL
+    case "medium" => if (rawImage.isDefined || album.isEmpty) artImage.getOrResize(Discover()).url else album.get.artImage.getOrResize(Discover()).url
+    case _ => image("small", album)
+  }
+
 }
 
 case class Album(var id: Long = 0, var artistID: Long, session: String, name: String, artistName: Option[String], var slug: String, var active: Boolean = false,
@@ -60,6 +67,7 @@ case class Album(var id: Long = 0, var artistID: Long, session: String, name: St
 
   def this() = this(0, 0, shaHex(String.valueOf(System.nanoTime())), "", Some(""), "", false, true, true, 1.00, Some(""), Some(""), Some(""), Some(""), Some(new Date(System.currentTimeMillis)))
 
+  def rawImage=art
   def artImage = art.map(a => new BaseImage(a)).getOrElse(new DefaultCoverImage())
 
 
@@ -235,7 +243,7 @@ trait BaseTrack extends KeyedEntity[Long] with SaleAbleItem {
 
   def itemSlug: String = slug
 
-
+  def rawImage=art
   def signature: String = file.get
 
   @Transient
@@ -269,11 +277,6 @@ case class Track(var id: Long = 0, var artistID: Long, session: String, file: Op
   var single = false
 
 
-  def image(kind: String, album: Option[Album]): String = kind match {
-    case "small" => if (art.isDefined || album.isEmpty) smallArtURL else album.get.smallArtURL
-    case "medium" => if (art.isDefined || album.isEmpty) artImage.getOrResize(Discover()).url else album.get.artImage.getOrResize(Discover()).url
-    case _ => image("small", album)
-  }
 
   @Transient
   lazy val tags = {

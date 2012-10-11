@@ -1,4 +1,4 @@
-@(items:Seq[(Track, Artist, Option[Album])])(implicit request: play.api.mvc.RequestHeader)
+@(items:Seq[(SaleAbleItem, Artist, Option[Album])])(implicit request: play.api.mvc.RequestHeader)
 @import utils.Utils.mediaURL
 @nav={
 @header()

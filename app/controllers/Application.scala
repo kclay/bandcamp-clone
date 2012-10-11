@@ -76,20 +76,19 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
         if (hasSubdomain) {
           Redirect(routes.Artists.index())
         } else {
-         /*
-          val albums = Album.list(1, 2)
+
+          val albums = Album.list(1, 2).map(a=>(a._1,a._2,Some(a._1)) )
           val needed = 4 - (albums.size)
 
-          val tracks = if (needed > 0) Track.withSingleAndArtist(1, needed) else List()
-          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist)]]  */
-          val collection = Track.withArtistAnAlbum(1,4)
+          val tracks = if (needed > 0) Track.withArtistAnAlbum(1, needed) else List()
+          val collection = (albums ++ tracks).asInstanceOf[Seq[(SaleAbleItem, Artist,Option[Album])]]
+
           Ok(html.index(collection))
         }
 
 
     }
   }
-
 
 
   private def hasSubdomain(implicit request: RequestHeader): Boolean = {

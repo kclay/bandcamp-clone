@@ -37,6 +37,7 @@ object Browse extends Controller with SquerylTransaction {
     implicit request =>
 
       val offset = (page - 1) * amount
+
       val items = find.page(offset, amount).toSeq
       val count = tracks.where(t => t.active === true).Count
       Ok(html.discover(models.Page(items, page - 1, offset, count)))
