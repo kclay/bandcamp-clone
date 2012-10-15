@@ -4,7 +4,7 @@ import play.api.mvc.{Result, RequestHeader}
 
 import play.api.libs.Crypto
 import utils.ZipCreator
-import utils.Utils._
+import utils.Utils.normalize
 
 
 /**

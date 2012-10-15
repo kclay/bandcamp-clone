@@ -1,7 +1,7 @@
 package controllers
 
 
-import actions.Actions._
+import actions._
 import play.api._
 
 import libs.Crypto
@@ -20,9 +20,10 @@ import play.api.Play
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import scala.Some
+import utils.Utils
 
 
-object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithDB with SquerylTransaction {
+object Application extends Controller with Auth with MyLoginLogout with AuthConfigImpl with WithCommon {
 
 
   def Error(implicit request: RequestHeader) = {
@@ -80,11 +81,11 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
           Redirect(routes.Artists.index())
         } else {
 
-          val albums0 = Album.list(1, 2).map(a=>(a._1,a._2,Some(a._1)) )
+          val albums0 = Album.list(1, 2).map(a => (a._1, a._2, Some(a._1)))
           val needed = 4 - (albums0.size)
 
           val tracks0 = join(tracks, artists, albumTracks.leftOuter, albums.leftOuter)((t, a, at, ab) =>
-            where(t.active === true and ((at.get.albumID notIn albums0.map(a=>a._1.id)) or (at.get.albumID isNull)))
+            where(t.active === true and ((at.get.albumID notIn albums0.map(a => a._1.id)) or (at.get.albumID isNull)))
               select(t, a, ab)
               orderBy (t.id.desc)
               on(t.artistID === a.id,
@@ -92,7 +93,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
               at.map(_.albumID) === ab.map(_.id))
           ).take(needed).toList
 
-          val collection = (albums0 ++ tracks0).asInstanceOf[Seq[(SaleAbleItem, Artist,Option[Album])]]
+          val collection = (albums0 ++ tracks0).asInstanceOf[Seq[(SaleAbleItem, Artist, Option[Album])]]
 
           Ok(html.index(collection))
         }
@@ -171,24 +172,24 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
       Ok(promos.mkString("\n"))
   }
 
-  def validateSignup = Action {
+  def validateSignup = TransAction {
     implicit request =>
-      db {
-        signupFrom.bindFromRequest.fold(
-          errors => BadRequest(html.signup(errors)),
-          user => {
-            val artist = artists insert Artist(user.username, Artist.hash(user.password), user.email, user.name)
+
+      signupFrom.bindFromRequest.fold(
+        errors => BadRequest(html.signup(errors)),
+        user => {
+          val artist = artists insert Artist(user.username, Artist.hash(user.password), user.email, user.name)
 
 
-            //PromoCode.delete(user.code)
+          //PromoCode.delete(user.code)
 
 
 
-            gotoLoginSucceeded(artist.id)
-            /* Redirect(routes.Artists.welcome()).withSession(
-        session + (SessionHelper.sessionKey -> id.toString))*/
-          })
-      }
+          gotoLoginSucceeded(artist.id)
+          /* Redirect(routes.Artists.welcome()).withSession(
+      session + (SessionHelper.sessionKey -> id.toString))*/
+        })
+
 
   }
 
@@ -200,7 +201,7 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
   }
 
 
-  def login = Action {
+  def login = TransAction {
     implicit request =>
       if (hasSubdomain) {
         import utils.Utils.domain
@@ -208,12 +209,12 @@ object Application extends Controller with Auth with MyLoginLogout with AuthConf
         Redirect("http://" + domain + "/login").withNewSession
       } else {
         request.method match {
-          case "POST" => db {
+          case "POST" =>
             loginForm.bindFromRequest.fold(
               formWithErrors => BadRequest(html.login(formWithErrors)),
               user => gotoLoginSucceeded(user.get.id)
             )
-          }
+
           case "GET" => {
             /* val data = Map("username" -> "cideas", "password" -> "cideas")
             loginForm.bind(data).fold(

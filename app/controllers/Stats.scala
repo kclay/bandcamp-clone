@@ -3,10 +3,11 @@ package controllers
 import play.api.mvc.Controller
 import jp.t2v.lab.play20.auth.Auth
 import models._
-import actions.{Authorizer, SquerylTransaction}
-import actions.Actions._
+import actions._
+
 
 import com.codahale.jerkson.Json._
+import utils.Utils
 import utils.Utils.withArtist
 
 /**

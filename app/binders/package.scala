@@ -106,7 +106,7 @@ object `package` {
     } yield range
   }
 
-  implicit def gameSceneBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[GameScene] {
+ /* implicit def gameSceneBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[GameScene] {
     def unbind(key: String, value: GameScene) = stringBinder.unbind(key, value.name)
 
     def withScene(value: String) = {
@@ -126,7 +126,7 @@ object `package` {
 
     } yield range
 
-  }
+  }     */
 
 
 }

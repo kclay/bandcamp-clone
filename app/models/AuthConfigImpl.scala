@@ -4,9 +4,7 @@ import play.api.mvc.Results._
 import jp.t2v.lab.play20.auth._
 import play.api.mvc._
 import controllers.routes
-import utils.session.SessionHelper
 
-import play.api.cache.Cache
 
 
 /**

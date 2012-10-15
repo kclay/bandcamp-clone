@@ -1,12 +1,14 @@
 package controllers
 
-import actions.SquerylTransaction
+
+import actions._
 
 import play.api.mvc._
 import models.SiteDB._
 import org.squeryl.PrimitiveTypeMode._
 import models._
 import utils.Utils
+
 
 
 import play.api.libs.json._
@@ -16,7 +18,7 @@ import play.api.cache.Cache
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
-import actions.Actions.WithArtist
+
 import org.squeryl.dsl.ast.{FunctionNode, BinaryOperatorNodeLogicalBoolean}
 import org.squeryl.dsl.StringExpression
 import org.squeryl.internals.{StatementWriter, OutMapper}
@@ -25,9 +27,9 @@ import org.squeryl.internals.{StatementWriter, OutMapper}
  * Created by IntelliJ IDEA.
  * User: Keyston
  * Date: 9/17/12
- * Time: 12:21 PM 
+ * Time: 12:21 PM
  */
-object Api extends Controller with SquerylTransaction {
+object Api extends Controller with WithCommon{
 
   import json.Writes._
 

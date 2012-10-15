@@ -1,10 +1,9 @@
 package utils
 
-import models.{SaleAbleItem, Artist}
-import play.api.mvc.{Results, RequestHeader}
-import play.api.libs.Crypto
-import play.api.Logger
+import models.Artist
+import play.api.mvc.RequestHeader
 import play.api.cache.Cache
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -37,7 +36,6 @@ object Utils {
 
 
   def artistId(id: Long) = {
-    import play.mvc.Http
 
     Context.current().args.put(CONTEXT_USER_ID, id.asInstanceOf[Object])
   }
@@ -59,8 +57,6 @@ object Utils {
   }
 
   def artistId = {
-    import play.mvc.Http
-    import binders._
 
     import java.lang.{Long => JLong}
     val args = Context.current().args

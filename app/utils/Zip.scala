@@ -1,12 +1,15 @@
 package utils
 
+import play.api.mvc.RequestHeader
+import models.Album
 import models._
-import utils.Assets._
 
 import utils.Assets.audioStore
 import play.api.mvc.RequestHeader
 
-import java.io.File
+import scala.Predef._
+import models.Download
+import scala.Some
 
 
 /**
@@ -21,7 +24,7 @@ abstract class Zip(artist: String) {
 
   def file: Option[java.io.File] = None
 
-  def uri: String = file.map(_.getAbsolutePath.replace(audioStore.temp.getAbsolutePath, "")).getOrElse("").replace("\\","/")
+  def uri: String = file.map(_.getAbsolutePath.replace(audioStore.temp.getAbsolutePath, "")).getOrElse("").replace("\\", "/")
 
   def url(implicit request: RequestHeader): String = {
     if (file.isEmpty) toZip
@@ -42,7 +45,6 @@ abstract class Zip(artist: String) {
 
 }
 
-
 case class AlbumZip(artistID: Long, session: String, artist: String) extends Zip(artist) {
 
   override def file = audioStore.zip("album", session)
@@ -60,6 +62,9 @@ case class AlbumZip(artistID: Long, session: String, artist: String) extends Zip
     }
   }
 }
+
+
+
 
 case class TrackZip(artistID: Long, fileHash: String, artist: String) extends Zip(artist) {
   override def file = audioStore.zip("track", fileHash)
