@@ -30,6 +30,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                     status:"",
                     order:0,
                     tags:"",
+                    genreID:0,
 
 
                     session:app_config.session()
@@ -71,6 +72,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 var t = _.clone(this.attributes);
 
                 if (this.isNew())t.id = 0
+                // ensure value is 0 and not an empty string
+                if (!t.genreID)t.genreID = 0;
 
 
                 return t;
@@ -238,6 +241,14 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
             }
         })
 
+
+        var UploadProxy = function () {
+        }
+
+        _.extend(UploadProxy.prototype, Backbone.Events, {
+
+
+        })
         var RoutesUpload = Routes.Upload;
         var TrackOverviewView = Common.OverviewView.extend({
 
@@ -287,13 +298,7 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 this._updatePostParams();
                 if (this._uploadCurrentFile)
                     view._currentFile = this._uploadCurrentFile;
-                view
-                    .on("uploaded", this._onTrackUploaded, this)
-                    .on("canceled", this._onTrackCanceled, this)
-                    .on("stopped", this._onTrackStopped, this)
-                    .on("started", this._onTrackStarted, this)
-                    .on("error", this._onTrackError, this)
-
+                this._updateUploadListeners(view, true);
             },
             /**
              *
@@ -301,18 +306,26 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
                 */
             removeUploadListeners:function (view) {
                 this._updatePostParams(true);
-                this.trackUploadView = null;
+
                 if (this.trackUploadView == view) {
                     this._uploadCurrentFile = view._currentFile;
                 }
-                view
-                    .off("uploaded", this._onTrackUploaded, this)
-                    .off("canceled", this._onTrackCanceled, this)
-                    .off("stopped", this._onTrackStopped, this)
-                    .off("started", this._onTrackStarted, this)
-                    .off("error", this._onTrackError, this)
+
+                this._updateUploadListeners(view, false);
+
+                this._updateUploadListeners(this.trackUploadView, false);
+                this.trackUploadView = null;
 
 
+            },
+            _updateUploadListeners:function (view, attach) {
+                if (!view)return;
+                var method = attach ? "on" : "off";
+                view[method]("uploaded", this._onTrackUploaded, this);
+                view[method]("canceled", this._onTrackCanceled, this);
+                view[method]("stopped", this._onTrackStopped, this);
+                view[method]("started", this._onTrackStarted, this);
+                view[method]("error", this._onTrackError, this);
             },
             _onTrackError:function () {
                 this._onUploadError(["upload error"])
@@ -500,6 +513,8 @@ define(["binder", "backbone", "app/upload", "app/common"], function (binder, Bac
         }
 
     }
+
+
 )
 
 

@@ -5,6 +5,7 @@ import akka.actor.Actor
 import java.io.File
 import models.Artist
 import utils.{TempAudioDataStore, ffmpeg}
+import play.api.Logger
 
 
 /**
@@ -29,6 +30,7 @@ case class VerifyResponse(ok: Boolean)
 class Encoding extends Actor {
   private val PREVIEW_LENGTH = 90
   lazy val audioDataStore = new TempAudioDataStore()
+  private lazy val logger = Logger("encoding")
 
   def encode(queueId: Long) {
     import models.Queue;
@@ -45,7 +47,7 @@ class Encoding extends Actor {
 
             val output = audioDataStore.full(album, queue.file)
             val duration = f.duration
-
+            logger.debug("%s duration is (%s)".format(file.getName, duration))
 
             if (!f.encode(preview, if (duration > PREVIEW_LENGTH) PREVIEW_LENGTH else 0)) {
               Queue.updateStatus(queue.id, Queue.STATUS_ERROR_PREVIEW);

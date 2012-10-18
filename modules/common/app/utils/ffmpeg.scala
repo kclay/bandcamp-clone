@@ -51,7 +51,7 @@ case class ffmpeg(file: File) {
 
 
       _.trim match {
-        case Duration(hours, mintues, seconds, mills) => if (mintues.toInt < 1) "duration"
+        case Duration(hours, minutes, seconds, mills) => if ((minutes.toInt + seconds.toInt) < 1) "duration"
 
         case Encoding(mediaType, sample) => {
           Logger.debug(mediaType + " :: " + sample)
@@ -84,6 +84,7 @@ case class ffmpeg(file: File) {
 
     val logger = ProcessLogger((line: String) => buffer append (line))
     val command = (base ++ args).mkString(" ")
+    Logger.debug(command)
     val exitCode = (base ++ args).!(logger)
 
     (exitCode, buffer)

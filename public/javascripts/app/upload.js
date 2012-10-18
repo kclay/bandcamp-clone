@@ -46,6 +46,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
 
             return button;
         },
+        canUpload:function () {
+            return true;
+        },
         finalize:function (options, button, hit) {
 
 
@@ -297,7 +300,9 @@ define(["backbone", "swfupload", "underscore"], function (Backbone, SWFUpload, _
                 swf.speedSettings = {};
                 swf.settings = {moving_average_history_size:10}
                 button.click(function () {
-                    input.click();
+                    if (self.canUpload()) {
+                        input.click();
+                    }
                     return false;
                 })
                 options.types = _((options.types || "").split(";")).map(function (value, index) {

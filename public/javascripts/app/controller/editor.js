@@ -357,9 +357,11 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
                 this._updateHeight();
             }
 
+
             if (model.get("id")) {
                 this._addReplaceUploader(modelView);
-                this._attachOverviewToUploader(overviewView);
+                this.setActiveModel(model);
+
             }
 
         },
@@ -439,7 +441,7 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
 
             } else {
                 newOverviewView.parent().show();
-                this._activeModel = newOverviewView.model;
+                this.setActiveModel(newOverviewView.model);
 
                 this.albumView.$(".right-panel").hide();
             }
@@ -477,19 +479,31 @@ define(["underscore", "app/track", "app/upload", "app/album", "app/common", "mod
         _onBeforeUploadStarted:function () {
             if (!this.options.album)return;
             var prevOverviewView = this.activeOverview();
-            if (prevOverviewView) {
+            if (prevOverviewView && prevOverviewView._active) {
                 // if upload is from 'replace' link then exit
-                if (prevOverviewView._active) return;
-                prevOverviewView.removeUploadListeners(this.trackUploadView);
+                return;
+
             }
 
             var model = new Track.Model();
             this.tracks.add(model);
+            this.setActiveModel(model);
+
+
+        },
+        setActiveModel:function (model) {
+
+
+            var prevOverviewView = this.activeOverview();
+            if (prevOverviewView) {
+
+                prevOverviewView.removeUploadListeners(this.trackUploadView);
+            }
+
             this._activeModel = model;
 
             var overviewView = this.activeOverview();
             this._attachOverviewToUploader(overviewView);
-
         },
         _attachOverviewToUploader:function (overviewView) {
 
