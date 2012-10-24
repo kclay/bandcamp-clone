@@ -59,7 +59,7 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
         Immediate download of @(tracks.length)-track album.</p>
 
     <p>
-        <a href="/album/@(album.slug)/download" class="download">Buy Now</a>  @price(album.price) USD  or more
+        <a href="/album/@(album.slug)/download" class="download">Buy Now</a> @price(album.price) USD or more
     </p>
 
     <table id="track-list">
@@ -70,14 +70,28 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
     </table>
     @album.about.map{l=>
     <h3>About</h3>
+
     <p>@l</p>
 
     }
-    @album.credits.map{l=>
-    <h3>Credits</h3>
-    <p>@l</p>
+    <div id="album-credits">
+        @album.credits.map{l=>
+        <h3>Album Credits</h3>
 
-    }
+        <p>@l</p>
+
+        }
+    </div>
+    <div id="track-credits">
+       @for((t,i) <-tracks.view.zipWithIndex){
+            @t.credits.map{c=>
+             <div class="track-@i-info hide">
+                 <h3>@t.name Credits</h3>
+                 <p>@c</p>
+             </div>
+            }
+        }
+    </div>
 
     @if(album.tags.nonEmpty){
     <div class="tags">
@@ -94,12 +108,11 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
 <div id="details-right" class="span5 pull-left">
     <div class="album-art">
         @if(!album.artURL.isEmpty){
-            <img src="@album.artURL"/>
+        <img src="@album.artURL"/>
         }
     </div>
 
 </div>
-
 
 
 <script type="text/javascript">
@@ -107,10 +120,15 @@ pl.push({'slug':'@t.slug','id':@t.id,'artist_id':@t.artistID,'price':@t.price,'t
 
     @addTracks(mediaURL)
     window.app_config.playlist = pl;
-    window.app_config.model={'kind':'album','slug':'@album.slug','artist_id':@album.artistID,'price':@album.price,'title':'@escapeJavaScript(album.name)'};
+    window.app_config.model = {
+        'kind':'album',
+        'slug':'@album.slug',
+        'artist_id':@album.artistID,
+        'price':@album.price,
+            'title':'@escapeJavaScript(album.name)'
+    };
+
 </script>
-
-
 
 
 }

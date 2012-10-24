@@ -35,9 +35,16 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
         _onPause:function () {
             this._onPlayerChange(this._currentIndex, true);
         },
+        _changeIndex:function (index) {
+            if (this._currentIndex >= 0 && index != this._currentIndex) {
+                $(".track-" + this._currentIndex + "-info").hide();
+            }
+            this._currentIndex = index;
+            $(".track-" + index + "-info").show();
+        },
         _onFirstPlay:function (index) {
             this._init = true;
-            this._currentIndex = index;
+            this._changeIndex(index);
             this._onPlayerChange(index)
             this.player.off("play", this._onFirstPlay)
         },
@@ -54,7 +61,7 @@ define(["underscore", "backbone", "jwplayer", "app/common"], function (_, Backbo
                     .find(".track-play-column i")
                     .removeClass().addClass("icon-pause")
             }
-            this._currentIndex = index;
+            this._changeIndex(index);
         },
         pause:function (event) {
             this.player.pause();
